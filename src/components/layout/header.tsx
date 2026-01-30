@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,39 +17,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  LayoutDashboard,
-  Wallet,
-  AreaChart,
-  Presentation,
-  Search,
-  LifeBuoy,
+  Calendar,
+  AppWindow,
   Settings,
+  LifeBuoy,
   Menu,
+  ChevronDown
 } from 'lucide-react';
-import type { Scenario } from '@/lib/types';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/icons';
-import { cn } from '@/lib/utils';
-
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/funds', label: 'Funds', icon: Wallet },
-  { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
-  { href: '/scenarios', label: 'Scenarios', icon: Presentation },
-];
 
 export function Header() {
-  const scenarios: Scenario[] = ['Base Case', 'Slow Deployment', 'Fast Deployment', 'Downside Vintage'];
-  const pathname = usePathname();
-
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-card px-4 sm:px-6">
       <div className="flex items-center gap-6">
         <Sheet>
           <SheetTrigger asChild>
@@ -59,79 +40,56 @@ export function Header() {
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left">
+          <SheetContent side="left" className="bg-card">
             <nav className="grid gap-6 text-lg font-medium">
               <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold mb-4">
-                <Logo className="h-6 w-6 text-primary" />
-                <span>Verity Forecaster</span>
+                <Logo className="h-6 w-6" />
+                <span>Global ETF Dashboard</span>
               </Link>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'transition-colors hover:text-foreground',
-                    (item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href))
-                      ? 'text-foreground'
-                      : 'text-muted-foreground'
-                  )}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              <Button variant="ghost" className="justify-start">All Funds <ChevronDown className="ml-2 h-4 w-4" /></Button>
+              <Button variant="ghost" className="justify-start">Workflows</Button>
             </nav>
           </SheetContent>
         </Sheet>
+        
         <Link href="/dashboard" className="hidden items-center gap-2 md:flex">
-          <Logo className="h-6 w-6 text-primary" />
-          <h1 className="font-semibold">Verity Forecaster</h1>
+          <Logo className="h-6 w-6" />
+          <h1 className="font-semibold text-lg">Global ETF Dashboard</h1>
         </Link>
-        <nav className="hidden items-center gap-5 text-sm font-medium md:flex lg:gap-6">
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'transition-colors hover:text-foreground',
-                (item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href))
-                  ? 'text-foreground'
-                  : 'text-muted-foreground'
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav className="hidden items-center gap-1 text-sm font-medium md:flex lg:gap-2">
+           <Button variant="link" className="text-foreground font-semibold">All Funds</Button>
         </nav>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden w-48 md:block">
-          <Select defaultValue="Base Case">
-            <SelectTrigger>
-              <SelectValue placeholder="Select Scenario" />
-            </SelectTrigger>
-            <SelectContent>
-              {scenarios.map((scenario) => (
-                <SelectItem key={scenario} value={scenario}>
-                  {scenario}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="hidden md:flex items-center gap-4">
+            <Button variant="ghost">
+                <Calendar className="mr-2 h-4 w-4" />
+                January 30th, 2026
+            </Button>
+             <Select defaultValue="workflows">
+                <SelectTrigger className="w-[150px]">
+                    <div className="flex items-center gap-2">
+                        <AppWindow className="h-4 w-4" />
+                        <SelectValue placeholder="Workflows" />
+                    </div>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="workflows">Workflows</SelectItem>
+                    <SelectItem value="reporting">Reporting</SelectItem>
+                    <SelectItem value="compliance">Compliance</SelectItem>
+                </SelectContent>
+            </Select>
         </div>
 
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Search className="h-5 w-5" />
-          <span className="sr-only">Search</span>
-        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User avatar" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-            </Button>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src="https://picsum.photos/seed/風景/64/64" alt="User avatar" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+              </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
