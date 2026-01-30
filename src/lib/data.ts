@@ -1,4 +1,4 @@
-import type { Fund, CashflowData, NavData } from './types';
+import type { Fund, CashflowData, NavData, UnfundedCommitmentData, Scenario } from './types';
 
 export const funds: Fund[] = [
   {
@@ -61,39 +61,104 @@ const generateQuarterlyDates = (startYear: number, numYears: number) => {
   return dates;
 };
 
-const dates = generateQuarterlyDates(2021, 8);
+const DATES = generateQuarterlyDates(2021, 8);
+const TOTAL_COMMITMENT = funds.reduce((acc, fund) => acc + fund.commitment, 0);
 
-// J-Curve NAV Projection
-export const navProjectionData: NavData[] = dates.map((date, index) => {
-  const t = index / dates.length; // Normalize index to be between 0 and 1
-  // A simple function to model a J-curve like shape
-  const nav = 100 * (1 - Math.exp(-t * 5)) + t * 500 + Math.random() * 50;
-  return {
-    date,
-    nav: Math.max(0, nav),
-  };
-});
+const generateCashflowForecast = (scenario: Scenario): CashflowData[] => {
+    let callFactor = 1;
+    let distFactor = 1;
+    if (scenario === 'Slow Deployment') callFactor = 0.8;
+    if (scenario === 'Fast Deployment') callFactor = 1.2;
+    if (scenario === 'Downside Vintage') distFactor = 0.6;
+    
+    return DATES.map((date, index) => {
+        const investmentPhase = index < 16; // First 4 years
+        const harvestPhase = index >= 12; // After year 3
 
-export const cashflowForecastData: CashflowData[] = dates.map((date, index) => {
-  const investmentPhase = index < 12; // First 3 years
-  const harvestPhase = index >= 16; // After year 4
+        let capitalCall = 0;
+        if (investmentPhase) {
+            capitalCall = (Math.random() * (16 - index) * 0.7 + 1.5) * callFactor;
+        }
 
-  let capitalCall = 0;
-  if (investmentPhase) {
-    capitalCall = Math.random() * (12 - index) * 0.8 + 2;
-  }
+        let distribution = 0;
+        if (harvestPhase) {
+            distribution = (Math.random() * (index - 11) * 1.8 + 1) * distFactor;
+        } else if (index > 8) {
+            distribution = Math.random() * 1.5 * distFactor;
+        }
+        
+        return {
+            date,
+            capitalCall: capitalCall * 1000000,
+            distribution: distribution * 1000000,
+            netCashflow: (distribution - capitalCall) * 1000000,
+        };
+    });
+};
 
-  let distribution = 0;
-  if (harvestPhase) {
-    distribution = Math.random() * (index - 15) * 2 + 1;
-  } else if (index > 8) {
-    distribution = Math.random() * 2;
-  }
+const generateNavProjection = (scenario: Scenario, cashflows: CashflowData[]): NavData[] => {
+  let downturn = 1;
+  if (scenario === 'Downside Vintage') downturn = 0.7;
+
+  let currentNav = funds.reduce((acc, f) => acc + f.latestNav, 0); // Start with current NAV
   
-  return {
-    date,
-    capitalCall: capitalCall * 1000000,
-    distribution: distribution * 1000000,
-    netCashflow: (distribution - capitalCall) * 1000000,
-  };
-});
+  return DATES.map((date, index) => {
+      const { capitalCall, distribution } = cashflows[index];
+      // A simple NAV roll-forward
+      const growth = currentNav * (0.02 + (Math.random() - 0.5) * 0.01) * downturn; // Quarterly growth
+      currentNav += capitalCall - distribution + growth;
+      return {
+        date,
+        nav: Math.max(0, currentNav),
+      };
+  });
+};
+
+const generateUnfundedCommitment = (cashflows: CashflowData[]): UnfundedCommitmentData[] => {
+  let remainingUnfunded = TOTAL_COMMITMENT;
+  
+  return cashflows.map(cf => {
+    remainingUnfunded -= cf.capitalCall;
+    return {
+      date: cf.date,
+      unfunded: Math.max(0, remainingUnfunded),
+    };
+  });
+};
+
+export const getPortfolioData = (scenario: Scenario = 'Base Case') => {
+    const cashflowForecast = generateCashflowForecast(scenario);
+    const navProjection = generateNavProjection(scenario, cashflowForecast);
+    const unfundedCommitment = generateUnfundedCommitment(cashflowForecast);
+    
+    const totalCommitment = TOTAL_COMMITMENT;
+    const projectedNav = navProjection[navProjection.length - 1]?.nav || 0;
+
+    const netCashflows = cashflowForecast.map(c => c.netCashflow);
+    
+    const peakOutflowData = netCashflows.length > 0 
+      ? cashflowForecast.reduce((peak, current) => {
+            return current.netCashflow < peak.netCashflow ? current : peak;
+        }, {date: '', netCashflow: 0})
+      : {date: 'N/A', netCashflow: 0};
+    
+    let cumulativeCashflow = 0;
+    const breakeven = cashflowForecast.find(c => {
+        cumulativeCashflow += c.netCashflow;
+        return cumulativeCashflow > 0;
+    })?.date;
+
+    return {
+        navProjection,
+        cashflowForecast,
+        unfundedCommitment,
+        stats: {
+            totalCommitment,
+            projectedNav,
+            peakCapitalOutflow: peakOutflowData.netCashflow,
+            peakCapitalOutflowDate: peakOutflowData.date,
+            breakeven: breakeven || "N/A",
+            lastUpdated: new Date().toISOString(),
+        }
+    };
+}

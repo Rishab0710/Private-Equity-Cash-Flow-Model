@@ -1,47 +1,101 @@
-import { FundList } from '@/components/app/funds/fund-list';
+'use client';
+
+import { useState } from 'react';
 import { StatCard } from '@/components/app/dashboard/stat-card';
 import { PortfolioJCurve } from '@/components/app/dashboard/j-curve-chart';
 import { NetCashflowForecast } from '@/components/app/dashboard/cashflow-chart';
-import { cashflowForecastData, navProjectionData } from '@/lib/data';
+import { UnfundedCommitmentChart } from '@/components/app/dashboard/unfunded-commitment-chart';
+import { ScenarioSelector } from '@/components/app/dashboard/scenario-selector';
+import { getPortfolioData } from '@/lib/data';
+import type { Scenario } from '@/lib/types';
+import { format } from 'date-fns';
+import { AlertCircle, Clock } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default function DashboardPage() {
+  const [scenario, setScenario] = useState<Scenario>('Base Case');
+  const portfolioData = getPortfolioData(scenario);
+
+  const formatCurrency = (value: number) => {
+    if (Math.abs(value) >= 1_000_000) {
+      return `$${(value / 1_000_000).toFixed(1)}M`;
+    }
+    if (Math.abs(value) >= 1_000) {
+      return `$${(value / 1_000).toFixed(1)}K`;
+    }
+    return `$${value.toFixed(0)}`;
+  };
+  
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <ScenarioSelector selectedScenario={scenario} onScenarioChange={setScenario} />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>Last updated: {format(new Date(portfolioData.stats.lastUpdated), "MMM d, yyyy, h:mm a")}</span>
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Commitment"
-          value="$425M"
-          change="+2.5% from last month"
+          value={formatCurrency(portfolioData.stats.totalCommitment)}
           icon="DollarSign"
         />
         <StatCard
-          title="Projected NAV"
-          value="$255M"
-          change="+1.8% from last month"
+          title="Projected NAV (EOP)"
+          value={formatCurrency(portfolioData.stats.projectedNav)}
           icon="LineChart"
         />
         <StatCard
           title="Peak Capital Outflow"
-          value="-$12.5M"
-          description="in Q3 2025"
+          value={formatCurrency(portfolioData.stats.peakCapitalOutflow)}
+          description={`in ${portfolioData.stats.peakCapitalOutflowDate}`}
           icon="TrendingDown"
         />
         <StatCard
           title="Breakeven"
-          value="Q2 2026"
+          value={portfolioData.stats.breakeven}
           description="When distributions exceed contributions"
           icon="CalendarCheck2"
         />
       </div>
-
+      
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <PortfolioJCurve data={navProjectionData} />
-        <NetCashflowForecast data={cashflowForecastData} />
+        <PortfolioJCurve data={portfolioData.navProjection} />
+        <NetCashflowForecast data={portfolioData.cashflowForecast} />
       </div>
 
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">My Funds</h2>
-        <FundList showHeader={false} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <UnfundedCommitmentChart data={portfolioData.unfundedCommitment} />
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Liquidity Risk</CardTitle>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold text-yellow-400">Moderate</div>
+                <p className="text-xs text-muted-foreground">
+                    Potential cash shortfall in Q2 2025 under stress scenarios.
+                </p>
+                <div className="mt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cash Buffer</span>
+                        <span>$25.5M</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Next 30-day Calls</span>
+                        <span>$8.2M</span>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
       </div>
     </div>
   );

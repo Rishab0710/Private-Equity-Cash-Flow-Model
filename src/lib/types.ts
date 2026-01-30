@@ -23,4 +23,9 @@ export type NavData = {
   nav: number;
 };
 
+export type UnfundedCommitmentData = {
+  date: string;
+  unfunded: number;
+};
+
 export type Scenario = 'Base Case' | 'Slow Deployment' | 'Fast Deployment' | 'Downside Vintage';

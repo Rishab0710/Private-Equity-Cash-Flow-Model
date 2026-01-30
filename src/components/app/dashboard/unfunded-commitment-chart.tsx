@@ -7,20 +7,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import type { NavData } from '@/lib/types';
+import type { UnfundedCommitmentData } from '@/lib/types';
 import { DrillDownDialog } from './drill-down-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-type Props = {
-  data: NavData[];
-};
-
-const chartConfig = {
-  nav: {
-    label: 'NAV',
-    color: 'hsl(var(--chart-1))',
-  },
-};
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', {
@@ -30,13 +20,24 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-export function PortfolioJCurve({ data }: Props) {
+type Props = {
+  data: UnfundedCommitmentData[];
+};
+
+const chartConfig = {
+  unfunded: {
+    label: 'Unfunded',
+    color: 'hsl(var(--chart-3))',
+  },
+};
+
+export function UnfundedCommitmentChart({ data }: Props) {
   const trigger = (
     <Card className="cursor-pointer hover:border-primary">
       <CardHeader>
-        <CardTitle>Portfolio J-Curve</CardTitle>
+        <CardTitle>Unfunded Commitment Evolution</CardTitle>
         <CardDescription>
-          Consolidated NAV Projection
+          Projected unfunded commitment over the portfolio's life.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -74,12 +75,11 @@ export function PortfolioJCurve({ data }: Props) {
                 content={<ChartTooltipContent indicator="dot" formatter={(value) => formatCurrency(value as number)} />}
               />
               <Area
-                dataKey="nav"
+                dataKey="unfunded"
                 type="natural"
-                fill="var(--color-nav)"
+                fill="var(--color-unfunded)"
                 fillOpacity={0.4}
-                stroke="var(--color-nav)"
-                stackId="a"
+                stroke="var(--color-unfunded)"
               />
             </AreaChart>
           </ChartContainer>
@@ -89,19 +89,19 @@ export function PortfolioJCurve({ data }: Props) {
   );
 
   return (
-    <DrillDownDialog trigger={trigger} title="Consolidated NAV Projection Data">
+    <DrillDownDialog trigger={trigger} title="Unfunded Commitment Data">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
-            <TableHead className="text-right">NAV</TableHead>
+            <TableHead className="text-right">Unfunded Commitment</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.date}>
               <TableCell>{item.date}</TableCell>
-              <TableCell className="text-right">{formatCurrency(item.nav)}</TableCell>
+              <TableCell className="text-right">{formatCurrency(item.unfunded)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
