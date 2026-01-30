@@ -10,8 +10,8 @@ type AssumptionsPanelProps = {
     setAnnualWithdrawal: (value: number) => void;
     annualIncrease: number;
     setAnnualIncrease: (value: number) => void;
-    analysisTimePeriod: number;
-    setAnalysisTimePeriod: (value: number) => void;
+    investmentPeriod: number;
+    setInvestmentPeriod: (value: number) => void;
 }
 
 const AssetAllocationRow = ({ label, percentage, balance }: { label: string, percentage: string, balance: number }) => {
@@ -36,8 +36,8 @@ export function AssumptionsPanel({
     setAnnualWithdrawal,
     annualIncrease,
     setAnnualIncrease,
-    analysisTimePeriod,
-    setAnalysisTimePeriod
+    investmentPeriod,
+    setInvestmentPeriod
  }: AssumptionsPanelProps) {
     return (
         <div className="space-y-6">
@@ -76,9 +76,9 @@ export function AssumptionsPanel({
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="analysis-time-period" className="text-xs font-medium">Analysis Time Period</Label>
+                    <Label htmlFor="investment-period" className="text-xs font-medium">Investment Period</Label>
                     <div className="relative">
-                        <Input id="analysis-time-period" type="number" value={analysisTimePeriod} onChange={e => setAnalysisTimePeriod(Number(e.target.value))} className="h-8 w-36 pr-16 text-xs text-left" />
+                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-8 w-36 pr-16 text-xs text-left" />
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">Years</span>
                     </div>
                 </div>

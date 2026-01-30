@@ -24,11 +24,11 @@ const generateChartData = (params: {
     annualContribution: number;
     annualWithdrawal: number;
     annualIncrease: number;
-    analysisTimePeriod: number;
+    investmentPeriod: number;
     meanRateOfReturn: number;
     standardDeviation: number;
 }) => {
-    const { startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod, meanRateOfReturn, standardDeviation } = params;
+    const { startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, meanRateOfReturn, standardDeviation } = params;
     
     const data = [];
     const baseAmount = startingBalance / 1000000;
@@ -55,7 +55,7 @@ const generateChartData = (params: {
         aggressive: Math.round(agg),
     });
 
-    for (let i = 1; i <= analysisTimePeriod; i++) {
+    for (let i = 1; i <= investmentPeriod; i++) {
         const netAnnualFlow = (currentContribution - currentWithdrawal) / 1000000;
         
         cons += netAnnualFlow;
@@ -89,9 +89,9 @@ const calculateLikelihoods = (params: {
     startingBalance: number;
     annualContribution: number;
     annualWithdrawal: number;
-    analysisTimePeriod: number;
+    investmentPeriod: number;
 }) => {
-    const { startingBalance, annualContribution, annualWithdrawal, analysisTimePeriod } = params;
+    const { startingBalance, annualContribution, annualWithdrawal, investmentPeriod } = params;
 
     const baseLikelihoods = {
         conservative: 80,
@@ -100,7 +100,7 @@ const calculateLikelihoods = (params: {
     };
 
     const growthPressure = startingBalance > 0 ? ((annualContribution - annualWithdrawal) / startingBalance) * 100 : 0;
-    const timePressure = (analysisTimePeriod - 25) / 2.5;
+    const timePressure = (investmentPeriod - 25) / 2.5;
     const adjustment = growthPressure + timePressure;
 
     const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(val, max));
@@ -138,7 +138,7 @@ export default function PortfolioGrowthPage() {
     const [annualContribution, setAnnualContribution] = useState(0);
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
     const [annualIncrease, setAnnualIncrease] = useState(0);
-    const [analysisTimePeriod, setAnalysisTimePeriod] = useState(20);
+    const [investmentPeriod, setInvestmentPeriod] = useState(20);
 
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
@@ -167,7 +167,7 @@ export default function PortfolioGrowthPage() {
             annualContribution,
             annualWithdrawal,
             annualIncrease,
-            analysisTimePeriod
+            investmentPeriod
         };
         
         const strategyRiskProfiles = {
@@ -190,7 +190,7 @@ export default function PortfolioGrowthPage() {
         const { baseReturn, baseStdev } = riskProfile;
 
         // 1. Time horizon factor
-        const timeFactor = (analysisTimePeriod - 20) / 10; // Longer horizon = more risk appetite
+        const timeFactor = (investmentPeriod - 20) / 10; // Longer horizon = more risk appetite
 
         // 2. Net cash flow factor (contribution vs withdrawal)
         const netFlow = annualContribution - annualWithdrawal;
@@ -225,7 +225,7 @@ export default function PortfolioGrowthPage() {
         }
         setLikelihoods(calculateLikelihoods(params));
 
-    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod, fundId, funds]);
+    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, fundId, funds]);
 
 
     if (!chartData || !potentialWealth || !likelihoods || !portfolioData) {
@@ -276,8 +276,8 @@ export default function PortfolioGrowthPage() {
                             setAnnualWithdrawal={setAnnualWithdrawal}
                             annualIncrease={annualIncrease}
                             setAnnualIncrease={setAnnualIncrease}
-                            analysisTimePeriod={analysisTimePeriod}
-                            setAnalysisTimePeriod={setAnalysisTimePeriod}
+                            investmentPeriod={investmentPeriod}
+                            setInvestmentPeriod={setInvestmentPeriod}
                         />
                     </div>
                     <div className="lg:col-span-2 space-y-4">
