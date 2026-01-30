@@ -20,7 +20,7 @@ const AssetAllocationRow = ({ label, percentage, balance }: { label: string, per
     
     return (
         <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-3">
-            <p className={`text-xs text-foreground text-black`}>{label}</p>
+            <p className={`text-xs text-black`}>{label}</p>
             <p className="text-xs font-semibold text-right">{formatCurrency(value)}</p>
             <p className="text-xs font-semibold text-right">{percentage}</p>
         </div>

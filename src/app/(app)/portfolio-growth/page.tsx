@@ -15,7 +15,7 @@ const staticAssumptions = {
         fixedIncome: '20.00%',
         cash: '2.50%',
         realAssets: '5.00%',
-        hedgeFundStrategies: '5.00%',
+        hedgeFund: '5.00%',
         privateEquity: '7.50%',
     },
 };
@@ -126,7 +126,7 @@ const formatCurrency = (value: number) => {
 
 const MetricRow = ({ label, value }: { label: string, value: string | number }) => (
     <div className="flex justify-between items-center py-1 px-3">
-        <p className="text-xs text-foreground">{label}</p>
+        <p className="text-xs text-black">{label}</p>
         <p className="text-xs font-semibold">{value}</p>
     </div>
 );
