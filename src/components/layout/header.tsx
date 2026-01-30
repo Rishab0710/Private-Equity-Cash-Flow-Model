@@ -30,7 +30,7 @@ import { DatePicker } from '../app/dashboard/date-picker';
 import { format } from 'date-fns';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
   { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Spline },
 ];
@@ -40,11 +40,11 @@ export function Header() {
   const { fundId, setFundId, asOfDate, setAsOfDate } = usePortfolioContext();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-card px-4">
+    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-card px-4">
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-2">
            <h1 className="font-semibold text-base hidden md:block">
-            Verity Forecaster
+            Private Equity
           </h1>
         </Link>
         <nav className="hidden items-center gap-1 text-xs font-medium md:flex lg:gap-2">
@@ -66,9 +66,9 @@ export function Header() {
         </nav>
       </div>
 
-      <div className="flex flex-1 items-center justify-end gap-4">
+      <div className="flex flex-1 items-center justify-end gap-2">
         {pathname === '/dashboard' && (
-           <div className='hidden md:flex items-center gap-4'>
+           <div className='hidden md:flex items-center gap-2'>
             <FundSelector
               selectedFundId={fundId}
               onFundChange={setFundId}
@@ -94,7 +94,7 @@ export function Header() {
                 href="/dashboard"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
               >
-                <span className="font-semibold">Verity Forecaster</span>
+                <span className="font-semibold">Private Equity</span>
               </Link>
               {navItems.map((item) => (
                 <Link
