@@ -21,7 +21,6 @@ import {
   Menu,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Logo } from '@/components/icons';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +38,6 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:px-6">
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <Logo className="h-6 w-6 text-primary" />
           <h1 className="font-semibold text-lg hidden md:block">Verity Forecaster</h1>
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium md:flex lg:gap-2">
@@ -71,8 +69,7 @@ export function Header() {
           <SheetContent side="left" className="bg-background">
             <nav className="grid gap-4 p-4 text-lg font-medium">
               <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold mb-4">
-                <Logo className="h-6 w-6 text-primary" />
-                <span>Verity Forecaster</span>
+                <span className="font-semibold">Verity Forecaster</span>
               </Link>
               {navItems.map((item) => (
                  <Link
