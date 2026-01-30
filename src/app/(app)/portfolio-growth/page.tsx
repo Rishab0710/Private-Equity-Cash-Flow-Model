@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -256,7 +257,7 @@ export default function PortfolioGrowthPage() {
             <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <CardTitle className="text-lg font-normal">
-                    Potential Growth of Your Portfolio Using Forward-Looking Risk and Return Assumptions
+                    Potential Growth of Your Fund's Wealth
                     </CardTitle>
                     <FundSelector
                         selectedFundId={fundId}
@@ -306,3 +307,5 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
+
+    
