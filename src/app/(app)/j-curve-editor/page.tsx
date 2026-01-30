@@ -1,6 +1,6 @@
 'use client';
 
-import { JCurveControls } from '@/components/app/j-curve-editor/j-curve-controls';
+import { JCurveControls } from '@/components/app/j--curve-editor/j-curve-controls';
 import { JCurvePreviewChart } from '@/components/app/j-curve-editor/j-curve-preview-chart';
 import { PortfolioImpactPreview } from '@/components/app/j-curve-editor/portfolio-impact-preview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,26 +29,22 @@ if(dummyNavData.length > 0) {
 
 export default function JCurveEditorPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">Cash Flow Forecasting</h1>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <div className="lg:col-span-1">
           <JCurveControls />
         </div>
-        <div className="lg:col-span-3 space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="lg:col-span-3 space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <JCurvePreviewChart title="Deployment & Distribution" data={dummyCurveData} type="composed" />
             <JCurvePreviewChart title="Net Cashflow (J-Curve)" data={dummyCurveData} type="line" />
             <JCurvePreviewChart title="NAV Evolution" data={dummyNavData} type="line" />
             <Card>
-                <CardHeader>
-                    <CardTitle>Curve Comparison</CardTitle>
+                <CardHeader className="p-3">
+                    <CardTitle className="text-base">Curve Comparison</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
+                <CardContent className="p-3">
+                    <div className="flex h-56 items-center justify-center rounded-lg border-2 border-dashed">
                         <p className="text-muted-foreground">Curve comparison coming soon...</p>
                     </div>
                 </CardContent>
