@@ -27,13 +27,8 @@ const formatValue = (value: number) => {
 export function JCurvePreviewChart({ title, data, type }: Props) {
     const renderChart = () => {
         if (type === 'composed') {
-            const composedData = data.map(d => ({
-                ...d,
-                deployment: d.value < 0 ? d.value : 0,
-                distribution: d.value > 0 ? d.value : 0,
-            }))
             return (
-                <ComposedChart data={composedData}>
+                <ComposedChart data={data}>
                     <CartesianGrid vertical={false} />
                     <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `Yr ${v}`}/>
                     <YAxis tickFormatter={formatValue} tickLine={false} axisLine={false} />
@@ -46,17 +41,15 @@ export function JCurvePreviewChart({ title, data, type }: Props) {
         }
         
         const lineKey = title.includes('NAV') ? 'nav' : 'net';
-        const lineData = title.includes('NAV') ? data.map(d => ({ year: d.year, nav: d.value })) : data.map(d => ({ year: d.year, net: d.value }));
-
 
         return (
-            <LineChart data={lineData}>
+            <LineChart data={data}>
                  <CartesianGrid vertical={false} />
                 <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `Yr ${v}`}/>
                 <YAxis tickFormatter={formatValue} tickLine={false} axisLine={false} />
                 <Tooltip content={<ChartTooltipContent indicator="dot" />} />
                 <Legend />
-                <Line type="monotone" dataKey={lineKey} stroke={`var(--color-${lineKey})`} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey={lineKey} name={lineKey === 'nav' ? 'NAV' : 'Net Cashflow'} stroke={`var(--color-${lineKey})`} strokeWidth={2} dot={false} />
             </LineChart>
         )
     }
@@ -64,10 +57,10 @@ export function JCurvePreviewChart({ title, data, type }: Props) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-3">
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="h-[250px] -ml-2">
+      <CardContent className="h-[250px] p-0">
         <ChartContainer config={chartConfig} className="h-full w-full">
             {renderChart()}
         </ChartContainer>
