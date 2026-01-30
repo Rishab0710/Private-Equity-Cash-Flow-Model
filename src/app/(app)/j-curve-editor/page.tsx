@@ -5,7 +5,6 @@ import { JCurveControls } from '@/components/app/j-curve-editor/j-curve-controls
 import { JCurvePreviewChart } from '@/components/app/j-curve-editor/j-curve-preview-chart';
 import { PortfolioImpactPreview } from '@/components/app/j-curve-editor/portfolio-impact-preview';
 import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 const generateJCurveData = (params: {
     investmentPeriod: number;
@@ -13,6 +12,7 @@ const generateJCurveData = (params: {
     exitTiming: number;
     distributionVelocity: number;
     navRampSpeed: number;
+    fundLife?: number;
 }) => {
     const {
         investmentPeriod,
@@ -27,6 +27,7 @@ const generateJCurveData = (params: {
     const commitment = 100;
     let unfunded = commitment;
     let nav = 0;
+    let cumulativeNet = 0;
 
     const pacingFactor = 1 + (deploymentPacing - 50) / 100; 
     const velocityFactor = 1 + (distributionVelocity - 50) / 100; 
@@ -60,17 +61,45 @@ const generateJCurveData = (params: {
         distribution = Math.max(0, distribution);
         nav = Math.max(0, nav);
         
+        const net = distribution - deployment;
+        cumulativeNet += net;
+
         data.push({
             year,
             deployment: -deployment,
             distribution,
-            net: distribution - deployment,
+            net,
             nav,
+            cumulativeNet,
         });
     }
     return data;
 };
 
+const calculateImpactMetrics = (data: any[]) => {
+    const peakFundingRequirement = Math.min(0, ...data.map(d => d.cumulativeNet));
+    
+    const breakeven = data.find(d => d.cumulativeNet > 0);
+    const breakevenTiming = breakeven ? breakeven.year : 0;
+
+    const totalDistributions = data.reduce((sum, d) => sum + d.distribution, 0);
+    const totalDeployments = data.reduce((sum, d) => sum - d.deployment, 0);
+    const netMultiple = totalDeployments > 0 ? totalDistributions / totalDeployments : 0;
+
+    let liquidityGapRisk = "Low";
+    if (peakFundingRequirement < -40) {
+        liquidityGapRisk = "High";
+    } else if (peakFundingRequirement < -30) {
+        liquidityGapRisk = "Medium";
+    }
+    
+    return {
+        peakFundingRequirement,
+        breakevenTiming,
+        netMultiple,
+        liquidityGapRisk
+    };
+};
 
 export default function JCurveEditorPage() {
     const [deploymentPacing, setDeploymentPacing] = useState(50);
@@ -78,7 +107,27 @@ export default function JCurveEditorPage() {
     const [exitTiming, setExitTiming] = useState(4);
     const [distributionVelocity, setDistributionVelocity] = useState(60);
     const [navRampSpeed, setNavRampSpeed] = useState(70);
+    
     const [chartData, setChartData] = useState<any[]>([]);
+    const [impactData, setImpactData] = useState<any>(null);
+    const [baselineMetrics, setBaselineMetrics] = useState<any>(null);
+
+    useEffect(() => {
+        // Set baseline on initial render
+        const baselineData = generateJCurveData({
+            deploymentPacing: 50,
+            investmentPeriod: 5,
+            exitTiming: 4,
+            distributionVelocity: 60,
+            navRampSpeed: 70,
+        });
+        setBaselineMetrics(calculateImpactMetrics(baselineData));
+
+        // Set initial chart data
+        const initialData = generateJCurveData({ deploymentPacing, investmentPeriod, exitTiming, distributionVelocity, navRampSpeed });
+        setChartData(initialData);
+
+    }, []); // Run only once on mount
 
     useEffect(() => {
         const data = generateJCurveData({
@@ -89,10 +138,41 @@ export default function JCurveEditorPage() {
             navRampSpeed,
         });
         setChartData(data);
-    }, [deploymentPacing, investmentPeriod, exitTiming, distributionVelocity, navRampSpeed]);
+        
+        if (baselineMetrics) {
+            const currentMetrics = calculateImpactMetrics(data);
+            
+            const getRiskChange = (base: string, current: string) => {
+                const riskOrder = { "Low": 0, "Medium": 1, "High": 2 };
+                if (riskOrder[current as keyof typeof riskOrder] < riskOrder[base as keyof typeof riskOrder]) return "Improved";
+                if (riskOrder[current as keyof typeof riskOrder] > riskOrder[base as keyof typeof riskOrder]) return "Worsened";
+                return "No Change";
+            }
+
+            setImpactData({
+                peakFundingRequirement: {
+                    value: currentMetrics.peakFundingRequirement,
+                    change: currentMetrics.peakFundingRequirement - baselineMetrics.peakFundingRequirement,
+                },
+                liquidityGapRisk: {
+                    value: currentMetrics.liquidityGapRisk,
+                    change: getRiskChange(baselineMetrics.liquidityGapRisk, currentMetrics.liquidityGapRisk),
+                },
+                breakevenTiming: {
+                    value: currentMetrics.breakevenTiming,
+                    change: currentMetrics.breakevenTiming - baselineMetrics.breakevenTiming,
+                },
+                netMultiple: {
+                    value: currentMetrics.netMultiple,
+                    change: currentMetrics.netMultiple - baselineMetrics.netMultiple,
+                }
+            });
+        }
+    }, [deploymentPacing, investmentPeriod, exitTiming, distributionVelocity, navRampSpeed, baselineMetrics]);
 
   return (
     <div className="space-y-4">
+      <PortfolioImpactPreview impactData={impactData} />
       <JCurveControls
         deploymentPacing={deploymentPacing}
         setDeploymentPacing={setDeploymentPacing}
@@ -117,8 +197,6 @@ export default function JCurveEditorPage() {
             </CardContent>
         </Card>
       </div>
-      <Separator />
-      <PortfolioImpactPreview />
     </div>
   );
 }
