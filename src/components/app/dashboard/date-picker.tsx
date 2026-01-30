@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
+import { format, isAfter, isLastDayOfMonth } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -25,7 +25,7 @@ export function DatePicker({ date, setDate }: Props) {
         <Button
           variant={'outline'}
           className={cn(
-            'w-[220px] justify-start text-left font-normal bg-secondary/50 border-border',
+            'w-auto justify-start text-left font-normal bg-secondary/50 border-border',
             !date && 'text-muted-foreground'
           )}
         >
@@ -33,13 +33,13 @@ export function DatePicker({ date, setDate }: Props) {
           {date ? format(date, 'PPP') : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
           selected={date}
           onSelect={(d) => d && setDate(d)}
           initialFocus
-          disabled={{ after: new Date() }}
+          disabled={(day) => !isLastDayOfMonth(day) || isAfter(day, new Date())}
         />
       </PopoverContent>
     </Popover>
