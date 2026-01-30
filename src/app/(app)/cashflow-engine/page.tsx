@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CashflowCommandChart } from '@/components/app/dashboard/cashflow-chart';
 import { NavEvolutionChart } from '@/components/app/cashflow-engine/nav-evolution-chart';
 import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
+import { ScenarioConsole } from '@/components/app/dashboard/left-sidebar';
 
 export default function CashflowEnginePage() {
   const { portfolioData } = usePortfolioContext();
@@ -13,11 +14,18 @@ export default function CashflowEnginePage() {
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold tracking-tight">Cashflow Forecast Engine</h1>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <Skeleton className="h-[430px]" />
-                <Skeleton className="h-[430px]" />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+              <div className="lg:col-span-1">
+                <Skeleton className="h-[320px]" />
+              </div>
+              <div className="lg:col-span-3 space-y-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <Skeleton className="h-[430px]" />
+                  <Skeleton className="h-[430px]" />
+                </div>
+                <Skeleton className="h-[256px]" />
+              </div>
             </div>
-            <Skeleton className="h-[256px]" />
         </div>
     );
   }
@@ -28,14 +36,20 @@ export default function CashflowEnginePage() {
     <div className="space-y-6">
        <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Cashflow Forecast Engine</h1>
-        {/* Controls can go here */}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <CashflowCommandChart data={cashflowForecast} />
-        <NavEvolutionChart data={navProjection} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <div className="lg:col-span-1">
+          <ScenarioConsole />
+        </div>
+        <div className="lg:col-span-3 space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <CashflowCommandChart data={cashflowForecast} />
+            <NavEvolutionChart data={navProjection} />
+          </div>
+          <FundingDriversPanel drivers={drivers} />
+        </div>
       </div>
-      <FundingDriversPanel drivers={drivers} />
     </div>
   );
 }
