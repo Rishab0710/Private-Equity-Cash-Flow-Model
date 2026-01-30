@@ -1,19 +1,15 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { Save, Share2 } from 'lucide-react';
 
 export function JCurveControls() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Curve Modeling Controls</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-wrap items-end gap-x-6 gap-y-4">
+      <CardContent className="flex flex-wrap items-end gap-x-6 gap-y-4 pt-4">
         <div className="space-y-2 flex-1 min-w-[180px]">
           <Label>Strategy Template</Label>
           <Select defaultValue="pe">
@@ -51,12 +47,9 @@ export function JCurveControls() {
             <Slider defaultValue={[70]} />
         </div>
 
-        <div className="flex gap-2 self-end">
+        <div className="flex gap-2 pt-4">
             <Button size="sm">
-                <Save className="mr-2 h-4 w-4" /> Save
-            </Button>
-            <Button variant="outline" size="sm">
-                <Share2 className="mr-2 h-4 w-4" /> Share
+                Apply
             </Button>
         </div>
       </CardContent>
