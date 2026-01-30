@@ -2,17 +2,21 @@ export type Fund = {
   id: string;
   name: string;
   strategy: 'PE' | 'VC' | 'Infra' | 'Secondaries' | 'Other';
-  commitment: number;
+  region: 'North America' | 'Europe' | 'Asia' | 'Global';
   vintageYear: number;
+  commitment: number;
+  unfundedCommitment: number;
   investmentPeriod: number;
   fundLife: number;
   latestNav: number;
-  unfundedCommitment: number;
   forecastIRR: number;
 };
 
+export type Scenario = 'Base' | 'Slow Exit' | 'Fast Exit' | 'Stress';
+
 export type CashflowData = {
   date: string;
+  isActual: boolean;
   capitalCall: number;
   distribution: number;
   netCashflow: number;
@@ -28,19 +32,62 @@ export type UnfundedCommitmentData = {
   unfunded: number;
 };
 
-export type Scenario = 'Base Case' | 'Slow Deployment' | 'Fast Deployment' | 'Downside Vintage';
+export type LiquidityData = {
+  date: string;
+  availableLiquidity: number;
+  netOutflow: number;
+  fundingGap: number;
+};
+
+export type FundDriver = {
+  fundId: string;
+  fundName: string;
+  value: number;
+  nextCashflowDate: string;
+};
+
+export type Composition = {
+  strategy: { name: string; value: number }[];
+  vintage: { name: string; value: number }[];
+  region: { name: string; value: number }[];
+};
+
+export type DataHealth = {
+  fundsUpdated: number;
+  totalFunds: number;
+  successRate: number;
+  lowConfidenceAlerts: number;
+  recentActivity: { fundName: string; status: 'Success' | 'Failed'; timestamp: string }[];
+};
+
+export type Alert = {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'High' | 'Medium' | 'Low';
+};
+
 
 export type PortfolioData = {
-  navProjection: NavData[];
-  cashflowForecast: CashflowData[];
-  unfundedCommitment: UnfundedCommitmentData[];
-  stats: {
-    totalCommitment: number;
-    projectedNav: number;
-    peakCapitalOutflow: number;
-    peakCapitalOutflowDate: string;
-    breakeven: string;
-    liquidityRisk: string;
-    lastUpdated: string;
+  kpis: {
+    netCashRequirementNext90Days: number;
+    peakProjectedOutflow: { value: number; date: string };
+    liquidityBufferRatio: number;
+    remainingUnfunded: number;
+    expectedDistributionsNext12Months: number;
+    breakevenTiming: { from: string; to: string };
+    modelConfidence: number;
+    lastStatementUpdate: string;
   };
+  cashflowForecast: CashflowData[];
+  navProjection: NavData[];
+  liquidityForecast: LiquidityData[];
+  drivers: {
+    upcomingCalls: FundDriver[];
+    expectedDistributions: FundDriver[];
+    largestUnfunded: FundDriver[];
+  };
+  composition: Composition;
+  dataHealth: DataHealth;
+  alerts: Alert[];
 };

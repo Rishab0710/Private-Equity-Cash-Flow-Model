@@ -1,106 +1,55 @@
 'use client';
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  ListChecks,
-  Briefcase,
-  UserCheck,
-  Building,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  Hammer,
-} from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { DataHealth } from '@/lib/types';
+import { CheckCircle, AlertCircle } from 'lucide-react';
+import { format } from 'date-fns';
 
-const queueItems = [
-  {
-    icon: Briefcase,
-    title: 'Quarterly Tax-Loss Harvest',
-    subtitle: 'Global Growth Fund',
-    status: 'Pending PM Approval',
-    statusColor: 'text-yellow-400',
-  },
-  {
-    icon: UserCheck,
-    title: 'Model Drift Adjustment',
-    subtitle: 'US Equity Fund',
-    status: 'Calculating Trades',
-    statusColor: 'text-blue-400',
-  },
-  {
-    icon: Building,
-    title: 'Client Redemption Basket',
-    subtitle: 'Global Tech ETF',
-    status: 'Executing Trades',
-    statusColor: 'text-green-400',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Monthly Cash Deployment',
-    subtitle: 'Emerging Markets Bond Fund',
-    status: 'Sending to OMS',
-    statusColor: 'text-green-400',
-  },
-    {
-    icon: TrendingDown,
-    title: 'Sector Weight Rebalance',
-    subtitle: 'Global Growth Fund',
-    status: 'Pending PM Approval',
-    statusColor: 'text-yellow-400',
-  },
-  {
-    icon: Hammer,
-    title: 'FX Hedge Adjustment',
-    subtitle: 'International Equity Fund',
-    status: 'Sending to OMS',
-    statusColor: 'text-green-400',
-  },
-];
+type Props = {
+    data: DataHealth;
+}
 
-export function RebalanceQueue() {
+const formatPercent = (value: number) => `${(value * 100).toFixed(0)}%`;
+
+export function DataHealthPanel({ data }: Props) {
   return (
-    <Card className="bg-card h-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <ListChecks className="h-5 w-5" />
-            Rebalance Queue
-          </CardTitle>
-          <Button variant="ghost" size="sm">
-            View All
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+    <Card className="h-full">
+      <CardHeader className='pb-2'>
+        <CardTitle className="text-base font-semibold">Statement Extraction & Data Health</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[300px]">
-          <div className="space-y-4">
-            {queueItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-4">
-                <item.icon className="h-5 w-5 text-muted-foreground" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.subtitle}
-                  </p>
+        <div className='space-y-4'>
+            <div>
+                <div className='flex justify-between items-baseline'>
+                    <p className='text-sm text-muted-foreground'>Extraction Success</p>
+                    <p className='font-semibold'>{formatPercent(data.successRate)}</p>
                 </div>
-                <Badge
-                  variant="outline"
-                  className={`text-xs ${item.statusColor} border-current/30`}
-                >
-                  {item.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
+                <Progress value={data.successRate * 100} className='h-1 mt-1'/>
+            </div>
+            <div className='flex justify-between items-center text-sm'>
+                <p className='text-muted-foreground'>Funds Updated</p>
+                <p className='font-semibold'>{data.fundsUpdated} / {data.totalFunds}</p>
+            </div>
+             <div className='flex justify-between items-center text-sm'>
+                <p className='text-muted-foreground'>Low Confidence Alerts</p>
+                <p className='font-semibold text-yellow-400'>{data.lowConfidenceAlerts}</p>
+            </div>
+        </div>
+
+        <CardDescription className='mt-4 mb-2 text-xs'>Recent Activity</CardDescription>
+        <ScrollArea className='h-[80px]'>
+            <div className='space-y-3 text-sm'>
+                {data.recentActivity.map(item => (
+                    <div key={item.fundName} className='flex items-center gap-2'>
+                        {item.status === 'Success' ? <CheckCircle className='h-4 w-4 text-green-500' /> : <AlertCircle className='h-4 w-4 text-red-500' />}
+                        <p className='flex-1 text-xs truncate'>{item.fundName}</p>
+                        <p className='text-xs text-muted-foreground'>{format(new Date(item.timestamp), 'dd MMM')}</p>
+                    </div>
+                ))}
+            </div>
         </ScrollArea>
       </CardContent>
     </Card>

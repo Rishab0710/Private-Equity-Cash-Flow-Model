@@ -1,111 +1,82 @@
 'use client';
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Pie, PieChart, Cell, Tooltip, Legend } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import type { UnfundedCommitmentData } from '@/lib/types';
-import { DrillDownDialog } from './drill-down-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+import type { Composition } from '@/lib/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type Props = {
-  data: UnfundedCommitmentData[];
+  data: Composition;
 };
 
-const chartConfig = {
-  unfunded: {
-    label: 'Unfunded',
-    color: 'hsl(var(--chart-3))',
-  },
+const COLORS = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+];
+
+const formatCurrency = (value: number) => {
+    if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
+    return `$${(value / 1_000).toFixed(0)}K`;
 };
 
-export function UnfundedCommitmentChart({ data }: Props) {
-  const trigger = (
-    <Card className="cursor-pointer hover:border-primary">
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 text-sm bg-background/80 border rounded-md">
+          <p className="font-semibold">{`${payload[0].name}: ${formatCurrency(payload[0].value)}`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+const CompositionPieChart = ({ data }: { data: {name: string, value: number}[]}) => (
+    <ChartContainer config={{}} className="h-full w-full">
+        <PieChart>
+            <Tooltip content={<CustomTooltip />} />
+            <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} label>
+                {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+            </Pie>
+            <Legend wrapperStyle={{fontSize: "0.75rem"}}/>
+        </PieChart>
+    </ChartContainer>
+);
+
+export function PortfolioComposition({ data }: Props) {
+  return (
+    <Card className='h-full'>
       <CardHeader>
-        <CardTitle>Unfunded Commitment Evolution</CardTitle>
-        <CardDescription>
-          Projected unfunded commitment over the portfolio's life.
-        </CardDescription>
+        <CardTitle>Portfolio Composition</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <ChartContainer config={chartConfig} className="h-full w-full">
-            <AreaChart
-              data={data}
-              margin={{
-                top: 5,
-                right: 20,
-                left: 10,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value, index) => {
-                  if (index % 4 === 0) {
-                    return value;
-                  }
-                  return '';
-                }}
-              />
-              <YAxis
-                tickFormatter={(value) => `$${value / 1000000}M`}
-                tickLine={false}
-                axisLine={false}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="dot" formatter={(value) => formatCurrency(value as number)} />}
-              />
-              <Area
-                dataKey="unfunded"
-                type="natural"
-                fill="var(--color-unfunded)"
-                fillOpacity={0.4}
-                stroke="var(--color-unfunded)"
-              />
-            </AreaChart>
-          </ChartContainer>
-        </div>
+         <Tabs defaultValue="strategy" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 h-8">
+            <TabsTrigger value="strategy" className='text-xs h-6'>Strategy</TabsTrigger>
+            <TabsTrigger value="vintage" className='text-xs h-6'>Vintage</TabsTrigger>
+            <TabsTrigger value="region" className='text-xs h-6'>Region</TabsTrigger>
+          </TabsList>
+          <div className='h-[200px]'>
+            <TabsContent value="strategy">
+                <CompositionPieChart data={data.strategy} />
+            </TabsContent>
+            <TabsContent value="vintage">
+                <CompositionPieChart data={data.vintage} />
+            </TabsContent>
+            <TabsContent value="region">
+                <CompositionPieChart data={data.region} />
+            </TabsContent>
+          </div>
+        </Tabs>
       </CardContent>
     </Card>
-  );
-
-  return (
-    <DrillDownDialog trigger={trigger} title="Unfunded Commitment Data">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Unfunded Commitment</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.date}>
-              <TableCell>{item.date}</TableCell>
-              <TableCell className="text-right">{formatCurrency(item.unfunded)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </DrillDownDialog>
   );
 }

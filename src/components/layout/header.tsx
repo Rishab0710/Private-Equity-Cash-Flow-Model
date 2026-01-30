@@ -19,14 +19,12 @@ import {
   Settings,
   LifeBuoy,
   Menu,
-  Clock,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import type { PortfolioData } from '@/lib/types';
 import { FundSelector } from '../app/dashboard/fund-selector';
-import { format } from 'date-fns';
+import { usePortfolioContext } from './app-layout';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,24 +33,15 @@ const navItems = [
   { href: '/scenarios', label: 'Scenarios', icon: Presentation },
 ];
 
-type HeaderProps = {
-  selectedFundId: string;
-  onFundChange: (fundId: string) => void;
-  portfolioData: PortfolioData | null;
-};
-
-export function Header({
-  selectedFundId,
-  onFundChange,
-  portfolioData,
-}: HeaderProps) {
+export function Header() {
   const pathname = usePathname();
+  const { fundId, setFundId } = usePortfolioContext();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-card px-4 sm:px-6">
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <h1 className="font-semibold text-lg hidden md:block">
+           <h1 className="font-semibold text-lg hidden md:block">
             Private Equity
           </h1>
         </Link>
@@ -77,24 +66,10 @@ export function Header({
 
       <div className="flex flex-1 items-center justify-end gap-4">
         {pathname === '/dashboard' && (
-          <div className="flex items-center gap-4">
-            <FundSelector
-              selectedFundId={selectedFundId}
-              onFundChange={onFundChange}
+           <FundSelector
+              selectedFundId={fundId}
+              onFundChange={setFundId}
             />
-            {portfolioData && (
-              <div className="hidden items-center gap-2 text-sm text-muted-foreground lg:flex">
-                <Clock className="h-4 w-4" />
-                <span>
-                  Last updated:{' '}
-                  {format(
-                    new Date(portfolioData.stats.lastUpdated),
-                    'MMM d, yyyy, h:mm a'
-                  )}
-                </span>
-              </div>
-            )}
-          </div>
         )}
 
         <Sheet>
@@ -108,7 +83,7 @@ export function Header({
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="bg-background">
+          <SheetContent side="left" className="bg-card">
             <nav className="grid gap-4 p-4 text-lg font-medium">
               <Link
                 href="/dashboard"

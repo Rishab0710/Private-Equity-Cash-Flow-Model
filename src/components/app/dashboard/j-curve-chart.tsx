@@ -1,111 +1,65 @@
 'use client';
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, ReferenceLine, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import type { NavData } from '@/lib/types';
-import { DrillDownDialog } from './drill-down-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { LiquidityData } from '@/lib/types';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { format } from 'date-fns';
 
 type Props = {
-  data: NavData[];
+  data: LiquidityData[];
 };
 
 const chartConfig = {
-  nav: {
-    label: 'NAV',
-    color: 'hsl(var(--chart-1))',
-  },
+  fundingGap: { label: 'Funding Gap', color: 'hsl(var(--chart-2))' },
+  availableLiquidity: { label: 'Available Liquidity', color: 'hsl(var(--chart-1))' },
 };
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+const formatCurrency = (value: number) => {
+    const absValue = Math.abs(value);
+    if (absValue >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
+    if (absValue >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+    return `$${value.toFixed(0)}`;
+};
 
-export function PortfolioJCurve({ data }: Props) {
-  const trigger = (
-    <Card className="cursor-pointer hover:border-primary">
+
+export function LiquidityRunwayChart({ data }: Props) {
+  return (
+    <Card className='h-full'>
       <CardHeader>
-        <CardTitle>Portfolio J-Curve</CardTitle>
-        <CardDescription>
-          Consolidated NAV Projection
-        </CardDescription>
+        <CardTitle>Liquidity Runway & Funding Gap</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
+        <div className="h-[200px]">
           <ChartContainer config={chartConfig} className="h-full w-full">
-            <AreaChart
+            <BarChart
               data={data}
-              margin={{
-                top: 5,
-                right: 20,
-                left: 10,
-                bottom: 5,
-              }}
+              margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
             >
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="date"
+                tickFormatter={(value) => format(new Date(value), 'MMM yy')}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value, index) => {
-                  if (index % 4 === 0) {
-                    return value;
-                  }
-                  return '';
-                }}
+                interval={4}
               />
               <YAxis
-                tickFormatter={(value) => `$${value / 1000000}M`}
+                tickFormatter={(value) => formatCurrency(value)}
                 tickLine={false}
                 axisLine={false}
               />
-              <ChartTooltip
+              <Tooltip
                 cursor={false}
-                content={<ChartTooltipContent indicator="dot" formatter={(value) => formatCurrency(value as number)} />}
+                content={<ChartTooltipContent indicator="dot" formatter={(value) => formatCurrency(value as number)}/>}
               />
-              <Area
-                dataKey="nav"
-                type="natural"
-                fill="var(--color-nav)"
-                fillOpacity={0.4}
-                stroke="var(--color-nav)"
-                stackId="a"
-              />
-            </AreaChart>
+              <Bar dataKey="availableLiquidity" fill="var(--color-availableLiquidity)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="fundingGap" fill="var(--color-fundingGap)" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ChartContainer>
         </div>
       </CardContent>
     </Card>
-  );
-
-  return (
-    <DrillDownDialog trigger={trigger} title="Consolidated NAV Projection Data">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">NAV</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.date}>
-              <TableCell>{item.date}</TableCell>
-              <TableCell className="text-right">{formatCurrency(item.nav)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </DrillDownDialog>
   );
 }

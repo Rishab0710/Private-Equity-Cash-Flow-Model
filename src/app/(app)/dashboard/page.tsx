@@ -1,94 +1,107 @@
 'use client';
 
 import { usePortfolioContext } from '@/components/layout/app-layout';
-import { StatCard } from '@/components/app/dashboard/stat-card';
-import { PortfolioJCurve } from '@/components/app/dashboard/j-curve-chart';
-import { NetCashflowForecast } from '@/components/app/dashboard/cashflow-chart';
-import { UnfundedCommitmentChart } from '@/components/app/dashboard/unfunded-commitment-chart';
-import type { PortfolioData } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FundList } from '@/components/app/funds/fund-list';
+import { KpiCard } from '@/components/app/dashboard/stat-card';
+import { CashflowCommandChart } from '@/components/app/dashboard/cashflow-chart';
+import { LiquidityRunwayChart } from '@/components/app/dashboard/j-curve-chart';
+import { PortfolioComposition } from '@/components/app/dashboard/unfunded-commitment-chart';
+import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
+import { ScenarioConsole } from '@/components/app/dashboard/left-sidebar';
+import { AlertsWatchlist } from '@/components/app/dashboard/alerts-exceptions';
+import { DataHealthPanel } from '@/components/app/dashboard/rebalance-queue';
+import { format } from 'date-fns';
+
+const formatCurrency = (value: number, decimals = 1) => {
+  if (Math.abs(value) >= 1_000_000_000) {
+    return `$${(value / 1_000_000_000).toFixed(decimals)}B`;
+  }
+  if (Math.abs(value) >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(decimals)}M`;
+  }
+  if (Math.abs(value) >= 1_000) {
+    return `$${(value / 1_000).toFixed(decimals)}K`;
+  }
+  return `$${value.toFixed(0)}`;
+};
+
+const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
+
+const formatDateRange = (from: string, to: string) => {
+    if (from === 'N/A') return 'N/A';
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    return `${format(fromDate, 'MMM yyyy')} - ${format(toDate, 'MMM yyyy')}`;
+}
 
 export default function DashboardPage() {
-  const { portfolioData } = usePortfolioContext();
-
-  const formatCurrency = (value: number) => {
-    if (Math.abs(value) >= 1_000_000) {
-      return `$${(value / 1_000_000).toFixed(1)}M`;
-    }
-    if (Math.abs(value) >= 1_000) {
-      return `$${(value / 1_000).toFixed(1)}K`;
-    }
-    return `$${value.toFixed(0)}`;
-  };
+  const { portfolioData, fundId } = usePortfolioContext();
 
   if (!portfolioData) {
-    return (
-      <div className="space-y-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-          <Skeleton className="h-28" />
-          <Skeleton className="h-28" />
-          <Skeleton className="h-28" />
-          <Skeleton className="h-28" />
-          <Skeleton className="h-28" />
-        </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <Skeleton className="h-[380px]" />
-          <Skeleton className="h-[380px]" />
-          <Skeleton className="h-[380px]" />
-        </div>
-        <div>
-          <Skeleton className="h-96" />
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
+  const { kpis, cashflowForecast, liquidityForecast, drivers, composition, dataHealth, alerts } = portfolioData;
+
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-        <StatCard
-          title="Total Commitment"
-          value={formatCurrency(portfolioData.stats.totalCommitment)}
-          change="+2.5% from last month"
-          icon="DollarSign"
-        />
-        <StatCard
-          title="Projected NAV"
-          value={formatCurrency(portfolioData.stats.projectedNav)}
-          change="+1.8% from last month"
-          icon="LineChart"
-        />
-        <StatCard
-          title="Peak Capital Outflow"
-          value={formatCurrency(portfolioData.stats.peakCapitalOutflow)}
-          description={`in ${portfolioData.stats.peakCapitalOutflowDate}`}
-          icon="TrendingDown"
-        />
-        <StatCard
-          title="Breakeven"
-          value={portfolioData.stats.breakeven}
-          description="When distributions exceed contributions"
-          icon="CalendarCheck2"
-        />
-        <StatCard
-          title="Liquidity Risk"
-          value={portfolioData.stats.liquidityRisk}
-          description="Next quarter's net cashflow"
-          icon="AlertCircle"
-        />
+    <div className="grid grid-cols-12 grid-rows-[auto,auto,auto,1fr] gap-6">
+      {/* KPIs */}
+      <div className="col-span-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+        <KpiCard title="Net Requirement (90D)" value={formatCurrency(kpis.netCashRequirementNext90Days)} />
+        <KpiCard title="Peak Outflow" value={formatCurrency(kpis.peakProjectedOutflow.value)} description={`in ${kpis.peakProjectedOutflow.date ? format(new Date(kpis.peakProjectedOutflow.date), 'MMM yyyy') : 'N/A'}`} />
+        <KpiCard title="Liquidity Buffer" value={formatPercent(kpis.liquidityBufferRatio)} />
+        <KpiCard title="Unfunded" value={formatCurrency(kpis.remainingUnfunded, 0)} />
+        <KpiCard title="Distributions (12M)" value={formatCurrency(kpis.expectedDistributionsNext12Months)} />
+        <KpiCard title="Breakeven" value={kpis.breakevenTiming.from !== 'N/A' ? format(new Date(kpis.breakevenTiming.from), 'MMM yy') : 'N/A'} />
+        <KpiCard title="Model Confidence" value={formatPercent(kpis.modelConfidence)} />
+        <KpiCard title="Last Update" value={format(new Date(kpis.lastStatementUpdate), 'dd MMM yyyy')} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <PortfolioJCurve data={portfolioData.navProjection} />
-        <NetCashflowForecast data={portfolioData.cashflowForecast} />
-        <UnfundedCommitmentChart data={portfolioData.unfundedCommitment} />
+      {/* Main Chart */}
+      <div className="col-span-12 lg:col-span-8 row-span-2">
+        <CashflowCommandChart data={cashflowForecast} />
+      </div>
+      
+      {/* Side Panels */}
+      <div className="col-span-12 lg:col-span-4 space-y-6">
+        <AlertsWatchlist alerts={alerts} />
+        <ScenarioConsole />
       </div>
 
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">My Funds</h2>
-        <FundList showHeader={false} />
+      <div className="col-span-12 lg:col-span-4 space-y-6">
+        <FundingDriversPanel drivers={drivers} />
+      </div>
+      
+      {/* Bottom Row */}
+      <div className="col-span-12 lg:col-span-5">
+        <LiquidityRunwayChart data={liquidityForecast}/>
+      </div>
+      <div className="col-span-12 lg:col-span-4">
+        <PortfolioComposition data={composition} />
+      </div>
+      <div className="col-span-12 lg:col-span-3">
+        <DataHealthPanel data={dataHealth} />
       </div>
     </div>
   );
 }
+
+const DashboardSkeleton = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+      {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-20" />)}
+    </div>
+    <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[500px]" /></div>
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+            <Skeleton className="h-[242px]" />
+            <Skeleton className="h-[242px]" />
+        </div>
+    </div>
+     <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-5"><Skeleton className="h-64" /></div>
+        <div className="col-span-12 lg:col-span-4"><Skeleton className="h-64" /></div>
+        <div className="col-span-12 lg:col-span-3"><Skeleton className="h-64" /></div>
+    </div>
+  </div>
+);

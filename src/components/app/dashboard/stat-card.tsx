@@ -1,41 +1,21 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { LucideIcon } from 'lucide-react';
-import { ArrowUp, DollarSign, LineChart, TrendingDown, CalendarCheck2, AlertCircle } from 'lucide-react';
 
-const iconMap = {
-  DollarSign,
-  LineChart,
-  TrendingDown,
-  CalendarCheck2,
-  AlertCircle,
-};
-
-type StatCardProps = {
+type KpiCardProps = {
   title: string;
   value: string;
-  change?: string;
   description?: string;
-  icon: keyof typeof iconMap;
 };
 
-export function StatCard({ title, value, change, description, icon }: StatCardProps) {
-  const Icon = iconMap[icon];
+export function KpiCard({ title, value, description }: KpiCardProps) {
   return (
-    <Card className="bg-secondary/50 border-border">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card className="bg-card">
+      <CardHeader className="p-3 pb-0">
+        <CardTitle className="text-xs font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {change && (
-          <p className="text-xs text-muted-foreground flex items-center">
-            <ArrowUp className="h-4 w-4 text-primary mr-1" />
-            {change}
-          </p>
-        )}
+      <CardContent className="p-3 pt-1">
+        <div className="text-lg font-semibold">{value}</div>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
