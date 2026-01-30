@@ -38,7 +38,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-card px-3">
+    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-header px-3">
       <div className="flex items-center gap-6">
         <Link href="/portfolio-growth" className="flex items-center gap-2">
            <Image src="https://placehold.co/140x28/transparent/FFFFFF/?text=KAPNATIVE" alt="KAPNATIVE Logo" width={140} height={28} />
@@ -49,7 +49,7 @@ export function Header() {
               key={item.href}
               href={item.href}
               className={cn(
-                'px-3 py-2 rounded-md transition-colors font-bold text-foreground'
+                'px-3 py-2 rounded-md transition-colors font-bold text-white'
               )}
             >
               {item.label}
