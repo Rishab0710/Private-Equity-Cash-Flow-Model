@@ -43,7 +43,7 @@ export function Header() {
         <Link href="/portfolio-growth" className="flex items-center gap-2">
            <Image src="https://placehold.co/140x28/transparent/FFFFFF/?text=KAPNATIVE" alt="KAPNATIVE Logo" width={140} height={28} />
         </Link>
-        <nav className="hidden items-center gap-1 text-xs font-medium md:flex lg:gap-2">
+        <nav className="hidden items-center gap-1 text-sm font-medium md:flex lg:gap-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -52,7 +52,7 @@ export function Header() {
                 'px-3 py-2 rounded-md transition-colors',
                 isClient && (pathname === item.href ||
                   (item.href !== '/dashboard' && pathname.startsWith(item.href)))
-                  ? 'bg-primary/10 text-primary'
+                  ? 'font-bold text-white'
                   : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               )}
             >
@@ -91,7 +91,7 @@ export function Header() {
                     isClient && (pathname === item.href ||
                       (item.href !== '/dashboard' &&
                         pathname.startsWith(item.href)))
-                      ? 'bg-primary/10 text-primary'
+                      ? 'font-bold text-white'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
