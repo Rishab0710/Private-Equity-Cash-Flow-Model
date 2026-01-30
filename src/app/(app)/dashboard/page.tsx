@@ -6,7 +6,6 @@ import { KpiCard } from '@/components/app/dashboard/stat-card';
 import { CashflowCommandChart } from '@/components/app/dashboard/cashflow-chart';
 import { LiquidityRunwayChart } from '@/components/app/dashboard/j-curve-chart';
 import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
-import { ScenarioConsole } from '@/components/app/dashboard/left-sidebar';
 import { AlertsWatchlist } from '@/components/app/dashboard/alerts-exceptions';
 import { DataHealthPanel } from '@/components/app/dashboard/rebalance-queue';
 import { format } from 'date-fns';
@@ -60,19 +59,16 @@ export default function DashboardPage() {
         <div className="col-span-12 lg:col-span-8">
           <CashflowCommandChart data={cashflowForecast} />
         </div>
-        <div className="col-span-12 lg:col-span-4 space-y-4">
+        <div className="col-span-12 lg:col-span-4 grid grid-rows-2 gap-4">
           <AlertsWatchlist alerts={alerts} />
-          <ScenarioConsole />
+          <FundingDriversPanel drivers={drivers} />
         </div>
       </div>
       
       {/* Row 3 */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 lg:col-span-8">
+        <div className="col-span-12">
           <LiquidityRunwayChart data={liquidityForecast}/>
-        </div>
-        <div className="col-span-12 lg:col-span-4">
-          <FundingDriversPanel drivers={drivers} />
         </div>
       </div>
 
@@ -93,14 +89,13 @@ const DashboardSkeleton = () => (
     </div>
     <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[400px]" /></div>
-        <div className="col-span-12 lg:col-span-4 space-y-4">
-            <Skeleton className="h-[200px]" />
-            <Skeleton className="h-[200px]" />
+        <div className="col-span-12 lg:col-span-4 grid grid-rows-2 gap-4">
+            <Skeleton className="h-full" />
+            <Skeleton className="h-full" />
         </div>
     </div>
      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 lg:col-span-8"><Skeleton className="h-64" /></div>
-        <div className="col-span-12 lg:col-span-4"><Skeleton className="h-64" /></div>
+        <div className="col-span-12"><Skeleton className="h-64" /></div>
     </div>
   </div>
 );
