@@ -231,41 +231,45 @@ export default function PortfolioGrowthPage() {
 
     if (!chartData || !potentialWealth || !likelihoods || !portfolioData) {
         return (
-             <Card>
-                <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="md:col-span-1 space-y-4">
-                            <Skeleton className="h-48 w-full" />
-                            <Skeleton className="h-32 w-full" />
-                            <Skeleton className="h-24 w-full" />
+            <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <Skeleton className="h-8 w-96 max-w-full" />
+                    <Skeleton className="h-10 w-[220px]" />
+                </div>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-1 space-y-4">
+                                <Skeleton className="h-48 w-full" />
+                                <Skeleton className="h-64 w-full" />
+                            </div>
+                            <div className="lg:col-span-2 space-y-4">
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <Skeleton className="h-24 w-full" />
+                                    <Skeleton className="h-24 w-full" />
+                                </div>
+                                <Skeleton className="h-[350px] w-full" />
+                            </div>
                         </div>
-                        <div className="md:col-span-2">
-                            <Skeleton className="h-[400px] w-full" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
         );
     }
 
   return (
     <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+            <h1 className="text-2xl font-bold tracking-tight">
+                Potential Growth of Your Fund's Wealth
+            </h1>
+            <FundSelector
+                selectedFundId={fundId}
+                onFundChange={setFundId}
+            />
+        </div>
        <Card>
-            <CardHeader>
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <CardTitle className="text-lg font-normal">
-                    Potential Growth of Your Fund's Wealth
-                    </CardTitle>
-                    <FundSelector
-                        selectedFundId={fundId}
-                        onFundChange={setFundId}
-                    />
-                </div>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1">
                         <AssumptionsPanel 
@@ -284,14 +288,14 @@ export default function PortfolioGrowthPage() {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="divide-y divide-border rounded-lg border">
-                                <div className="py-1 px-3 font-semibold text-xs">Portfolio</div>
+                                <div className="py-1 px-3 font-semibold text-xs text-black">Portfolio</div>
                                 <div className="space-y-1 py-1">
                                     <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
                                     <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                                 </div>
                             </div>
                             <div className="divide-y divide-border rounded-lg border">
-                                <div className="py-1 px-3 font-semibold text-xs">Potential Wealth</div>
+                                <div className="py-1 px-3 font-semibold text-xs text-black">Potential Wealth</div>
                                 <div className="space-y-1 py-1">
                                     <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} />
                                     <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} />
@@ -311,3 +315,4 @@ export default function PortfolioGrowthPage() {
     
 
     
+
