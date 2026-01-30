@@ -150,14 +150,23 @@ export default function PortfolioGrowthPage() {
         const baseReturn = 8.50;
         const baseStdev = 14.50;
 
-        const withdrawalPressure = (annualWithdrawal > 0 && startingBalance > 0) ? (annualWithdrawal / startingBalance) * 10 : 0;
-        const timeFactor = (analysisTimePeriod - 20) / 10; 
+        // 1. Time horizon factor
+        const timeFactor = (analysisTimePeriod - 20) / 10; // Longer horizon = more risk appetite
 
-        const returnAdjustment = (timeFactor * 0.5) - withdrawalPressure;
-        const stdevAdjustment = (timeFactor * 1.0) - (withdrawalPressure * 1.5);
+        // 2. Net cash flow factor (contribution vs withdrawal)
+        const netFlow = annualContribution - annualWithdrawal;
+        const netFlowFactor = (netFlow / startingBalance); // A ratio of the net flow to the principal
+
+        // 3. Annual increase factor
+        // This amplifies the net cash flow effect over time
+        const increaseFactor = (annualIncrease / 100) * (netFlow > 0 ? 1 : -1);
+
+        // Combine factors to create adjustments
+        const returnAdjustment = (timeFactor * 0.5) + (netFlowFactor * 2) + (increaseFactor * 1);
+        const stdevAdjustment = (timeFactor * 1.0) + (netFlowFactor * 3) + (increaseFactor * 2);
         
-        const newReturn = Math.max(5.0, Math.min(11.0, baseReturn + returnAdjustment));
-        const newStdev = Math.max(10.0, Math.min(20.0, baseStdev + stdevAdjustment));
+        const newReturn = Math.max(5.0, Math.min(12.0, baseReturn + returnAdjustment));
+        const newStdev = Math.max(10.0, Math.min(22.0, baseStdev + stdevAdjustment));
 
         const newPortfolioMetrics = {
             meanRateOfReturn: newReturn,
@@ -252,3 +261,4 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
+
