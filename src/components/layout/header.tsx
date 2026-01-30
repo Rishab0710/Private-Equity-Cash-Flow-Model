@@ -32,7 +32,7 @@ import { format } from 'date-fns';
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
-  { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Spline },
+  { href: '/j-curve-editor', label: 'Cash Flow Forecasting', icon: Spline },
 ];
 
 export function Header() {
@@ -40,7 +40,7 @@ export function Header() {
   const { fundId, setFundId, asOfDate, setAsOfDate } = usePortfolioContext();
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-card px-4">
+    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-card px-3">
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-2">
            <h1 className="font-semibold text-base hidden md:block">
@@ -89,7 +89,7 @@ export function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="bg-card">
-            <nav className="grid gap-4 p-4 text-lg font-medium">
+            <nav className="grid gap-4 p-4 text-base font-medium">
               <Link
                 href="/dashboard"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
@@ -101,7 +101,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all',
+                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
                     pathname === item.href ||
                       (item.href !== '/dashboard' &&
                         pathname.startsWith(item.href))
