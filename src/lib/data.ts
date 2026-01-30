@@ -63,18 +63,37 @@ const generateQuarterlyDates = (startYear: number, numYears: number) => {
 
 const dates = generateQuarterlyDates(2021, 8);
 
-export const navProjectionData: NavData[] = dates.map((date, index) => ({
-  date,
-  nav: 100 + index * 20 + Math.random() * 30 - 15,
-}));
-
-export const cashflowForecastData: CashflowData[] = dates.map((date, index) => {
-  const capitalCall = Math.max(0, 10 - index + Math.random() * 5 - 2.5);
-  const distribution = index > 8 ? Math.max(0, (index - 8) * 1.5 + Math.random() * 6 - 3) : 0;
+// J-Curve NAV Projection
+export const navProjectionData: NavData[] = dates.map((date, index) => {
+  const t = index / dates.length; // Normalize index to be between 0 and 1
+  // A simple function to model a J-curve like shape
+  const nav = 100 * (1 - Math.exp(-t * 5)) + t * 500 + Math.random() * 50;
   return {
     date,
-    capitalCall,
-    distribution,
-    netCashflow: distribution - capitalCall,
+    nav: Math.max(0, nav),
+  };
+});
+
+export const cashflowForecastData: CashflowData[] = dates.map((date, index) => {
+  const investmentPhase = index < 12; // First 3 years
+  const harvestPhase = index >= 16; // After year 4
+
+  let capitalCall = 0;
+  if (investmentPhase) {
+    capitalCall = Math.random() * (12 - index) * 0.8 + 2;
+  }
+
+  let distribution = 0;
+  if (harvestPhase) {
+    distribution = Math.random() * (index - 15) * 2 + 1;
+  } else if (index > 8) {
+    distribution = Math.random() * 2;
+  }
+  
+  return {
+    date,
+    capitalCall: capitalCall * 1000000,
+    distribution: distribution * 1000000,
+    netCashflow: (distribution - capitalCall) * 1000000,
   };
 });

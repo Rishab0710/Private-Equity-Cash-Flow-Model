@@ -1,23 +1,48 @@
-import { LeftSidebar } from '@/components/app/dashboard/left-sidebar';
-import { StatusRibbon } from '@/components/app/dashboard/status-ribbon';
-import { RebalanceQueue } from '@/components/app/dashboard/rebalance-queue';
-import { CorporateActions } from '@/components/app/dashboard/corporate-actions';
-import { AlertsExceptions } from '@/components/app/dashboard/alerts-exceptions';
+import { FundList } from '@/components/app/funds/fund-list';
+import { StatCard } from '@/components/app/dashboard/stat-card';
+import { PortfolioJCurve } from '@/components/app/dashboard/j-curve-chart';
+import { NetCashflowForecast } from '@/components/app/dashboard/cashflow-chart';
+import { cashflowForecastData, navProjectionData } from '@/lib/data';
 
 export default function DashboardPage() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-6 items-start">
-      <aside className="lg:col-span-1 xl:col-span-1 space-y-6">
-        <LeftSidebar />
-      </aside>
-      <main className="lg:col-span-3 xl:col-span-4 space-y-6">
-        <StatusRibbon />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <RebalanceQueue />
-          <CorporateActions />
-          <AlertsExceptions />
-        </div>
-      </main>
+    <div className="space-y-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Commitment"
+          value="$425M"
+          change="+2.5% from last month"
+          icon="DollarSign"
+        />
+        <StatCard
+          title="Projected NAV"
+          value="$255M"
+          change="+1.8% from last month"
+          icon="LineChart"
+        />
+        <StatCard
+          title="Peak Capital Outflow"
+          value="-$12.5M"
+          description="in Q3 2025"
+          icon="TrendingDown"
+        />
+        <StatCard
+          title="Breakeven"
+          value="Q2 2026"
+          description="When distributions exceed contributions"
+          icon="CalendarCheck2"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <PortfolioJCurve data={navProjectionData} />
+        <NetCashflowForecast data={cashflowForecastData} />
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">My Funds</h2>
+        <FundList showHeader={false} />
+      </div>
     </div>
   );
 }

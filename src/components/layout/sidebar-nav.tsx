@@ -19,7 +19,6 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 import { Logo } from '@/components/icons';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
