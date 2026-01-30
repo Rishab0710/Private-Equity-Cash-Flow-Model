@@ -1,5 +1,5 @@
 'use client';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, ReferenceLine } from 'recharts';
 import {
   Card,
   CardContent,
@@ -32,6 +32,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const transformedData = cashflowForecastData.map((item) => ({
+  ...item,
+  capitalCall: -item.capitalCall,
+}));
+
 export function CashflowForecastChart() {
   return (
     <Card>
@@ -44,7 +49,7 @@ export function CashflowForecastChart() {
       <CardContent>
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <BarChart
-            data={cashflowForecastData}
+            data={transformedData}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -65,8 +70,9 @@ export function CashflowForecastChart() {
               content={<ChartTooltipContent indicator="dot" />}
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="capitalCall" stackId="a" fill="var(--color-capitalCall)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="distribution" stackId="b" fill="var(--color-distribution)" radius={[4, 4, 0, 0]} />
+            <ReferenceLine y={0} stroke="#ccc" />
+            <Bar dataKey="capitalCall" fill="var(--color-capitalCall)" radius={[0, 0, 4, 4]} />
+            <Bar dataKey="distribution" fill="var(--color-distribution)" radius={[4, 4, 0, 0]} />
             <Line
                 dataKey="netCashflow"
                 type="monotone"
