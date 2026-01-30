@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -41,11 +42,6 @@ const navItems = [
 export function Header() {
   const pathname = usePathname();
   const { fundId, setFundId, asOfDate, setAsOfDate } = usePortfolioContext();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-card px-3">
@@ -62,7 +58,7 @@ export function Header() {
               href={item.href}
               className={cn(
                 'px-3 py-2 rounded-md transition-colors',
-                isMounted && (pathname === item.href ||
+                (pathname === item.href ||
                   (item.href !== '/dashboard' && pathname.startsWith(item.href)))
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
@@ -75,7 +71,7 @@ export function Header() {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        {isMounted && pathname === '/dashboard' && (
+        {pathname === '/dashboard' && (
            <div className='hidden md:flex items-center gap-2'>
             <FundSelector
               selectedFundId={fundId}
@@ -110,7 +106,7 @@ export function Header() {
                   href={item.href}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
-                    isMounted && (pathname === item.href ||
+                    (pathname === item.href ||
                       (item.href !== '/dashboard' &&
                         pathname.startsWith(item.href)))
                       ? 'bg-primary/10 text-primary'
