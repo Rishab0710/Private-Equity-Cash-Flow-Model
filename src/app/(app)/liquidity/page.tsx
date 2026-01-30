@@ -23,7 +23,6 @@ export default function LiquidityPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-y-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-            <h1 className="text-2xl font-bold tracking-tight">Advanced Liquidity Planning</h1>
             <div className="flex items-center gap-4 flex-wrap">
                 <FundSelector
                   selectedFundId={fundId}
@@ -63,7 +62,6 @@ const LiquiditySkeleton = () => (
     <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-                <Skeleton className="h-8 w-64" />
                 <div className="flex items-center gap-4 flex-wrap">
                     <Skeleton className="h-10 w-[220px]" />
                     <Skeleton className="h-10 w-[200px]" />
