@@ -6,47 +6,7 @@ import { GrowthChart } from '@/components/app/portfolio-growth/growth-chart';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const generateChartData = () => {
-    const data = [];
-    const years = 25;
-    let cons = 4924;
-    let mod = 4924;
-    let agg = 4924;
-
-    const rates = {
-        cons: 0.05,
-        mod: 0.0822,
-        agg: 0.11
-    };
-
-    const volatility = {
-        cons: 0.05,
-        mod: 0.1302,
-        agg: 0.20
-    };
-
-    const currentYear = new Date().getFullYear();
-
-    for (let i = 0; i <= years; i++) {
-        data.push({
-            year: `${currentYear + i}`,
-            conservative: Math.round(cons),
-            moderate: Math.round(mod),
-            aggressive: Math.round(agg),
-        });
-        
-        cons = cons * (1 + rates.cons + (Math.random() - 0.5) * volatility.cons);
-        mod = mod * (1 + rates.mod + (Math.random() - 0.5) * volatility.mod);
-        agg = agg * (1 + rates.agg + (Math.random() - 0.5) * volatility.agg);
-    }
-    return data;
-};
-
-const assumptions = {
-    startingBalance: 4924555,
-    annualContribution: 0,
-    annualIncrease: '0.00%',
-    analysisTimePeriod: '25 Years',
+const staticAssumptions = {
     assetAllocation: {
         equities: '67.40%',
         fixedIncome: '22.41%',
@@ -61,19 +21,89 @@ const assumptions = {
     },
 };
 
+const generateChartData = (params: {
+    startingBalance: number;
+    annualContribution: number;
+    annualWithdrawal: number;
+    annualIncrease: number;
+    analysisTimePeriod: number;
+}) => {
+    const { startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod } = params;
+    
+    const data = [];
+    const baseAmount = startingBalance / 1000;
+    let cons = baseAmount;
+    let mod = baseAmount;
+    let agg = baseAmount;
+
+    let currentContribution = annualContribution;
+    let currentWithdrawal = annualWithdrawal;
+
+    const rates = { cons: 0.05, mod: 0.0822, agg: 0.11 };
+    const volatility = { cons: 0.05, mod: 0.1302, agg: 0.20 };
+    const currentYear = new Date().getFullYear();
+    const increaseFactor = 1 + annualIncrease / 100;
+
+    data.push({
+        year: `${currentYear}`,
+        conservative: Math.round(cons),
+        moderate: Math.round(mod),
+        aggressive: Math.round(agg),
+    });
+
+    for (let i = 1; i <= analysisTimePeriod; i++) {
+        const netAnnualFlow = (currentContribution - currentWithdrawal) / 1000;
+        
+        cons += netAnnualFlow;
+        mod += netAnnualFlow;
+        agg += netAnnualFlow;
+        
+        cons *= (1 + rates.cons + (Math.random() - 0.5) * volatility.cons);
+        mod *= (1 + rates.mod + (Math.random() - 0.5) * volatility.mod);
+        agg *= (1 + rates.agg + (Math.random() - 0.5) * volatility.agg);
+
+        data.push({
+            year: `${currentYear + i}`,
+            conservative: Math.round(cons),
+            moderate: Math.round(mod),
+            aggressive: Math.round(agg),
+        });
+
+        currentContribution *= increaseFactor;
+        currentWithdrawal *= increaseFactor;
+    }
+    return data;
+};
+
+
 export default function PortfolioGrowthPage() {
+    const [startingBalance, setStartingBalance] = useState(4924555);
+    const [annualContribution, setAnnualContribution] = useState(0);
+    const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
+    const [annualIncrease, setAnnualIncrease] = useState(0);
+    const [analysisTimePeriod, setAnalysisTimePeriod] = useState(25);
+
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
 
     useEffect(() => {
-        const data = generateChartData();
-        setChartData(data);
-        setPotentialWealth({
-            conservative: data[data.length - 1].conservative * 1000,
-            moderate: data[data.length - 1].moderate * 1000,
-            aggressive: data[data.length - 1].aggressive * 1000,
+        const data = generateChartData({
+            startingBalance,
+            annualContribution,
+            annualWithdrawal,
+            annualIncrease,
+            analysisTimePeriod
         });
-    }, []);
+        setChartData(data);
+        const lastDataPoint = data[data.length - 1];
+        if (lastDataPoint) {
+            setPotentialWealth({
+                conservative: lastDataPoint.conservative * 1000,
+                moderate: lastDataPoint.moderate * 1000,
+                aggressive: lastDataPoint.aggressive * 1000,
+            });
+        }
+    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod]);
 
 
     if (!chartData || !potentialWealth) {
@@ -109,7 +139,20 @@ export default function PortfolioGrowthPage() {
             <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1">
-                        <AssumptionsPanel assumptions={assumptions} potentialWealth={potentialWealth} />
+                        <AssumptionsPanel 
+                            assumptions={staticAssumptions} 
+                            potentialWealth={potentialWealth}
+                            startingBalance={startingBalance}
+                            setStartingBalance={setStartingBalance}
+                            annualContribution={annualContribution}
+                            setAnnualContribution={setAnnualContribution}
+                            annualWithdrawal={annualWithdrawal}
+                            setAnnualWithdrawal={setAnnualWithdrawal}
+                            annualIncrease={annualIncrease}
+                            setAnnualIncrease={setAnnualIncrease}
+                            analysisTimePeriod={analysisTimePeriod}
+                            setAnalysisTimePeriod={setAnalysisTimePeriod}
+                        />
                     </div>
                     <div className="lg:col-span-2">
                         <GrowthChart data={chartData} />
