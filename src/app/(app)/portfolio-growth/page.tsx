@@ -60,9 +60,15 @@ const generateChartData = (params: {
         mod += netAnnualFlow;
         agg += netAnnualFlow;
         
-        cons *= (1 + rates.cons + (Math.random() - 0.5) * volatility.cons);
-        mod *= (1 + rates.mod + (Math.random() - 0.5) * volatility.mod);
-        agg *= (1 + rates.agg + (Math.random() - 0.5) * volatility.agg);
+        const randomFactor = Math.random() - 0.5;
+
+        cons *= (1 + rates.cons + randomFactor * volatility.cons);
+        mod *= (1 + rates.mod + randomFactor * volatility.mod);
+        agg *= (1 + rates.agg + randomFactor * volatility.agg);
+
+        cons = Math.max(0, cons);
+        mod = Math.max(cons, mod);
+        agg = Math.max(mod, agg);
 
         data.push({
             year: `${currentYear + i}`,
@@ -261,5 +267,6 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
+
 
 
