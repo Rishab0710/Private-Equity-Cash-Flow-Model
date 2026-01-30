@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Private Equity',
+  title: 'Verity Forecaster',
   description: 'Forecast private market cashflows and perform liquidity planning.',
 };
 

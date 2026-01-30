@@ -9,15 +9,15 @@ export default {
   ],
   theme: {
     fontSize: {
-      xs: ['0.6875rem', '1rem'],
-      sm: ['0.75rem', '1.125rem'],
-      base: ['0.8125rem', '1.25rem'],
-      lg: ['0.875rem', '1.5rem'],
-      xl: ['1rem', '1.5rem'],
-      '2xl': ['1.125rem', '1.75rem'],
-      '3xl': ['1.25rem', '2rem'],
-      '4xl': ['1.625rem', '2.25rem'],
-      '5xl': ['2rem', '1'],
+      xs: ['0.75rem', '1rem'], // 12px
+      sm: ['0.875rem', '1.25rem'], // 14px
+      base: ['1rem', '1.5rem'], // 16px
+      lg: ['1.125rem', '1.75rem'], // 18px
+      xl: ['1.25rem', '1.75rem'], // 20px
+      '2xl': ['1.5rem', '2rem'], // 24px
+      '3xl': ['1.875rem', '2.25rem'], // 30px
+      '4xl': ['2.25rem', '2.5rem'], // 36px
+      '5xl': ['3rem', '1'], // 48px
     },
     extend: {
       fontFamily: {

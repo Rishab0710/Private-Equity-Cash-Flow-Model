@@ -21,6 +21,7 @@ import {
   Menu,
   FileUp,
   Cpu,
+  Spline,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -37,6 +38,7 @@ const navItems = [
   { href: '/scenarios', label: 'Scenarios', icon: Presentation },
   { href: '/statement-extraction', label: 'Extraction', icon: FileUp },
   { href: '/cashflow-engine', label: 'Forecast Engine', icon: Cpu },
+  { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Spline },
 ];
 
 export function Header() {
@@ -48,7 +50,7 @@ export function Header() {
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-2">
            <h1 className="font-semibold text-lg hidden md:block">
-            Private Equity
+            Verity Forecaster
           </h1>
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium md:flex lg:gap-2">
@@ -98,7 +100,7 @@ export function Header() {
                 href="/dashboard"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
               >
-                <span className="font-semibold">Private Equity</span>
+                <span className="font-semibold">Verity Forecaster</span>
               </Link>
               {navItems.map((item) => (
                 <Link
