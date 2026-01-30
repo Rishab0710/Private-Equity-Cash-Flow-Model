@@ -8,13 +8,8 @@ const MetricRow = ({ label, value, isSub = false }: { label: string, value: stri
     </div>
 );
 
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
-}
-
 type AssumptionsPanelProps = {
     assumptions: any;
-    potentialWealth: any;
     startingBalance: number;
     setStartingBalance: (value: number) => void;
     annualContribution: number;
@@ -29,7 +24,6 @@ type AssumptionsPanelProps = {
 
 export function AssumptionsPanel({ 
     assumptions, 
-    potentialWealth,
     startingBalance,
     setStartingBalance,
     annualContribution,
@@ -92,19 +86,6 @@ export function AssumptionsPanel({
                  <MetricRow label="Real Assets" value={assumptions.assetAllocation.realAssets} isSub />
                  <MetricRow label="Hedge Fund Strategies" value={assumptions.assetAllocation.hedgeFundStrategies} isSub />
                  <MetricRow label="Private Equity" value={assumptions.assetAllocation.privateEquity} isSub />
-            </div>
-            
-            <div className="divide-y divide-border rounded-lg border">
-                <div className="py-1.5 px-4 font-medium"><p className="text-xs">Portfolio</p></div>
-                 <MetricRow label="Mean Rate of Return" value={assumptions.portfolio.meanRateOfReturn} isSub/>
-                 <MetricRow label="Standard Deviation" value={assumptions.portfolio.standardDeviation} isSub/>
-            </div>
-
-             <div className="divide-y divide-border rounded-lg border">
-                <div className="py-1.5 px-4 font-medium"><p className="text-xs">Potential Wealth</p></div>
-                <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} isSub/>
-                <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} isSub/>
-                <MetricRow label="Aggressive Outlook" value={formatCurrency(potentialWealth.aggressive)} isSub/>
             </div>
         </div>
     )

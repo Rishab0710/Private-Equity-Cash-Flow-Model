@@ -75,6 +75,17 @@ const generateChartData = (params: {
     return data;
 };
 
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+}
+
+const MetricRow = ({ label, value }: { label: string, value: string | number }) => (
+    <div className="flex justify-between items-center py-2 px-4">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold">{value}</p>
+    </div>
+);
+
 
 export default function PortfolioGrowthPage() {
     const [startingBalance, setStartingBalance] = useState(4924555);
@@ -141,7 +152,6 @@ export default function PortfolioGrowthPage() {
                     <div className="lg:col-span-1">
                         <AssumptionsPanel 
                             assumptions={staticAssumptions} 
-                            potentialWealth={potentialWealth}
                             startingBalance={startingBalance}
                             setStartingBalance={setStartingBalance}
                             annualContribution={annualContribution}
@@ -154,7 +164,24 @@ export default function PortfolioGrowthPage() {
                             setAnalysisTimePeriod={setAnalysisTimePeriod}
                         />
                     </div>
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="divide-y divide-border rounded-lg border">
+                                <div className="py-2 px-4 font-semibold text-sm">Portfolio</div>
+                                <div className="space-y-1 py-1">
+                                    <MetricRow label="Mean Rate of Return" value={staticAssumptions.portfolio.meanRateOfReturn} />
+                                    <MetricRow label="Standard Deviation" value={staticAssumptions.portfolio.standardDeviation} />
+                                </div>
+                            </div>
+                            <div className="divide-y divide-border rounded-lg border">
+                                <div className="py-2 px-4 font-semibold text-sm">Potential Wealth</div>
+                                <div className="space-y-1 py-1">
+                                    <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} />
+                                    <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} />
+                                    <MetricRow label="Aggressive Outlook" value={formatCurrency(potentialWealth.aggressive)} />
+                                </div>
+                            </div>
+                        </div>
                         <GrowthChart data={chartData} />
                     </div>
                 </div>
