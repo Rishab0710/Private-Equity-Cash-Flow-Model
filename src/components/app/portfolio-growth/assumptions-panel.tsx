@@ -17,7 +17,7 @@ type AssumptionsPanelProps = {
 
 const AssetAllocationRow = ({ label, percentage, balance }: { label: string, percentage: string, balance: number }) => {
     const value = balance * (parseFloat(percentage) / 100);
-    const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1 }).format(val);
+    const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
     
     return (
         <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-3">
