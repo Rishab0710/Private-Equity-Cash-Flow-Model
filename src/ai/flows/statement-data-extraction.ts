@@ -51,24 +51,6 @@ const ExtractStatementDataOutputSchema = z.object({
     confidence: z.number().describe('The confidence score of the extraction.'),
     sourcePage: z.number().describe('The page number in the PDF where the data was extracted from.'),
   }).describe('Remaining unfunded commitment extracted from the statement.'),
-  dpi: z.object({
-    value: z.number().describe('The DPI value.'),
-    period: z.string().describe('The period the DPI value applies to.'),
-    confidence: z.number().describe('The confidence score of the extraction.'),
-    sourcePage: z.number().describe('The page number in the PDF where the data was extracted from.'),
-  }).optional().describe('DPI extracted from the statement, if present.'),
-  tvpi: z.object({
-    value: z.number().describe('The TVPI value.'),
-    period: z.string().describe('The period the TVPI value applies to.'),
-    confidence: z.number().describe('The confidence score of the extraction.'),
-    sourcePage: z.number().describe('The page number in the PDF where the data was extracted from.'),
-  }).optional().describe('TVPI extracted from the statement, if present.'),
-  irr: z.object({
-    value: z.number().describe('The IRR value.'),
-    period: z.string().describe('The period the IRR value applies to.'),
-    confidence: z.number().describe('The confidence score of the extraction.'),
-    sourcePage: z.number().describe('The page number in the PDF where the data was extracted from.'),
-  }).optional().describe('IRR extracted from the statement, if present.'),
 });
 export type ExtractStatementDataOutput = z.infer<typeof ExtractStatementDataOutputSchema>;
 
@@ -88,9 +70,6 @@ You will extract the following information:
 - NAV values
 - Fees & expenses (if available)
 - Remaining unfunded commitment
-- DPI (if present)
-- TVPI (if present)
-- IRR (if present)
 
 Here is the PDF statement:
 {{media url=pdfDataUri}}

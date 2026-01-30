@@ -153,9 +153,6 @@ export function ExtractionReview({ result, onApprove, onCancel, fileName }: Prop
         {renderTable('NAV Values', editedResult.navValues, 'navValues')}
         {renderTable('Fees & Expenses', editedResult.feesAndExpenses, 'feesAndExpenses')}
         {renderSingleValue('Remaining Unfunded Commitment', editedResult.remainingUnfundedCommitment, 'remainingUnfundedCommitment')}
-        {renderSingleValue('DPI', editedResult.dpi, 'dpi')}
-        {renderSingleValue('TVPI', editedResult.tvpi, 'tvpi')}
-        {renderSingleValue('IRR', editedResult.irr, 'irr')}
       </CardContent>
        <CardFooter className="flex justify-end gap-2">
             <Button variant="outline" onClick={onCancel}>

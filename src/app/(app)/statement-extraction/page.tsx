@@ -44,15 +44,6 @@ export default function StatementExtractionPage() {
       remainingUnfundedCommitment: {
         value: 55000000, period: 'Q4 2023', confidence: 0.99, sourcePage: 1
       },
-      dpi: {
-        value: 0.85, period: 'Q4 2023', confidence: 0.92, sourcePage: 1
-      },
-      tvpi: {
-        value: 1.2, period: 'Q4 2023', confidence: 0.93, sourcePage: 1
-      },
-      irr: {
-        value: 18.5, period: 'Q4 2023', confidence: 0.85, sourcePage: 1
-      },
     };
 
     setExtractionResult(demoExtractionResult);
