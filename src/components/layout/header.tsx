@@ -34,7 +34,7 @@ const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
   { href: '/j-curve-editor', label: 'J-Curve Modelling', icon: Spline },
-  { href: '/portfolio-growth', label: 'Growth Projection', icon: TrendingUp },
+  { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
 ];
 
 export function Header() {
