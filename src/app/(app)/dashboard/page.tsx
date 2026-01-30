@@ -1,5 +1,6 @@
 'use client';
 
+import { usePortfolioContext } from '@/components/layout/app-layout';
 import { StatCard } from '@/components/app/dashboard/stat-card';
 import { PortfolioJCurve } from '@/components/app/dashboard/j-curve-chart';
 import { NetCashflowForecast } from '@/components/app/dashboard/cashflow-chart';
@@ -8,11 +9,9 @@ import type { PortfolioData } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FundList } from '@/components/app/funds/fund-list';
 
-export default function DashboardPage({
-  portfolioData,
-}: {
-  portfolioData: PortfolioData | null;
-}) {
+export default function DashboardPage() {
+  const { portfolioData } = usePortfolioContext();
+
   const formatCurrency = (value: number) => {
     if (Math.abs(value) >= 1_000_000) {
       return `$${(value / 1_000_000).toFixed(1)}M`;

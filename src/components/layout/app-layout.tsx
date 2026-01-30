@@ -1,11 +1,24 @@
 'use client';
 
 import { Header } from '@/components/layout/header';
-import type { ReactNode } from 'react';
-import { useState, useEffect, Children, cloneElement } from 'react';
+import { createContext, useContext, type ReactNode, useState, useEffect } from 'react';
 import { getPortfolioData } from '@/lib/data';
 import type { PortfolioData } from '@/lib/types';
 import { usePathname } from 'next/navigation';
+
+type PortfolioContextType = {
+  portfolioData: PortfolioData | null;
+};
+
+const PortfolioContext = createContext<PortfolioContextType | null>(null);
+
+export function usePortfolioContext() {
+  const context = useContext(PortfolioContext);
+  if (!context) {
+    throw new Error('usePortfolioContext must be used within a component wrapped by AppLayout');
+  }
+  return context;
+}
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -21,20 +34,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
   }, [selectedFundId, pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header
-        selectedFundId={selectedFundId}
-        onFundChange={setSelectedFundId}
-        portfolioData={portfolioData}
-      />
-      <main className="flex-1 p-4 md:p-6 lg:p-8">
-        {Children.map(children, (child) => {
-          if (child && typeof child === 'object' && 'props' in child && pathname === '/dashboard') {
-            return cloneElement(child as React.ReactElement, { portfolioData });
-          }
-          return child;
-        })}
-      </main>
-    </div>
+    <PortfolioContext.Provider value={{ portfolioData }}>
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header
+          selectedFundId={selectedFundId}
+          onFundChange={setSelectedFundId}
+          portfolioData={portfolioData}
+        />
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      </div>
+    </PortfolioContext.Provider>
   );
 }
