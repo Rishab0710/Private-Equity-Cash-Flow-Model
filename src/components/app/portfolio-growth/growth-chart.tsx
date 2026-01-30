@@ -27,15 +27,15 @@ const CustomLegend = (props: any) => {
   const orderedPayload = ['Conservative', 'Moderate', 'Aggressive'].map(name => payload.find((p: any) => p.value === name)).filter(Boolean);
 
   return (
-    <div className="flex flex-row justify-center items-center gap-8 mt-6">
+    <div className="flex flex-row justify-center items-center gap-8 mt-2">
       {orderedPayload.map((entry: any) => {
         const label = entry.value as string;
         const likelihoodText = likelihoods ? likelihoods[label.toLowerCase() as keyof typeof likelihoods] : '';
         return (
           <div key={entry.value} className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
             <div>
-              <p className="text-sm font-medium">{label}</p>
+              <p className="text-xs font-medium">{label}</p>
               {likelihoodText && <p className="text-xs text-muted-foreground">{likelihoodText}</p>}
             </div>
           </div>
@@ -48,7 +48,7 @@ const CustomLegend = (props: any) => {
 
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
-      <div className="h-[450px] w-full">
+      <div className="h-[400px] w-full">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <LineChart
                 data={data}
@@ -83,7 +83,7 @@ export function GrowthChart({ data, likelihoods }: Props) {
                     />
                     }
                 />
-                <Legend content={<CustomLegend likelihoods={likelihoods} />} verticalAlign="bottom" height={80} />
+                <Legend content={<CustomLegend likelihoods={likelihoods} />} verticalAlign="bottom" height={60} />
                 <Line type="monotone" dataKey="conservative" name="Conservative" stroke="var(--color-conservative)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="moderate" name="Moderate" stroke="var(--color-moderate)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="aggressive" name="Aggressive" stroke="var(--color-aggressive)" strokeWidth={2} dot={false} />
