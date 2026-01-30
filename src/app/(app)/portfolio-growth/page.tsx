@@ -126,7 +126,7 @@ const formatCurrency = (value: number) => {
 
 const MetricRow = ({ label, value }: { label: string, value: string | number }) => (
     <div className="flex justify-between items-center py-1 px-3">
-        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-xs text-foreground">{label}</p>
         <p className="text-xs font-semibold">{value}</p>
     </div>
 );
@@ -307,5 +307,7 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
+
+    
 
     
