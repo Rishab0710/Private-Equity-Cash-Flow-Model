@@ -25,6 +25,8 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FundSelector } from '../app/dashboard/fund-selector';
 import { usePortfolioContext } from './app-layout';
+import { DatePicker } from '../app/dashboard/date-picker';
+import { format } from 'date-fns';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,7 +37,7 @@ const navItems = [
 
 export function Header() {
   const pathname = usePathname();
-  const { fundId, setFundId } = usePortfolioContext();
+  const { fundId, setFundId, asOfDate, setAsOfDate } = usePortfolioContext();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-card px-4 sm:px-6">
@@ -66,10 +68,13 @@ export function Header() {
 
       <div className="flex flex-1 items-center justify-end gap-4">
         {pathname === '/dashboard' && (
-           <FundSelector
+           <div className='hidden md:flex items-center gap-4'>
+            <FundSelector
               selectedFundId={fundId}
               onFundChange={setFundId}
             />
+            <DatePicker date={asOfDate} setDate={setAsOfDate} />
+           </div>
         )}
 
         <Sheet>

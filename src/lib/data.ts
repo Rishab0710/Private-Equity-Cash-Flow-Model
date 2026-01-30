@@ -93,22 +93,6 @@ export const funds: Fund[] = [
   },
 ];
 
-const FORECAST_START_DATE = new Date();
-const NUM_QUARTERS_ACTUAL = 8;
-const NUM_QUARTERS_FORECAST = 24;
-
-const generateDates = () => {
-  const dates = [];
-  const today = FORECAST_START_DATE;
-  for (let i = -NUM_QUARTERS_ACTUAL; i < NUM_QUARTERS_FORECAST; i++) {
-    dates.push(addQuarters(today, i));
-  }
-  return dates;
-};
-
-const DATES = generateDates();
-
-// J-Curve parameters by strategy
 const strategyParams = {
   PE: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9 },
   VC: { callPeak: 12, callDecay: 0.85, distStart: 20, distPeak: 28, distDecay: 0.9 },
@@ -117,108 +101,122 @@ const strategyParams = {
   Other: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9 },
 };
 
-const getFundAgeInQuarters = (fund: Fund, date: Date) => {
-  return Math.floor((date.getTime() - new Date(fund.vintageYear, 0, 1).getTime()) / (1000 * 60 * 60 * 24 * 30.44 * 3));
-};
+export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, asOfDate: Date = new Date()): PortfolioData => {
+    const FORECAST_START_DATE = asOfDate;
+    const NUM_QUARTERS_ACTUAL = 8;
+    const NUM_QUARTERS_FORECAST = 24;
 
-const generateFundCashflows = (fund: Fund, scenario: Scenario): CashflowData[] => {
-  const params = strategyParams[fund.strategy];
-  let callFactor = 1;
-  let distFactor = 1;
-
-  switch (scenario) {
-    case 'Slow Exit': distFactor = 0.7; break;
-    case 'Fast Exit': distFactor = 1.3; break;
-    case 'Stress': callFactor = 1.1; distFactor = 0.6; break;
-  }
-  
-  let unfunded = fund.commitment;
-
-  return DATES.map(date => {
-    const age = getFundAgeInQuarters(fund, date);
-    let capitalCall = 0;
-    
-    if (age > 0 && age <= params.callPeak) {
-      capitalCall = (fund.commitment / (params.callPeak * 2)) * (1 + Math.random() * 0.5) * callFactor;
-    } else if (age > params.callPeak && age <= fund.investmentPeriod * 4) {
-      capitalCall = (fund.commitment / (params.callPeak * 2)) * Math.pow(params.callDecay, age - params.callPeak) * (1 + Math.random() * 0.3) * callFactor;
-    }
-    capitalCall = Math.min(capitalCall, unfunded);
-    unfunded -= capitalCall;
-
-    let distribution = 0;
-    if (age > params.distStart) {
-      const distAge = age - params.distStart;
-      if (distAge <= (params.distPeak - params.distStart)) {
-        distribution = (fund.commitment * 2.5 / (params.distPeak-params.distStart) / 4) * (1 + Math.random() * 0.6) * distFactor;
-      } else {
-        distribution = (fund.commitment * 2.5 / (params.distPeak-params.distStart) / 4) * Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart)) * (1 + Math.random() * 0.4) * distFactor;
+    const generateDates = () => {
+      const dates = [];
+      const today = FORECAST_START_DATE;
+      for (let i = -NUM_QUARTERS_ACTUAL; i < NUM_QUARTERS_FORECAST; i++) {
+        dates.push(addQuarters(today, i));
       }
-    }
-    
-    return {
-      date: format(date, 'yyyy-MM-dd'),
-      isActual: isBefore(date, FORECAST_START_DATE),
-      capitalCall,
-      distribution,
-      netCashflow: distribution - capitalCall,
+      return dates;
     };
-  });
-};
+    const DATES = generateDates();
 
-const aggregateCashflows = (allFundCashflows: CashflowData[][]): CashflowData[] => {
-  if (allFundCashflows.length === 0) return [];
-  return DATES.map((date, i) => {
-    return allFundCashflows.reduce((acc, fundCashflows) => {
-      const cf = fundCashflows[i];
-      acc.capitalCall += cf.capitalCall;
-      acc.distribution += cf.distribution;
-      acc.netCashflow += cf.netCashflow;
-      return acc;
-    }, {
-      date: format(date, 'yyyy-MM-dd'),
-      isActual: isBefore(date, FORECAST_START_DATE),
-      capitalCall: 0,
-      distribution: 0,
-      netCashflow: 0,
-    });
-  });
-};
+    const getFundAgeInQuarters = (fund: Fund, date: Date) => {
+        return Math.floor((date.getTime() - new Date(fund.vintageYear, 0, 1).getTime()) / (1000 * 60 * 60 * 24 * 30.44 * 3));
+    };
 
-const getDrivers = (allFundCashflows: CashflowData[][], targetFunds: Fund[], nextQuarters: number): { upcomingCalls: FundDriver[], expectedDistributions: FundDriver[] } => {
-  const forecastStartIndex = DATES.findIndex(d => isAfter(d, FORECAST_START_DATE));
-  if (forecastStartIndex === -1) return { upcomingCalls: [], expectedDistributions: [] };
-  
-  const upcomingCalls: FundDriver[] = [];
-  const expectedDistributions: FundDriver[] = [];
+    const generateFundCashflows = (fund: Fund, scenario: Scenario): CashflowData[] => {
+      const params = strategyParams[fund.strategy];
+      let callFactor = 1;
+      let distFactor = 1;
 
-  targetFunds.forEach((fund, fundIndex) => {
-    let callValue = 0;
-    let distValue = 0;
-    let nextCallDate = '';
-    let nextDistDate = '';
-
-    for (let i = forecastStartIndex; i < forecastStartIndex + nextQuarters; i++) {
-      if (allFundCashflows[fundIndex] && allFundCashflows[fundIndex][i]) {
-        const cf = allFundCashflows[fundIndex][i];
-        callValue += cf.capitalCall;
-        distValue += cf.distribution;
-        if (!nextCallDate && cf.capitalCall > 0) nextCallDate = cf.date;
-        if (!nextDistDate && cf.distribution > 0) nextDistDate = cf.date;
+      switch (scenario) {
+        case 'Slow Exit': distFactor = 0.7; break;
+        case 'Fast Exit': distFactor = 1.3; break;
+        case 'Stress': callFactor = 1.1; distFactor = 0.6; break;
       }
-    }
+      
+      let unfunded = fund.commitment;
 
-    if (callValue > 0) upcomingCalls.push({ fundId: fund.id, fundName: fund.name, value: callValue, nextCashflowDate: nextCallDate });
-    if (distValue > 0) expectedDistributions.push({ fundId: fund.id, fundName: fund.name, value: distValue, nextCashflowDate: nextDistDate });
-  });
+      return DATES.map(date => {
+        const age = getFundAgeInQuarters(fund, date);
+        let capitalCall = 0;
+        
+        if (age > 0 && age <= params.callPeak) {
+          capitalCall = (fund.commitment / (params.callPeak * 2)) * (1 + Math.random() * 0.5) * callFactor;
+        } else if (age > params.callPeak && age <= fund.investmentPeriod * 4) {
+          capitalCall = (fund.commitment / (params.callPeak * 2)) * Math.pow(params.callDecay, age - params.callPeak) * (1 + Math.random() * 0.3) * callFactor;
+        }
+        capitalCall = Math.min(capitalCall, unfunded);
+        unfunded -= capitalCall;
 
-  return {
-    upcomingCalls: upcomingCalls.sort((a, b) => b.value - a.value).slice(0, 5),
-    expectedDistributions: expectedDistributions.sort((a, b) => b.value - a.value).slice(0, 5),
-  };
-};
+        let distribution = 0;
+        if (age > params.distStart) {
+          const distAge = age - params.distStart;
+          if (distAge <= (params.distPeak - params.distStart)) {
+            distribution = (fund.commitment * 2.5 / (params.distPeak-params.distStart) / 4) * (1 + Math.random() * 0.6) * distFactor;
+          } else {
+            distribution = (fund.commitment * 2.5 / (params.distPeak-params.distStart) / 4) * Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart)) * (1 + Math.random() * 0.4) * distFactor;
+          }
+        }
+        
+        return {
+          date: format(date, 'yyyy-MM-dd'),
+          isActual: isBefore(date, FORECAST_START_DATE),
+          capitalCall,
+          distribution,
+          netCashflow: distribution - capitalCall,
+        };
+      });
+    };
 
-export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string): PortfolioData => {
+    const aggregateCashflows = (allFundCashflows: CashflowData[][]): CashflowData[] => {
+      if (allFundCashflows.length === 0) return [];
+      return DATES.map((date, i) => {
+        return allFundCashflows.reduce((acc, fundCashflows) => {
+          const cf = fundCashflows[i];
+          acc.capitalCall += cf.capitalCall;
+          acc.distribution += cf.distribution;
+          acc.netCashflow += cf.netCashflow;
+          return acc;
+        }, {
+          date: format(date, 'yyyy-MM-dd'),
+          isActual: isBefore(date, FORECAST_START_DATE),
+          capitalCall: 0,
+          distribution: 0,
+          netCashflow: 0,
+        });
+      });
+    };
+
+    const getDrivers = (allFundCashflows: CashflowData[][], targetFunds: Fund[], nextQuarters: number): { upcomingCalls: FundDriver[], expectedDistributions: FundDriver[] } => {
+      const forecastStartIndex = DATES.findIndex(d => isAfter(d, FORECAST_START_DATE));
+      if (forecastStartIndex === -1) return { upcomingCalls: [], expectedDistributions: [] };
+      
+      const upcomingCalls: FundDriver[] = [];
+      const expectedDistributions: FundDriver[] = [];
+
+      targetFunds.forEach((fund, fundIndex) => {
+        let callValue = 0;
+        let distValue = 0;
+        let nextCallDate = '';
+        let nextDistDate = '';
+
+        for (let i = forecastStartIndex; i < forecastStartIndex + nextQuarters; i++) {
+          if (allFundCashflows[fundIndex] && allFundCashflows[fundIndex][i]) {
+            const cf = allFundCashflows[fundIndex][i];
+            callValue += cf.capitalCall;
+            distValue += cf.distribution;
+            if (!nextCallDate && cf.capitalCall > 0) nextCallDate = cf.date;
+            if (!nextDistDate && cf.distribution > 0) nextDistDate = cf.date;
+          }
+        }
+
+        if (callValue > 0) upcomingCalls.push({ fundId: fund.id, fundName: fund.name, value: callValue, nextCashflowDate: nextCallDate });
+        if (distValue > 0) expectedDistributions.push({ fundId: fund.id, fundName: fund.name, value: distValue, nextCashflowDate: nextDistDate });
+      });
+
+      return {
+        upcomingCalls: upcomingCalls.sort((a, b) => b.value - a.value).slice(0, 5),
+        expectedDistributions: expectedDistributions.sort((a, b) => b.value - a.value).slice(0, 5),
+      };
+    };
+
     const targetFunds = fundId ? funds.filter(f => f.id === fundId) : funds;
     
     const allFundCashflows = targetFunds.map(fund => generateFundCashflows(fund, scenario));
@@ -295,8 +293,8 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string): 
       successRate: 0.95,
       lowConfidenceAlerts: 2,
       recentActivity: [
-        { fundName: 'Growth Equity Fund V', status: 'Success', timestamp: subMonths(new Date(), 1).toISOString() },
-        { fundName: 'Venture Partners II', status: 'Success', timestamp: subMonths(new Date(), 1).toISOString() },
+        { fundName: 'Growth Equity Fund V', status: 'Success', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
+        { fundName: 'Venture Partners II', status: 'Success', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
       ],
     };
 
@@ -316,7 +314,7 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string): 
           expectedDistributionsNext12Months,
           breakevenTiming,
           modelConfidence: 0.85,
-          lastStatementUpdate: subMonths(new Date(), 1).toISOString(),
+          lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
         },
         cashflowForecast: portfolioCashflows,
         navProjection: [], // This can be built similarly to cashflows if needed

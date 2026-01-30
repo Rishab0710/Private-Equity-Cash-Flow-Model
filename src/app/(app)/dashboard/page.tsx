@@ -46,7 +46,7 @@ export default function DashboardPage() {
   return (
     <div className="grid grid-cols-12 grid-rows-[auto,auto,auto,1fr] gap-6">
       {/* KPIs */}
-      <div className="col-span-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+      <div className="col-span-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
         <KpiCard title="Net Requirement (90D)" value={formatCurrency(kpis.netCashRequirementNext90Days)} />
         <KpiCard title="Peak Outflow" value={formatCurrency(kpis.peakProjectedOutflow.value)} description={`in ${kpis.peakProjectedOutflow.date ? format(new Date(kpis.peakProjectedOutflow.date), 'MMM yyyy') : 'N/A'}`} />
         <KpiCard title="Liquidity Buffer" value={formatPercent(kpis.liquidityBufferRatio)} />
@@ -54,7 +54,6 @@ export default function DashboardPage() {
         <KpiCard title="Distributions (12M)" value={formatCurrency(kpis.expectedDistributionsNext12Months)} />
         <KpiCard title="Breakeven" value={kpis.breakevenTiming.from !== 'N/A' ? format(new Date(kpis.breakevenTiming.from), 'MMM yy') : 'N/A'} />
         <KpiCard title="Model Confidence" value={formatPercent(kpis.modelConfidence)} />
-        <KpiCard title="Last Update" value={format(new Date(kpis.lastStatementUpdate), 'dd MMM yyyy')} />
       </div>
 
       {/* Main Chart */}
@@ -88,8 +87,8 @@ export default function DashboardPage() {
 
 const DashboardSkeleton = () => (
   <div className="space-y-6">
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
-      {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-20" />)}
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+      {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-20" />)}
     </div>
     <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[500px]" /></div>
