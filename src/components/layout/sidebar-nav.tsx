@@ -42,7 +42,7 @@ export function SidebarNav() {
           </Button>
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">
-              Verity Forecaster
+              Private Equity
             </h2>
           </div>
         </div>
