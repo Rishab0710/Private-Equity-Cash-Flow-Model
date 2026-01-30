@@ -18,6 +18,7 @@ import {
   TrendingUp,
   User,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -104,8 +105,9 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuItem>
-              <span>Log out</span>
+            <DropdownMenuItem className="text-accent">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span className="font-medium">Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
