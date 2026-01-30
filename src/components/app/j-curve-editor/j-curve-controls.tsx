@@ -69,12 +69,6 @@ export function JCurveControls({
             </div>
             <Slider value={[navRampSpeed]} onValueChange={([v]) => setNavRampSpeed(v)} />
         </div>
-
-        <div className="flex gap-2 pt-2">
-            <Button size="sm">
-                Apply
-            </Button>
-        </div>
       </CardContent>
     </Card>
   );
