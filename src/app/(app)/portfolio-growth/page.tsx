@@ -170,15 +170,31 @@ export default function PortfolioGrowthPage() {
             analysisTimePeriod
         };
         
-        const baseReturn = 8.50;
-        const baseStdev = 14.50;
+        const strategyRiskProfiles = {
+            'PE': { baseReturn: 9.5, baseStdev: 16.0 },
+            'VC': { baseReturn: 11.0, baseStdev: 20.0 },
+            'Infra': { baseReturn: 7.0, baseStdev: 12.0 },
+            'Secondaries': { baseReturn: 8.0, baseStdev: 14.0 },
+            'Other': { baseReturn: 8.5, baseStdev: 14.5 },
+            'all': { baseReturn: 8.5, baseStdev: 14.5 }
+        };
+
+        let riskProfile;
+        if (fundId === 'all' || !funds) {
+            riskProfile = strategyRiskProfiles.all;
+        } else {
+            const selectedFund = funds.find(f => f.id === fundId);
+            riskProfile = strategyRiskProfiles[selectedFund?.strategy as keyof typeof strategyRiskProfiles] || strategyRiskProfiles.Other;
+        }
+
+        const { baseReturn, baseStdev } = riskProfile;
 
         // 1. Time horizon factor
         const timeFactor = (analysisTimePeriod - 20) / 10; // Longer horizon = more risk appetite
 
         // 2. Net cash flow factor (contribution vs withdrawal)
         const netFlow = annualContribution - annualWithdrawal;
-        const netFlowFactor = (netFlow / startingBalance); // A ratio of the net flow to the principal
+        const netFlowFactor = startingBalance > 0 ? (netFlow / startingBalance) : 0;
 
         // 3. Annual increase factor
         // This amplifies the net cash flow effect over time
@@ -209,7 +225,7 @@ export default function PortfolioGrowthPage() {
         }
         setLikelihoods(calculateLikelihoods(params));
 
-    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod]);
+    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod, fundId, funds]);
 
 
     if (!chartData || !potentialWealth || !likelihoods || !portfolioData) {
