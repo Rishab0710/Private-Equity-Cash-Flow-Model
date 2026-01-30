@@ -174,27 +174,27 @@ export default function JCurveEditorPage() {
             setImpactData({
                 peakFundingRequirement: {
                     value: currentMetrics.peakFundingRequirement,
-                    change: currentMetrics.peakFundingRequirement - baselineMetrics.peakFundingRequirement,
+                    change: currentMetrics.peakFundingRequirement - (baselineMetrics.peakFundingRequirement ?? 0),
                 },
                 liquidityGapRisk: {
                     value: currentMetrics.liquidityGapRisk,
-                    change: getRiskChange(baselineMetrics.liquidityGapRisk, currentMetrics.liquidityGapRisk),
+                    change: getRiskChange(baselineMetrics.liquidityGapRisk ?? 'Low', currentMetrics.liquidityGapRisk),
                 },
                 breakevenTiming: {
                     value: currentMetrics.breakevenTiming,
-                    change: currentMetrics.breakevenTiming - baselineMetrics.breakevenTiming,
+                    change: currentMetrics.breakevenTiming - (baselineMetrics.breakevenTiming ?? 0),
                 },
                 netMultiple: {
                     value: currentMetrics.netMultiple,
-                    change: currentMetrics.netMultiple - baselineMetrics.netMultiple,
+                    change: currentMetrics.netMultiple - (baselineMetrics.netMultiple ?? 0),
                 },
                 tvpi: {
                     value: currentMetrics.tvpi,
-                    change: currentMetrics.tvpi - baselineMetrics.tvpi,
+                    change: currentMetrics.tvpi - (baselineMetrics.tvpi ?? 0),
                 },
                 peakNav: {
                     value: currentMetrics.peakNav.value,
-                    change: currentMetrics.peakNav.value - baselineMetrics.peakNav.value,
+                    change: currentMetrics.peakNav.value - (baselineMetrics.peakNav?.value ?? 0),
                     year: currentMetrics.peakNav.year,
                 }
             });
