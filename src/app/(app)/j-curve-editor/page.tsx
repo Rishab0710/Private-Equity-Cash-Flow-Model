@@ -1,6 +1,6 @@
 'use client';
 
-import { JCurveControls } from '@/components/app/j--curve-editor/j-curve-controls';
+import { JCurveControls } from '@/components/app/j-curve-editor/j-curve-controls';
 import { JCurvePreviewChart } from '@/components/app/j-curve-editor/j-curve-preview-chart';
 import { PortfolioImpactPreview } from '@/components/app/j-curve-editor/portfolio-impact-preview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +29,7 @@ if(dummyNavData.length > 0) {
 
 export default function JCurveEditorPage() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pt-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <div className="lg:col-span-1">
           <JCurveControls />
@@ -40,10 +40,10 @@ export default function JCurveEditorPage() {
             <JCurvePreviewChart title="Net Cashflow (J-Curve)" data={dummyCurveData} type="line" />
             <JCurvePreviewChart title="NAV Evolution" data={dummyNavData} type="line" />
             <Card>
-                <CardHeader className="p-3">
+                <CardHeader className="p-2">
                     <CardTitle className="text-base">Curve Comparison</CardTitle>
                 </CardHeader>
-                <CardContent className="p-3">
+                <CardContent className="p-2">
                     <div className="flex h-56 items-center justify-center rounded-lg border-2 border-dashed">
                         <p className="text-muted-foreground">Curve comparison coming soon...</p>
                     </div>
