@@ -48,14 +48,14 @@ const CustomLegend = (props: any) => {
 
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
-      <div className="h-[350px] w-full rounded-lg border">
+      <div className="h-[350px] w-full rounded-lg border p-1">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <LineChart
                 data={data}
                 margin={{
                 top: 20,
                 right: 30,
-                left: 60,
+                left: 50,
                 bottom: 5,
                 }}
             >
@@ -72,7 +72,7 @@ export function GrowthChart({ data, likelihoods }: Props) {
                     tickLine={false}
                     tickFormatter={(value) => `$${value}M`}
                     label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -40, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
-                    tickMargin={10}
+                    tickMargin={5}
                     domain={['dataMin', 'dataMax']}
                 />
                 <Tooltip
