@@ -63,7 +63,7 @@ export function JCurvePreviewChart({ title, data, type }: Props) {
                     tickFormatter={yAxisFormatter} 
                     tickLine={false} 
                     axisLine={false} 
-                    domain={lineKey === 'irr' ? [-0.6, 0.4] : ['auto', 'auto']}
+                    domain={lineKey === 'irr' ? [-0.4, 0.4] : ['auto', 'auto']}
                 />
                 <Tooltip 
                     formatter={(value: number) => yAxisFormatter(value)}
