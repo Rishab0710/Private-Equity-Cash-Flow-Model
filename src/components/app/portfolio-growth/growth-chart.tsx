@@ -54,7 +54,7 @@ export function GrowthChart({ data }: Props) {
                 margin={{
                 top: 20,
                 right: 30,
-                left: 30,
+                left: 60,
                 bottom: 5,
                 }}
             >
@@ -70,7 +70,7 @@ export function GrowthChart({ data }: Props) {
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value * 1000)}
-                    label={{ value: 'Potential Wealth Estimates ($ in Thousands)', angle: -90, position: 'insideLeft', offset: -20, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
+                    label={{ value: 'Potential Wealth Estimates ($ in Thousands)', angle: -90, position: 'insideLeft', offset: -50, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
                     tickMargin={10}
                     domain={['dataMin', 'dataMax']}
                 />
