@@ -97,12 +97,9 @@ export default function DashboardPage() {
         />
       </div>
       
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <PortfolioJCurve data={portfolioData.navProjection} />
         <NetCashflowForecast data={portfolioData.cashflowForecast} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
         <UnfundedCommitmentChart data={portfolioData.unfundedCommitment} />
       </div>
     </div>

@@ -8,6 +8,17 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    fontSize: {
+      xs: ['0.75rem', '1rem'],
+      sm: ['0.8125rem', '1.125rem'],
+      base: ['0.875rem', '1.25rem'],
+      lg: ['1rem', '1.5rem'],
+      xl: ['1.125rem', '1.5rem'],
+      '2xl': ['1.25rem', '1.75rem'],
+      '3xl': ['1.625rem', '2rem'],
+      '4xl': ['2rem', '2.25rem'],
+      '5xl': ['2.5rem', '1'],
+    },
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
