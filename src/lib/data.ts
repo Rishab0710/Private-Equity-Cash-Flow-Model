@@ -62,9 +62,10 @@ const generateQuarterlyDates = (startYear: number, numYears: number) => {
 };
 
 const DATES = generateQuarterlyDates(2021, 8);
-const TOTAL_COMMITMENT = funds.reduce((acc, fund) => acc + fund.commitment, 0);
+const TOTAL_PORTFOLIO_COMMITMENT = funds.reduce((acc, fund) => acc + fund.commitment, 0);
 
-const generateCashflowForecast = (scenario: Scenario): CashflowData[] => {
+
+const generateCashflowForecast = (scenario: Scenario, scale: number): CashflowData[] => {
     let callFactor = 1;
     let distFactor = 1;
     if (scenario === 'Slow Deployment') callFactor = 0.8;
@@ -89,18 +90,18 @@ const generateCashflowForecast = (scenario: Scenario): CashflowData[] => {
         
         return {
             date,
-            capitalCall: capitalCall * 1000000,
-            distribution: distribution * 1000000,
-            netCashflow: (distribution - capitalCall) * 1000000,
+            capitalCall: capitalCall * 1000000 * scale,
+            distribution: distribution * 1000000 * scale,
+            netCashflow: (distribution - capitalCall) * 1000000 * scale,
         };
     });
 };
 
-const generateNavProjection = (scenario: Scenario, cashflows: CashflowData[]): NavData[] => {
+const generateNavProjection = (scenario: Scenario, cashflows: CashflowData[], initialNav: number): NavData[] => {
   let downturn = 1;
   if (scenario === 'Downside Vintage') downturn = 0.7;
 
-  let currentNav = funds.reduce((acc, f) => acc + f.latestNav, 0); // Start with current NAV
+  let currentNav = initialNav;
   
   return DATES.map((date, index) => {
       const { capitalCall, distribution } = cashflows[index];
@@ -114,8 +115,8 @@ const generateNavProjection = (scenario: Scenario, cashflows: CashflowData[]): N
   });
 };
 
-const generateUnfundedCommitment = (cashflows: CashflowData[]): UnfundedCommitmentData[] => {
-  let remainingUnfunded = TOTAL_COMMITMENT;
+const generateUnfundedCommitment = (cashflows: CashflowData[], totalCommitment: number): UnfundedCommitmentData[] => {
+  let remainingUnfunded = totalCommitment;
   
   return cashflows.map(cf => {
     remainingUnfunded -= cf.capitalCall;
@@ -126,12 +127,18 @@ const generateUnfundedCommitment = (cashflows: CashflowData[]): UnfundedCommitme
   });
 };
 
-export const getPortfolioData = (scenario: Scenario = 'Base Case') => {
-    const cashflowForecast = generateCashflowForecast(scenario);
-    const navProjection = generateNavProjection(scenario, cashflowForecast);
-    const unfundedCommitment = generateUnfundedCommitment(cashflowForecast);
+export const getPortfolioData = (scenario: Scenario = 'Base Case', fundId?: string) => {
+    const targetFunds = fundId && fundId !== 'all' ? funds.filter(f => f.id === fundId) : funds;
     
-    const totalCommitment = TOTAL_COMMITMENT;
+    const totalCommitment = targetFunds.reduce((acc, fund) => acc + fund.commitment, 0);
+    const initialNav = targetFunds.reduce((acc, fund) => acc + fund.latestNav, 0);
+
+    const scale = totalCommitment / TOTAL_PORTFOLIO_COMMITMENT;
+
+    const cashflowForecast = generateCashflowForecast(scenario, scale);
+    const navProjection = generateNavProjection(scenario, cashflowForecast, initialNav);
+    const unfundedCommitment = generateUnfundedCommitment(cashflowForecast, totalCommitment);
+    
     const projectedNav = navProjection[navProjection.length - 1]?.nav || 0;
 
     const netCashflows = cashflowForecast.map(c => c.netCashflow);
