@@ -20,7 +20,7 @@ const AssetAllocationRow = ({ label, percentage, balance }: { label: string, per
     
     return (
         <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-3">
-            <p className={`text-xs text-muted-foreground`}>{label}</p>
+            <p className={`text-xs text-foreground`}>{label}</p>
             <p className="text-xs font-semibold text-right">{formatCurrency(value)}</p>
             <p className="text-xs font-semibold text-right">{percentage}</p>
         </div>
@@ -110,6 +110,15 @@ export function AssumptionsPanel({
                         balance={startingBalance} 
                     />
                 ))}
+                <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-2 px-3 font-bold text-foreground">
+                    <p className="text-sm">Total</p>
+                    <p className="text-sm text-right">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
+                    </p>
+                    <p className="text-sm text-right">
+                        {sortedAllocations.reduce((sum, p) => sum + parseFloat(p.percentage), 0).toFixed(2)}%
+                    </p>
+                </div>
             </div>
         </div>
     )
