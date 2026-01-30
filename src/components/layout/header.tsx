@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -48,9 +49,7 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-card px-3">
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-2">
-           <h1 className="font-semibold text-base hidden md:block">
-            Private Equity
-          </h1>
+           <Image src="https://placehold.co/140x28/transparent/FFFFFF/?text=KAPNATIVE" alt="KAPNATIVE Logo" width={140} height={28} />
         </Link>
         <nav className="hidden items-center gap-1 text-xs font-medium md:flex lg:gap-2">
           {navItems.map((item) => (
@@ -99,7 +98,7 @@ export function Header() {
                 href="/dashboard"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
               >
-                <span className="font-semibold">Private Equity</span>
+                <Image src="https://placehold.co/140x28/transparent/FFFFFF/?text=KAPNATIVE" alt="KAPNATIVE Logo" width={140} height={28} />
               </Link>
               {navItems.map((item) => (
                 <Link
