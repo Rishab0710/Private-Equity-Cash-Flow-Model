@@ -94,7 +94,7 @@ export function LiquidityTimelineChart({ liquidityData, cashflowData }: Props) {
               />
             <Legend />
             {forecastStartDate && (
-                <ReferenceLine x={forecastStartDate} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+                <ReferenceLine yAxisId="left" x={forecastStartDate} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
             )}
              <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
             <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[4, 4, 0, 0]} />
