@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
+import { cn } from '@/lib/utils';
 
 const staticAssumptions = {
     assetAllocation: {
@@ -124,10 +124,10 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
 
-const MetricRow = ({ label, value }: { label: string, value: string | number }) => (
+const MetricRow = ({ label, value, valueClassName }: { label: string, value: string | number, valueClassName?: string }) => (
     <div className="flex justify-between items-center py-1 px-3">
         <p className="text-xs text-black">{label}</p>
-        <p className="text-xs font-semibold">{value}</p>
+        <p className={cn("text-xs font-semibold", valueClassName)}>{value}</p>
     </div>
 );
 
@@ -297,9 +297,9 @@ export default function PortfolioGrowthPage() {
                             <div className="divide-y divide-border rounded-lg border">
                                 <div className="py-1 px-3 font-semibold text-xs text-black">Potential Wealth</div>
                                 <div className="space-y-1 py-1">
-                                    <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} />
-                                    <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} />
-                                    <MetricRow label="Aggressive Outlook" value={formatCurrency(potentialWealth.aggressive)} />
+                                    <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} valueClassName="text-chart-3" />
+                                    <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} valueClassName="text-chart-1" />
+                                    <MetricRow label="Aggressive Outlook" value={formatCurrency(potentialWealth.aggressive)} valueClassName="text-chart-2" />
                                 </div>
                             </div>
                         </div>
@@ -315,6 +315,7 @@ export default function PortfolioGrowthPage() {
     
 
     
+
 
 
 
