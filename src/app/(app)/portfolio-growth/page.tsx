@@ -231,10 +231,10 @@ export default function PortfolioGrowthPage() {
 
     if (!chartData || !potentialWealth || !likelihoods || !portfolioData) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                    <Skeleton className="h-8 w-96 max-w-full" />
-                    <Skeleton className="h-10 w-[220px]" />
+                    <Skeleton className="h-7 w-80 max-w-full" />
+                    <Skeleton className="h-9 w-[200px]" />
                 </div>
                 <Card>
                     <CardContent className="pt-6">
@@ -258,9 +258,9 @@ export default function PortfolioGrowthPage() {
     }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-lg font-semibold tracking-tight">
                 Potential Growth of Your Fund's Wealth
             </h1>
             <FundSelector
@@ -315,4 +315,5 @@ export default function PortfolioGrowthPage() {
     
 
     
+
 

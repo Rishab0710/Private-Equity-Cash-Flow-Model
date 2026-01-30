@@ -63,7 +63,7 @@ const LiquiditySkeleton = () => (
         <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                    <Skeleton className="h-10 w-[220px]" />
+                    <Skeleton className="h-9 w-[200px]" />
                     <Skeleton className="h-10 w-[200px]" />
                     <Skeleton className="h-10 w-[200px]" />
                 </div>

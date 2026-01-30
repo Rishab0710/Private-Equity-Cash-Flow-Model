@@ -21,7 +21,7 @@ export function FundSelector({
   const fundOptions = [{ id: 'all', name: 'All Funds' }, ...funds];
   return (
     <Select value={selectedFundId} onValueChange={onFundChange}>
-      <SelectTrigger className="w-[220px] bg-secondary/50 border-border">
+      <SelectTrigger className="w-[200px] bg-secondary/50 border-border h-9 text-xs">
         <SelectValue placeholder="Select Fund" />
       </SelectTrigger>
       <SelectContent>
