@@ -40,6 +40,7 @@ export type PortfolioData = {
     peakCapitalOutflow: number;
     peakCapitalOutflowDate: string;
     breakeven: string;
+    liquidityRisk: string;
     lastUpdated: string;
   };
 };

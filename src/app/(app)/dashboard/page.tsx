@@ -26,18 +26,20 @@ export default function DashboardPage({
   if (!portfolioData) {
     return (
       <div className="space-y-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Skeleton className="h-[380px]" />
           <Skeleton className="h-[380px]" />
           <Skeleton className="h-[380px]" />
         </div>
-        <div className="grid grid-cols-1 gap-6">
-          <Skeleton className="h-[380px]" />
+        <div>
+          <Skeleton className="h-96" />
         </div>
       </div>
     );
@@ -45,7 +47,7 @@ export default function DashboardPage({
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <StatCard
           title="Total Commitment"
           value={formatCurrency(portfolioData.stats.totalCommitment)}
@@ -70,11 +72,18 @@ export default function DashboardPage({
           description="When distributions exceed contributions"
           icon="CalendarCheck2"
         />
+        <StatCard
+          title="Liquidity Risk"
+          value={portfolioData.stats.liquidityRisk}
+          description="Next quarter's net cashflow"
+          icon="AlertCircle"
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <PortfolioJCurve data={portfolioData.navProjection} />
         <NetCashflowForecast data={portfolioData.cashflowForecast} />
+        <UnfundedCommitmentChart data={portfolioData.unfundedCommitment} />
       </div>
 
       <div>

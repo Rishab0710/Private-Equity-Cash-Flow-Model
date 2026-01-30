@@ -1,4 +1,4 @@
-import type { Fund, CashflowData, NavData, UnfundedCommitmentData, Scenario } from './types';
+import type { Fund, CashflowData, NavData, UnfundedCommitmentData, Scenario, PortfolioData } from './types';
 
 export const funds: Fund[] = [
   {
@@ -127,7 +127,7 @@ const generateUnfundedCommitment = (cashflows: CashflowData[], totalCommitment: 
   });
 };
 
-export const getPortfolioData = (scenario: Scenario = 'Base Case', fundId?: string) => {
+export const getPortfolioData = (scenario: Scenario = 'Base Case', fundId?: string): PortfolioData => {
     const targetFunds = fundId && fundId !== 'all' ? funds.filter(f => f.id === fundId) : funds;
     
     const totalCommitment = targetFunds.reduce((acc, fund) => acc + fund.commitment, 0);
@@ -155,6 +155,15 @@ export const getPortfolioData = (scenario: Scenario = 'Base Case', fundId?: stri
         return cumulativeCashflow > 0;
     })?.date;
 
+    const nextQuarterNet = cashflowForecast.find(c => new Date(c.date.replace('Q1', '1/1/').replace('Q2', '4/1/').replace('Q3', '7/1/').replace('Q4', '10/1/')) > new Date())?.netCashflow || 0;
+    let liquidityRisk = 'Low';
+    if (nextQuarterNet < -5000000) {
+        liquidityRisk = 'High';
+    } else if (nextQuarterNet < 0) {
+        liquidityRisk = 'Medium';
+    }
+
+
     return {
         navProjection,
         cashflowForecast,
@@ -165,6 +174,7 @@ export const getPortfolioData = (scenario: Scenario = 'Base Case', fundId?: stri
             peakCapitalOutflow: peakOutflowData.netCashflow,
             peakCapitalOutflowDate: peakOutflowData.date,
             breakeven: breakeven || "N/A",
+            liquidityRisk,
             lastUpdated: new Date().toISOString(),
         }
     };
