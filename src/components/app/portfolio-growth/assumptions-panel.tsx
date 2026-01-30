@@ -20,7 +20,7 @@ const AssetAllocationRow = ({ label, percentage, balance }: { label: string, per
     
     return (
         <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-3">
-            <p className={`text-xs text-foreground`}>{label}</p>
+            <p className={`text-xs text-foreground text-black`}>{label}</p>
             <p className="text-xs font-semibold text-right">{formatCurrency(value)}</p>
             <p className="text-xs font-semibold text-right">{percentage}</p>
         </div>
@@ -55,42 +55,42 @@ export function AssumptionsPanel({
         <div className="space-y-6">
             <div className="divide-y divide-border rounded-lg border p-2">
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="starting-balance" className="text-xs font-medium">Starting Balance</Label>
+                    <Label htmlFor="starting-balance" className="text-xs font-normal">Starting Balance</Label>
                     <div className="relative">
                         <Input
                             id="starting-balance"
                             type="text"
                             value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
                             disabled
-                            className="h-8 w-36 pl-3 text-xs text-left"
+                            className="h-7 w-36 pl-3 text-xs text-left"
                         />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-contribution" className="text-xs font-medium">Annual Contribution</Label>
+                    <Label htmlFor="annual-contribution" className="text-xs font-normal">Annual Contribution</Label>
                     <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
-                        <Input id="annual-contribution" type="number" value={annualContribution} onChange={e => setAnnualContribution(Number(e.target.value))} className="h-8 w-36 pl-7 text-xs text-left" />
+                        <Input id="annual-contribution" type="number" value={annualContribution} onChange={e => setAnnualContribution(Number(e.target.value))} className="h-7 w-36 pl-7 text-xs text-left" />
                     </div>
                 </div>
                  <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-withdrawal" className="text-xs font-medium">Annual Withdrawal</Label>
+                    <Label htmlFor="annual-withdrawal" className="text-xs font-normal">Annual Withdrawal</Label>
                     <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
-                        <Input id="annual-withdrawal" type="number" value={annualWithdrawal} onChange={e => setAnnualWithdrawal(Number(e.target.value))} className="h-8 w-36 pl-7 text-xs text-left" />
+                        <Input id="annual-withdrawal" type="number" value={annualWithdrawal} onChange={e => setAnnualWithdrawal(Number(e.target.value))} className="h-7 w-36 pl-7 text-xs text-left" />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-increase" className="text-xs font-medium">Annual Increase</Label>
+                    <Label htmlFor="annual-increase" className="text-xs font-normal">Annual Increase</Label>
                     <div className="relative">
-                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-8 w-36 pr-7 text-xs text-left" />
+                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-7 w-36 pr-7 text-xs text-left" />
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">%</span>
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="investment-period" className="text-xs font-medium">Investment Period</Label>
+                    <Label htmlFor="investment-period" className="text-xs font-normal">Investment Period</Label>
                     <div className="relative">
-                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-8 w-36 pr-16 text-xs text-left" />
+                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-7 w-36 pr-16 text-xs text-left" />
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">Years</span>
                     </div>
                 </div>
