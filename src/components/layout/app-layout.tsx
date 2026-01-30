@@ -13,7 +13,7 @@ type PortfolioContextType = {
   setScenario: (scenario: Scenario) => void;
   fundId: string;
   setFundId: (fundId: string) => void;
-  asOfDate: Date;
+  asOfDate: Date | undefined;
   setAsOfDate: (date: Date) => void;
   capitalCallPacing: number;
   setCapitalCallPacing: (value: number) => void;
@@ -35,16 +35,20 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [fundId, setFundId] = useState<string>('all');
   const [scenario, setScenario] = useState<Scenario>('Base');
-  const [asOfDate, setAsOfDate] = useState<Date>(new Date());
+  const [asOfDate, setAsOfDate] = useState<Date | undefined>(undefined);
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [funds, setFunds] = useState<Fund[]>(staticFunds);
   const [capitalCallPacing, setCapitalCallPacing] = useState(100);
   const [distributionVelocity, setDistributionVelocity] = useState(100);
 
   useEffect(() => {
+    setAsOfDate(new Date());
+  }, []);
+
+  useEffect(() => {
     // We only need to generate portfolio data for data-heavy pages
     const dataPages = ['/dashboard', '/cashflow-engine', '/funds', '/liquidity'];
-    if (dataPages.includes(pathname)) {
+    if (dataPages.includes(pathname) && asOfDate) {
       let factors;
       if (pathname === '/liquidity') {
         factors = {
@@ -60,7 +64,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   }, [fundId, scenario, pathname, asOfDate, capitalCallPacing, distributionVelocity]);
 
   return (
-    <PortfolioContext.Provider value={{ portfolioData, funds, scenario, setScenario, fundId, setFundId, asOfDate, setAsOfDate, capitalCallPacing, setCapitalCallPacing, distributionVelocity, setDistributionVelocity }}>
+    <PortfolioContext.Provider value={{ portfolioData, funds, scenario, setScenario, fundId, setFundId, asOfDate, setAsOfDate: (date) => setAsOfDate(date), capitalCallPacing, setCapitalCallPacing, distributionVelocity, setDistributionVelocity }}>
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-1 p-4 md:p-5 lg:p-6">{children}</main>

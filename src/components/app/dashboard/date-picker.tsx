@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/popover';
 
 type Props = {
-    date: Date;
+    date: Date | undefined;
     setDate: (date: Date) => void;
 }
 
