@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { KpiCard } from '@/components/app/dashboard/stat-card';
 import { CashflowCommandChart } from '@/components/app/dashboard/cashflow-chart';
 import { LiquidityRunwayChart } from '@/components/app/dashboard/j-curve-chart';
-import { PortfolioComposition } from '@/components/app/dashboard/unfunded-commitment-chart';
 import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
 import { ScenarioConsole } from '@/components/app/dashboard/left-sidebar';
 import { AlertsWatchlist } from '@/components/app/dashboard/alerts-exceptions';
@@ -41,10 +40,10 @@ export default function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  const { kpis, cashflowForecast, liquidityForecast, drivers, composition, dataHealth, alerts } = portfolioData;
+  const { kpis, cashflowForecast, liquidityForecast, drivers, dataHealth, alerts } = portfolioData;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
         <KpiCard title="Net Requirement (90D)" value={formatCurrency(kpis.netCashRequirementNext90Days)} />
@@ -57,31 +56,28 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 2 */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8">
           <CashflowCommandChart data={cashflowForecast} />
         </div>
-        <div className="col-span-12 lg:col-span-4 space-y-6">
+        <div className="col-span-12 lg:col-span-4 space-y-4">
           <AlertsWatchlist alerts={alerts} />
           <ScenarioConsole />
         </div>
       </div>
       
       {/* Row 3 */}
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-5">
+      <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-12 lg:col-span-8">
           <LiquidityRunwayChart data={liquidityForecast}/>
         </div>
         <div className="col-span-12 lg:col-span-4">
-          <PortfolioComposition data={composition} />
-        </div>
-        <div className="col-span-12 lg:col-span-3">
           <FundingDriversPanel drivers={drivers} />
         </div>
       </div>
 
       {/* Row 4 */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12">
             <DataHealthPanel data={dataHealth} />
         </div>
@@ -91,21 +87,20 @@ export default function DashboardPage() {
 }
 
 const DashboardSkeleton = () => (
-  <div className="space-y-6">
+  <div className="space-y-4">
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
       {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-20" />)}
     </div>
-    <div className="grid grid-cols-12 gap-6">
+    <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[400px]" /></div>
-        <div className="col-span-12 lg:col-span-4 space-y-6">
+        <div className="col-span-12 lg:col-span-4 space-y-4">
             <Skeleton className="h-[200px]" />
             <Skeleton className="h-[200px]" />
         </div>
     </div>
-     <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-5"><Skeleton className="h-64" /></div>
+     <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-12 lg:col-span-8"><Skeleton className="h-64" /></div>
         <div className="col-span-12 lg:col-span-4"><Skeleton className="h-64" /></div>
-        <div className="col-span-12 lg:col-span-3"><Skeleton className="h-64" /></div>
     </div>
   </div>
 );
