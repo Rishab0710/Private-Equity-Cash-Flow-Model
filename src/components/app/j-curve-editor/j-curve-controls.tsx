@@ -13,9 +13,9 @@ export function JCurveControls() {
       <CardHeader>
         <CardTitle>Curve Modeling Controls</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label>Strategy Curve Template</Label>
+      <CardContent className="flex flex-wrap items-end gap-x-6 gap-y-4">
+        <div className="space-y-2 flex-1 min-w-[180px]">
+          <Label>Strategy Template</Label>
           <Select defaultValue="pe">
             <SelectTrigger>
               <SelectValue placeholder="Select Template" />
@@ -29,43 +29,36 @@ export function JCurveControls() {
           </Select>
         </div>
         
-        <div className="space-y-4">
-            <h4 className="font-semibold text-sm">Deployment</h4>
-            <div className="space-y-2">
-                <Label>Pacing Speed (Years 1-3)</Label>
-                <Slider defaultValue={[50]} />
-            </div>
-             <div className="space-y-2">
-                <Label>Investment Period (Years)</Label>
-                <Slider defaultValue={[5]} min={3} max={8} step={1} />
-            </div>
+        <div className="space-y-2 flex-1 min-w-[150px]">
+            <Label>Deployment Pacing</Label>
+            <Slider defaultValue={[50]} />
+        </div>
+         <div className="space-y-2 flex-1 min-w-[150px]">
+            <Label>Investment Period</Label>
+            <Slider defaultValue={[5]} min={3} max={8} step={1} />
         </div>
 
-        <div className="space-y-4">
-            <h4 className="font-semibold text-sm">Distribution & NAV</h4>
-            <div className="space-y-2">
-                <Label>Exit Timing (Start Year)</Label>
-                <Slider defaultValue={[4]} min={2} max={8} step={1} />
-            </div>
-            <div className="space-y-2">
-                <Label>Distribution Velocity</Label>
-                <Slider defaultValue={[60]} />
-            </div>
-             <div className="space-y-2">
-                <Label>NAV Ramp Speed</Label>
-                <Slider defaultValue={[70]} />
-            </div>
+        <div className="space-y-2 flex-1 min-w-[150px]">
+            <Label>Exit Timing</Label>
+            <Slider defaultValue={[4]} min={2} max={8} step={1} />
+        </div>
+        <div className="space-y-2 flex-1 min-w-[150px]">
+            <Label>Distribution Velocity</Label>
+            <Slider defaultValue={[60]} />
+        </div>
+         <div className="space-y-2 flex-1 min-w-[150px]">
+            <Label>NAV Ramp Speed</Label>
+            <Slider defaultValue={[70]} />
         </div>
 
-        <div className="flex gap-2 pt-4">
-            <Button>
-                <Save className="mr-2 h-4 w-4" /> Save Template
+        <div className="flex gap-2 self-end">
+            <Button size="sm">
+                <Save className="mr-2 h-4 w-4" /> Save
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" size="sm">
                 <Share2 className="mr-2 h-4 w-4" /> Share
             </Button>
         </div>
-
       </CardContent>
     </Card>
   );

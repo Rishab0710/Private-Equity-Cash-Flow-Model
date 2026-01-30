@@ -29,31 +29,25 @@ if(dummyNavData.length > 0) {
 
 export default function JCurveEditorPage() {
   return (
-    <div className="space-y-4 pt-4">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="lg:col-span-1">
-          <JCurveControls />
-        </div>
-        <div className="lg:col-span-3 space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <JCurvePreviewChart title="Deployment & Distribution" data={dummyCurveData} type="composed" />
-            <JCurvePreviewChart title="Net Cashflow (J-Curve)" data={dummyCurveData} type="line" />
-            <JCurvePreviewChart title="NAV Evolution" data={dummyNavData} type="line" />
-            <Card>
-                <CardHeader className="p-2">
-                    <CardTitle className="text-base">Curve Comparison</CardTitle>
-                </CardHeader>
-                <CardContent className="p-2">
-                    <div className="flex h-56 items-center justify-center rounded-lg border-2 border-dashed">
-                        <p className="text-muted-foreground">Curve comparison coming soon...</p>
-                    </div>
-                </CardContent>
-            </Card>
-          </div>
-          <Separator />
-          <PortfolioImpactPreview />
-        </div>
+    <div className="space-y-4">
+      <JCurveControls />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <JCurvePreviewChart title="Deployment & Distribution" data={dummyCurveData} type="composed" />
+        <JCurvePreviewChart title="Net Cashflow (J-Curve)" data={dummyCurveData} type="line" />
+        <JCurvePreviewChart title="NAV Evolution" data={dummyNavData} type="line" />
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-base">Curve Comparison</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="flex h-56 items-center justify-center rounded-lg border-2 border-dashed">
+                    <p className="text-muted-foreground">Curve comparison coming soon...</p>
+                </div>
+            </CardContent>
+        </Card>
       </div>
+      <Separator />
+      <PortfolioImpactPreview />
     </div>
   );
 }
