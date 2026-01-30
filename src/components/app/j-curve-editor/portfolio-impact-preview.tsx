@@ -7,6 +7,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 const formatPercentReq = (value: number) => `${Math.abs(value).toFixed(0)}%`;
 const formatMultiple = (value: number) => `${value.toFixed(2)}x`;
 const formatYears = (value: number) => `Yr ${value.toFixed(1)}`;
+const formatNav = (value: number) => `${value.toFixed(0)}%`;
 
 const ChangeIndicator = ({ value, formatFn, positiveIsGood }: { value: number, formatFn: (v: number) => string, positiveIsGood: boolean }) => {
     if (value === 0) {
@@ -71,41 +72,52 @@ export function PortfolioImpactPreview({ impactData }: { impactData: any | null 
       </CardHeader>
       <CardContent className="pt-2">
         {impactData ? (
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                 <ImpactMetric 
-                    title="Peak Funding Requirement" 
+                    title="Peak Funding" 
                     value={formatPercentReq(impactData.peakFundingRequirement.value)}
                 >
                     <ChangeIndicator value={impactData.peakFundingRequirement.change} formatFn={formatPercentReq} positiveIsGood={true} />
                 </ImpactMetric>
                 
                 <ImpactMetric 
-                    title="Liquidity Gap Risk" 
-                    value={impactData.liquidityGapRisk.value}
-                >
-                    <RiskChangeIndicator change={impactData.liquidityGapRisk.change} />
-                </ImpactMetric>
-
-                <ImpactMetric 
-                    title="Breakeven Timing" 
+                    title="Breakeven" 
                     value={formatYears(impactData.breakevenTiming.value)}
                 >
                      <ChangeIndicator value={impactData.breakevenTiming.change} formatFn={formatYears} positiveIsGood={false} />
                 </ImpactMetric>
                 
                 <ImpactMetric 
-                    title="10-Year Net Multiple" 
+                    title="DPI Multiple" 
                     value={formatMultiple(impactData.netMultiple.value)}
                 >
                     <ChangeIndicator value={impactData.netMultiple.change} formatFn={formatMultiple} positiveIsGood={true} />
                 </ImpactMetric>
+
+                <ImpactMetric 
+                    title="TVPI Multiple" 
+                    value={formatMultiple(impactData.tvpi.value)}
+                >
+                    <ChangeIndicator value={impactData.tvpi.change} formatFn={formatMultiple} positiveIsGood={true} />
+                </ImpactMetric>
+
+                <ImpactMetric 
+                    title="Peak NAV"
+                    value={`${formatNav(impactData.peakNav.value)} @ Yr ${impactData.peakNav.year}`}
+                >
+                     <ChangeIndicator value={impactData.peakNav.change} formatFn={formatNav} positiveIsGood={true} />
+                </ImpactMetric>
+
+                <ImpactMetric 
+                    title="Liquidity Risk" 
+                    value={impactData.liquidityGapRisk.value}
+                >
+                    <RiskChangeIndicator change={impactData.liquidityGapRisk.change} />
+                </ImpactMetric>
             </div>
         ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <LoadingMetric />
-                <LoadingMetric />
-                <LoadingMetric />
-                <LoadingMetric />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                {[...Array(6)].map((_, i) => <LoadingMetric key={i} />)}
             </div>
         )}
       </CardContent>

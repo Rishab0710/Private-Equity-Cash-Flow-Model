@@ -77,6 +77,16 @@ const generateJCurveData = (params: {
 };
 
 const calculateImpactMetrics = (data: any[]) => {
+    if (!data || data.length === 0) {
+      return {
+        peakFundingRequirement: 0,
+        breakevenTiming: 0,
+        netMultiple: 0,
+        liquidityGapRisk: 'Low',
+        tvpi: 0,
+        peakNav: { value: 0, year: 0 },
+      };
+    }
     const peakFundingRequirement = Math.min(0, ...data.map(d => d.cumulativeNet));
     
     const breakeven = data.find(d => d.cumulativeNet > 0);
@@ -85,6 +95,16 @@ const calculateImpactMetrics = (data: any[]) => {
     const totalDistributions = data.reduce((sum, d) => sum + d.distribution, 0);
     const totalDeployments = data.reduce((sum, d) => sum - d.deployment, 0);
     const netMultiple = totalDeployments > 0 ? totalDistributions / totalDeployments : 0;
+
+    const finalNav = data[data.length - 1]?.nav || 0;
+    const tvpi = totalDeployments > 0 ? (finalNav + totalDistributions) / totalDeployments : 0;
+    
+    const peakNavValue = Math.max(0, ...data.map(d => d.nav));
+    const peakNav = {
+        value: peakNavValue,
+        year: data.find(d => d.nav === peakNavValue)?.year || 0
+    };
+
 
     let liquidityGapRisk = "Low";
     if (peakFundingRequirement < -40) {
@@ -97,7 +117,9 @@ const calculateImpactMetrics = (data: any[]) => {
         peakFundingRequirement,
         breakevenTiming,
         netMultiple,
-        liquidityGapRisk
+        liquidityGapRisk,
+        tvpi,
+        peakNav,
     };
 };
 
@@ -165,6 +187,15 @@ export default function JCurveEditorPage() {
                 netMultiple: {
                     value: currentMetrics.netMultiple,
                     change: currentMetrics.netMultiple - baselineMetrics.netMultiple,
+                },
+                tvpi: {
+                    value: currentMetrics.tvpi,
+                    change: currentMetrics.tvpi - baselineMetrics.tvpi,
+                },
+                peakNav: {
+                    value: currentMetrics.peakNav.value,
+                    change: currentMetrics.peakNav.value - baselineMetrics.peakNav.value,
+                    year: currentMetrics.peakNav.year,
                 }
             });
         }
