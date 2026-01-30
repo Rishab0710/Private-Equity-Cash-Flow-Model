@@ -32,7 +32,7 @@ import { format } from 'date-fns';
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
-  { href: '/j-curve-editor', label: 'Cash Flow Forecasting', icon: Spline },
+  { href: '/j-curve-editor', label: 'J-Curve Modelling', icon: Spline },
 ];
 
 export function Header() {
