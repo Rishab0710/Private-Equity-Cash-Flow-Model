@@ -122,7 +122,7 @@ const MetricRow = ({ label, value }: { label: string, value: string | number }) 
 
 
 export default function PortfolioGrowthPage() {
-    const [startingBalance, setStartingBalance] = useState(4924555);
+    const [startingBalance, setStartingBalance] = useState(5000000);
     const [annualContribution, setAnnualContribution] = useState(0);
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
     const [annualIncrease, setAnnualIncrease] = useState(0);
@@ -192,7 +192,6 @@ export default function PortfolioGrowthPage() {
                         <AssumptionsPanel 
                             assumptions={staticAssumptions} 
                             startingBalance={startingBalance}
-                            setStartingBalance={setStartingBalance}
                             annualContribution={annualContribution}
                             setAnnualContribution={setAnnualContribution}
                             annualWithdrawal={annualWithdrawal}
