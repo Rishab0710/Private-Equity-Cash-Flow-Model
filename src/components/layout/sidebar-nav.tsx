@@ -23,9 +23,7 @@ import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/funds', label: 'Funds', icon: Wallet },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
-  { href: '/scenarios', label: 'Scenarios', icon: Presentation },
 ];
 
 export function SidebarNav() {

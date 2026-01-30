@@ -13,9 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   LayoutDashboard,
-  Wallet,
   AreaChart,
-  Presentation,
   Settings,
   LifeBuoy,
   Menu,
@@ -33,9 +31,7 @@ import { format } from 'date-fns';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/funds', label: 'Funds', icon: Wallet },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
-  { href: '/scenarios', label: 'Scenarios', icon: Presentation },
   { href: '/statement-extraction', label: 'Extraction', icon: FileUp },
   { href: '/cashflow-engine', label: 'Forecast Engine', icon: Cpu },
   { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Spline },
