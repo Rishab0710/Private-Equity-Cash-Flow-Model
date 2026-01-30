@@ -5,6 +5,8 @@ import { AssumptionsPanel } from '@/components/app/portfolio-growth/assumptions-
 import { GrowthChart } from '@/components/app/portfolio-growth/growth-chart';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { usePortfolioContext } from '@/components/layout/app-layout';
+import { FundSelector } from '@/components/app/dashboard/fund-selector';
 
 const staticAssumptions = {
     assetAllocation: {
@@ -130,6 +132,8 @@ const MetricRow = ({ label, value }: { label: string, value: string | number }) 
 
 
 export default function PortfolioGrowthPage() {
+    const { fundId, setFundId, funds, portfolioData } = usePortfolioContext();
+    
     const [startingBalance, setStartingBalance] = useState(5000000);
     const [annualContribution, setAnnualContribution] = useState(0);
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
@@ -143,6 +147,19 @@ export default function PortfolioGrowthPage() {
         meanRateOfReturn: 8.50,
         standardDeviation: 14.50,
     });
+
+    useEffect(() => {
+        if (funds && funds.length > 0) {
+            let newStartingBalance = 0;
+            if (fundId === 'all') {
+                newStartingBalance = funds.reduce((sum, fund) => sum + (fund.latestNav ?? 0), 0);
+            } else {
+                const selectedFund = funds.find(f => f.id === fundId);
+                newStartingBalance = selectedFund?.latestNav ?? 0;
+            }
+            setStartingBalance(newStartingBalance);
+        }
+    }, [fundId, funds]);
 
     useEffect(() => {
         const params = {
@@ -195,7 +212,7 @@ export default function PortfolioGrowthPage() {
     }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod]);
 
 
-    if (!chartData || !potentialWealth || !likelihoods) {
+    if (!chartData || !potentialWealth || !likelihoods || !portfolioData) {
         return (
              <Card>
                 <CardHeader>
@@ -221,9 +238,15 @@ export default function PortfolioGrowthPage() {
     <div className="space-y-6">
        <Card>
             <CardHeader>
-                <CardTitle className="text-lg font-normal">
-                Potential Growth of Your Portfolio Using Forward-Looking Risk and Return Assumptions
-                </CardTitle>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <CardTitle className="text-lg font-normal">
+                    Potential Growth of Your Portfolio Using Forward-Looking Risk and Return Assumptions
+                    </CardTitle>
+                    <FundSelector
+                        selectedFundId={fundId}
+                        onFundChange={setFundId}
+                    />
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -267,6 +290,3 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
-
-
-
