@@ -49,11 +49,7 @@ export function Header() {
               key={item.href}
               href={item.href}
               className={cn(
-                'px-3 py-2 rounded-md transition-colors',
-                isClient && (pathname === item.href ||
-                  (item.href !== '/dashboard' && pathname.startsWith(item.href)))
-                  ? 'font-bold text-white'
-                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                'px-3 py-2 rounded-md transition-colors font-bold text-foreground'
               )}
             >
               {item.label}
@@ -87,12 +83,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
-                    isClient && (pathname === item.href ||
-                      (item.href !== '/dashboard' &&
-                        pathname.startsWith(item.href)))
-                      ? 'font-bold text-white'
-                      : 'text-muted-foreground hover:text-foreground'
+                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm font-bold text-foreground'
                   )}
                 >
                   <item.icon className="h-5 w-5" />
