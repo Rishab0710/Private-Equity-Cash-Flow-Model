@@ -20,6 +20,7 @@ import {
   FileUp,
   Cpu,
   Spline,
+  TrendingUp,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -33,6 +34,7 @@ const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
   { href: '/j-curve-editor', label: 'J-Curve Modelling', icon: Spline },
+  { href: '/portfolio-growth', label: 'Growth Projection', icon: TrendingUp },
 ];
 
 export function Header() {
