@@ -71,7 +71,7 @@ export function GrowthChart({ data, likelihoods }: Props) {
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(value) => `$${value}M`}
-                    label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -50, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
+                    label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -40, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
                     tickMargin={10}
                     domain={['dataMin', 'dataMax']}
                 />
