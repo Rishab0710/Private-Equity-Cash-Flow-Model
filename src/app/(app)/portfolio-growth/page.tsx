@@ -8,16 +8,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const staticAssumptions = {
     assetAllocation: {
-        equities: '67.40%',
-        fixedIncome: '22.41%',
-        cash: '2.53%',
-        realAssets: '0.00%',
-        hedgeFundStrategies: '7.67%',
-        privateEquity: '0.00%',
+        equities: '60.00%',
+        fixedIncome: '20.00%',
+        cash: '2.50%',
+        realAssets: '5.00%',
+        hedgeFundStrategies: '5.00%',
+        privateEquity: '7.50%',
     },
     portfolio: {
-        meanRateOfReturn: '8.22%',
-        standardDeviation: '13.02%',
+        meanRateOfReturn: '8.50%',
+        standardDeviation: '14.50%',
     },
 };
 
@@ -39,8 +39,8 @@ const generateChartData = (params: {
     let currentContribution = annualContribution;
     let currentWithdrawal = annualWithdrawal;
 
-    const rates = { cons: 0.05, mod: 0.0822, agg: 0.11 };
-    const volatility = { cons: 0.05, mod: 0.1302, agg: 0.20 };
+    const rates = { cons: 0.05, mod: 0.085, agg: 0.11 };
+    const volatility = { cons: 0.05, mod: 0.145, agg: 0.20 };
     const currentYear = new Date().getFullYear();
     const increaseFactor = 1 + annualIncrease / 100;
 
@@ -114,7 +114,7 @@ const formatCurrency = (value: number) => {
 }
 
 const MetricRow = ({ label, value }: { label: string, value: string | number }) => (
-    <div className="flex justify-between items-center py-1.5 px-3">
+    <div className="flex justify-between items-center py-1 px-3">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-xs font-semibold">{value}</p>
     </div>
@@ -203,17 +203,17 @@ export default function PortfolioGrowthPage() {
                             setAnalysisTimePeriod={setAnalysisTimePeriod}
                         />
                     </div>
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-2 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="divide-y divide-border rounded-lg border">
-                                <div className="py-1.5 px-3 font-semibold text-xs">Portfolio</div>
+                                <div className="py-1 px-3 font-semibold text-xs">Portfolio</div>
                                 <div className="space-y-1 py-1">
                                     <MetricRow label="Mean Rate of Return" value={staticAssumptions.portfolio.meanRateOfReturn} />
                                     <MetricRow label="Standard Deviation" value={staticAssumptions.portfolio.standardDeviation} />
                                 </div>
                             </div>
                             <div className="divide-y divide-border rounded-lg border">
-                                <div className="py-1.5 px-3 font-semibold text-xs">Potential Wealth</div>
+                                <div className="py-1 px-3 font-semibold text-xs">Potential Wealth</div>
                                 <div className="space-y-1 py-1">
                                     <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} />
                                     <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} />
