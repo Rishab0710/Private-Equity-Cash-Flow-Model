@@ -1,6 +1,6 @@
 'use client';
 
-import { Line, Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Area, AreaChart, LineChart } from 'recharts';
+import { Line, Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, LineChart, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartContainer,
@@ -18,11 +18,13 @@ const chartConfig = {
   distribution: { label: 'Distribution', color: 'hsl(var(--chart-1))' },
   net: { label: 'Net Cashflow', color: 'hsl(var(--foreground))' },
   nav: { label: 'NAV', color: 'hsl(var(--chart-4))' },
+  irr: { label: 'IRR', color: 'hsl(var(--chart-3))' },
 };
 
 const formatValue = (value: number) => {
     return `${value.toFixed(0)}`;
 };
+const formatPercent = (value: number) => `${(value * 100).toFixed(0)}%`;
 
 export function JCurvePreviewChart({ title, data, type }: Props) {
     const renderChart = () => {
@@ -32,7 +34,7 @@ export function JCurvePreviewChart({ title, data, type }: Props) {
                     <CartesianGrid vertical={false} />
                     <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `Yr ${v}`}/>
                     <YAxis tickFormatter={formatValue} tickLine={false} axisLine={false} />
-                    <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                    <Tooltip content={<ChartTooltipContent indicator="dot" formatter={(value) => formatValue(Math.abs(value as number))} />} />
                     <Legend />
                     <Bar dataKey="distribution" fill="var(--color-distribution)" stackId="a" />
                     <Bar dataKey="deployment" fill="var(--color-deployment)" stackId="a" />
@@ -40,16 +42,36 @@ export function JCurvePreviewChart({ title, data, type }: Props) {
             )
         }
         
-        const lineKey = title.includes('NAV') ? 'nav' : 'net';
+        let lineKey: 'nav' | 'net' | 'irr' = 'net';
+        if (title.includes('NAV')) {
+            lineKey = 'nav';
+        } else if (title.includes('IRR')) {
+            lineKey = 'irr';
+        }
+
+        const yAxisFormatter = lineKey === 'irr' ? formatPercent : formatValue;
+        
+        let lineName = 'Net Cashflow';
+        if (lineKey === 'nav') lineName = 'NAV';
+        if (lineKey === 'irr') lineName = 'IRR';
 
         return (
             <LineChart data={data}>
                  <CartesianGrid vertical={false} />
                 <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `Yr ${v}`}/>
-                <YAxis tickFormatter={formatValue} tickLine={false} axisLine={false} />
-                <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                <YAxis 
+                    tickFormatter={yAxisFormatter} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    domain={lineKey === 'irr' ? [-0.6, 0.4] : ['auto', 'auto']}
+                />
+                <Tooltip 
+                    formatter={(value: number) => yAxisFormatter(value)}
+                    content={<ChartTooltipContent indicator="dot" />} 
+                />
                 <Legend />
-                <Line type="monotone" dataKey={lineKey} name={lineKey === 'nav' ? 'NAV' : 'Net Cashflow'} stroke={`var(--color-${lineKey})`} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey={lineKey} name={lineName} stroke={`var(--color-${lineKey})`} strokeWidth={2} dot={false} />
+                {lineKey === 'irr' && <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="2 4" />}
             </LineChart>
         )
     }

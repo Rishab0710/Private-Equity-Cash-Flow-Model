@@ -64,6 +64,27 @@ const generateJCurveData = (params: {
         const net = distribution - deployment;
         cumulativeNet += net;
 
+        let irr = 0;
+        if (year > 0) {
+            const troughYear = 1.5;
+            const zeroYear = Math.max(troughYear + 0.5, investmentPeriod - 1);
+            const peakYear = Math.max(zeroYear + 1, exitTiming + 3);
+            
+            const peakIrr = 0.12 + (distributionVelocity / 150) + (navRampSpeed / 200);
+            
+            if (year <= troughYear) {
+                irr = -0.5 * (year / troughYear);
+            } else if (year <= zeroYear) {
+                const progress = (year - troughYear) / (zeroYear - troughYear);
+                irr = -0.5 + 0.5 * progress;
+            } else if (year <= peakYear) {
+                const progress = (year - zeroYear) / (peakYear - zeroYear);
+                irr = peakIrr * progress;
+            } else {
+                irr = peakIrr * (1 - (year - peakYear) * 0.03);
+            }
+        }
+
         data.push({
             year,
             deployment: -deployment,
@@ -71,6 +92,7 @@ const generateJCurveData = (params: {
             net,
             nav,
             cumulativeNet,
+            irr: isFinite(irr) ? irr : 0,
         });
     }
     return data;
@@ -218,7 +240,7 @@ export default function JCurveEditorPage() {
       />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <JCurvePreviewChart title="Deployment & Distribution" data={chartData} type="composed" />
-        <JCurvePreviewChart title="Net Cashflow (J-Curve)" data={chartData} type="line" />
+        <JCurvePreviewChart title="IRR (J-Curve)" data={chartData} type="line" />
         <JCurvePreviewChart title="NAV Evolution" data={chartData} type="line" />
         <Card>
             <CardContent className="pt-4">
