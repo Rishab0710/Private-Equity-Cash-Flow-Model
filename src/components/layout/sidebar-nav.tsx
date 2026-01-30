@@ -52,22 +52,20 @@ export function SidebarNav() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  asChild
-                  isActive={
-                    item.href === '/dashboard'
-                      ? pathname === item.href
-                      : pathname.startsWith(item.href)
-                  }
-                  tooltip={item.label}
-                >
-                  <a>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </a>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton
+                asChild
+                isActive={
+                  item.href === '/dashboard'
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href)
+                }
+                tooltip={item.label}
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -75,24 +73,20 @@ export function SidebarNav() {
       <SidebarFooter>
          <SidebarMenu>
             <SidebarMenuItem>
-                <Link href="#" legacyBehavior passHref>
-                    <SidebarMenuButton asChild tooltip="Help">
-                        <a>
-                            <LifeBuoy />
-                            <span>Help & Support</span>
-                        </a>
-                    </SidebarMenuButton>
-                </Link>
+                <SidebarMenuButton asChild tooltip="Help">
+                    <Link href="#">
+                        <LifeBuoy />
+                        <span>Help & Support</span>
+                    </Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-                <Link href="#" legacyBehavior passHref>
-                    <SidebarMenuButton asChild tooltip="Settings">
-                        <a>
-                            <Settings />
-                            <span>Settings</span>
-                        </a>
-                    </SidebarMenuButton>
-                </Link>
+                <SidebarMenuButton asChild tooltip="Settings">
+                    <Link href="#">
+                        <Settings />
+                        <span>Settings</span>
+                    </Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>
