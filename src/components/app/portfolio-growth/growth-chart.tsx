@@ -23,22 +23,23 @@ const CustomLegend = (props: any) => {
       Moderate: '50% Likelihood',
       Conservative: '80% Likelihood'
   }
+  // Re-order to match expected order if needed
+  const orderedPayload = ['Conservative', 'Moderate', 'Aggressive'].map(name => payload.find((p: any) => p.value === name)).filter(Boolean);
+
   return (
-    <div className="flex flex-col space-y-2 border p-4 rounded-lg bg-background/80">
-      {
-        payload.map((entry: any, index: number) => {
-            const label = entry.value as keyof typeof likelihoods;
-            return (
-              <div key={`item-${index}`} className="flex items-center gap-2">
-                <div style={{ width: 20, height: 4, backgroundColor: entry.color }} />
-                <div>
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs text-muted-foreground">{likelihoods[label]}</p>
-                </div>
-              </div>
-            )
-        })
-      }
+    <div className="flex flex-row justify-center items-center gap-8 mt-6">
+      {orderedPayload.map((entry: any) => {
+        const label = entry.value as keyof typeof likelihoods;
+        return (
+          <div key={entry.value} className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+            <div>
+              <p className="text-sm font-medium">{label}</p>
+              <p className="text-xs text-muted-foreground">{likelihoods[label]}</p>
+            </div>
+          </div>
+        )
+      })}
     </div>
   );
 };
@@ -52,7 +53,7 @@ export function GrowthChart({ data }: Props) {
                 data={data}
                 margin={{
                 top: 20,
-                right: 120, // Make space for legend
+                right: 30,
                 left: 30,
                 bottom: 5,
                 }}
@@ -81,7 +82,7 @@ export function GrowthChart({ data }: Props) {
                     />
                     }
                 />
-                <Legend content={<CustomLegend />} verticalAlign="middle" align="right" />
+                <Legend content={<CustomLegend />} verticalAlign="bottom" height={80} />
                 <Line type="monotone" dataKey="conservative" name="Conservative" stroke="var(--color-conservative)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="moderate" name="Moderate" stroke="var(--color-moderate)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="aggressive" name="Aggressive" stroke="var(--color-aggressive)" strokeWidth={2} dot={false} />
