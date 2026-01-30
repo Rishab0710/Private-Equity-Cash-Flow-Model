@@ -35,23 +35,38 @@ export function JCurveControls({
     <Card>
       <CardContent className="flex flex-wrap items-end gap-x-6 gap-y-4 pt-4">
         <div className="space-y-2 flex-1 min-w-[150px]">
-            <Label>Deployment Pacing</Label>
+            <div className="flex justify-between items-center">
+                <Label>Deployment Pacing</Label>
+                <span className="text-xs font-medium text-muted-foreground">{deploymentPacing}</span>
+            </div>
             <Slider value={[deploymentPacing]} onValueChange={([v]) => setDeploymentPacing(v)} />
         </div>
          <div className="space-y-2 flex-1 min-w-[150px]">
-            <Label>Investment Period</Label>
+             <div className="flex justify-between items-center">
+                <Label>Investment Period</Label>
+                <span className="text-xs font-medium text-muted-foreground">{investmentPeriod} yrs</span>
+            </div>
             <Slider value={[investmentPeriod]} onValueChange={([v]) => setInvestmentPeriod(v)} min={3} max={8} step={1} />
         </div>
         <div className="space-y-2 flex-1 min-w-[150px]">
-            <Label>Exit Timing</Label>
+            <div className="flex justify-between items-center">
+                <Label>Exit Timing</Label>
+                <span className="text-xs font-medium text-muted-foreground">{exitTiming} yrs</span>
+            </div>
             <Slider value={[exitTiming]} onValueChange={([v]) => setExitTiming(v)} min={2} max={8} step={1} />
         </div>
         <div className="space-y-2 flex-1 min-w-[150px]">
-            <Label>Distribution Velocity</Label>
+            <div className="flex justify-between items-center">
+                <Label>Distribution Velocity</Label>
+                <span className="text-xs font-medium text-muted-foreground">{distributionVelocity}</span>
+            </div>
             <Slider value={[distributionVelocity]} onValueChange={([v]) => setDistributionVelocity(v)} />
         </div>
          <div className="space-y-2 flex-1 min-w-[150px]">
-            <Label>NAV Ramp Speed</Label>
+            <div className="flex justify-between items-center">
+                <Label>NAV Ramp Speed</Label>
+                <span className="text-xs font-medium text-muted-foreground">{navRampSpeed}</span>
+            </div>
             <Slider value={[navRampSpeed]} onValueChange={([v]) => setNavRampSpeed(v)} />
         </div>
 
