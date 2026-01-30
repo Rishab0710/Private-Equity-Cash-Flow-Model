@@ -44,9 +44,9 @@ export default function DashboardPage() {
   const { kpis, cashflowForecast, liquidityForecast, drivers, composition, dataHealth, alerts } = portfolioData;
 
   return (
-    <div className="grid grid-cols-12 grid-rows-[auto,auto,auto,1fr] gap-6">
+    <div className="space-y-6">
       {/* KPIs */}
-      <div className="col-span-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
         <KpiCard title="Net Requirement (90D)" value={formatCurrency(kpis.netCashRequirementNext90Days)} />
         <KpiCard title="Peak Outflow" value={formatCurrency(kpis.peakProjectedOutflow.value)} description={`in ${kpis.peakProjectedOutflow.date ? format(new Date(kpis.peakProjectedOutflow.date), 'MMM yyyy') : 'N/A'}`} />
         <KpiCard title="Liquidity Buffer" value={formatPercent(kpis.liquidityBufferRatio)} />
@@ -56,30 +56,35 @@ export default function DashboardPage() {
         <KpiCard title="Model Confidence" value={formatPercent(kpis.modelConfidence)} />
       </div>
 
-      {/* Main Chart */}
-      <div className="col-span-12 lg:col-span-8 row-span-2">
-        <CashflowCommandChart data={cashflowForecast} />
+      {/* Row 2 */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-8">
+          <CashflowCommandChart data={cashflowForecast} />
+        </div>
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          <AlertsWatchlist alerts={alerts} />
+          <ScenarioConsole />
+        </div>
       </div>
       
-      {/* Side Panels */}
-      <div className="col-span-12 lg:col-span-4 space-y-6">
-        <AlertsWatchlist alerts={alerts} />
-        <ScenarioConsole />
+      {/* Row 3 */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-5">
+          <LiquidityRunwayChart data={liquidityForecast}/>
+        </div>
+        <div className="col-span-12 lg:col-span-4">
+          <PortfolioComposition data={composition} />
+        </div>
+        <div className="col-span-12 lg:col-span-3">
+          <FundingDriversPanel drivers={drivers} />
+        </div>
       </div>
 
-      <div className="col-span-12 lg:col-span-4 space-y-6">
-        <FundingDriversPanel drivers={drivers} />
-      </div>
-      
-      {/* Bottom Row */}
-      <div className="col-span-12 lg:col-span-5">
-        <LiquidityRunwayChart data={liquidityForecast}/>
-      </div>
-      <div className="col-span-12 lg:col-span-4">
-        <PortfolioComposition data={composition} />
-      </div>
-      <div className="col-span-12 lg:col-span-3">
-        <DataHealthPanel data={dataHealth} />
+      {/* Row 4 */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12">
+            <DataHealthPanel data={dataHealth} />
+        </div>
       </div>
     </div>
   );
@@ -91,10 +96,10 @@ const DashboardSkeleton = () => (
       {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-20" />)}
     </div>
     <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[500px]" /></div>
+        <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[400px]" /></div>
         <div className="col-span-12 lg:col-span-4 space-y-6">
-            <Skeleton className="h-[242px]" />
-            <Skeleton className="h-[242px]" />
+            <Skeleton className="h-[200px]" />
+            <Skeleton className="h-[200px]" />
         </div>
     </div>
      <div className="grid grid-cols-12 gap-6">

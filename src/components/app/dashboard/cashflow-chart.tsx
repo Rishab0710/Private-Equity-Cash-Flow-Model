@@ -37,7 +37,7 @@ export function CashflowCommandChart({ data }: Props) {
   }));
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card>
       <CardHeader className='pb-2'>
         <div className="flex items-center justify-between">
           <CardTitle>Cashflow Command Chart</CardTitle>
@@ -49,7 +49,7 @@ export function CashflowCommandChart({ data }: Props) {
           </Tabs>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 -ml-2">
+      <CardContent className="h-[350px] -ml-2">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <ComposedChart
             data={chartData}
