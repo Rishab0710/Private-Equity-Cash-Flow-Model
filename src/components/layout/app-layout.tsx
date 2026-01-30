@@ -37,7 +37,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // We only need to generate portfolio data for data-heavy pages
-    const dataPages = ['/dashboard', '/cashflow-engine', '/funds'];
+    const dataPages = ['/dashboard', '/cashflow-engine', '/funds', '/liquidity'];
     if (dataPages.includes(pathname)) {
       const { portfolio, funds: newFunds } = getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate);
       setPortfolioData(portfolio);
@@ -49,7 +49,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <PortfolioContext.Provider value={{ portfolioData, funds, scenario, setScenario, fundId, setFundId, asOfDate, setAsOfDate }}>
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-5 lg:p-6">{children}</main>
       </div>
     </PortfolioContext.Provider>
   );
