@@ -20,6 +20,7 @@ import {
   LifeBuoy,
   Menu,
   FileUp,
+  Cpu,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -35,6 +36,7 @@ const navItems = [
   { href: '/liquidity', label: 'Liquidity', icon: AreaChart },
   { href: '/scenarios', label: 'Scenarios', icon: Presentation },
   { href: '/statement-extraction', label: 'Extraction', icon: FileUp },
+  { href: '/cashflow-engine', label: 'Forecast Engine', icon: Cpu },
 ];
 
 export function Header() {

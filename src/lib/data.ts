@@ -1,4 +1,4 @@
-import { addMonths, addQuarters, format, isAfter, isBefore, subMonths } from 'date-fns';
+import { addMonths, addQuarters, format, isAfter, isBefore, subMonths, differenceInQuarters } from 'date-fns';
 import type {
   Alert,
   CashflowData,
@@ -12,6 +12,7 @@ import type {
   Scenario,
 } from './types';
 
+// Base fund data
 export const funds: Fund[] = [
   {
     id: '1',
@@ -20,11 +21,8 @@ export const funds: Fund[] = [
     region: 'North America',
     vintageYear: 2021,
     commitment: 100000000,
-    unfundedCommitment: 55000000,
     investmentPeriod: 5,
     fundLife: 10,
-    latestNav: 45000000,
-    forecastIRR: 18.5,
   },
   {
     id: '2',
@@ -33,11 +31,8 @@ export const funds: Fund[] = [
     region: 'Global',
     vintageYear: 2022,
     commitment: 50000000,
-    unfundedCommitment: 35000000,
     investmentPeriod: 4,
     fundLife: 12,
-    latestNav: 15000000,
-    forecastIRR: 22.1,
   },
   {
     id: '3',
@@ -46,11 +41,8 @@ export const funds: Fund[] = [
     region: 'Global',
     vintageYear: 2020,
     commitment: 250000000,
-    unfundedCommitment: 70000000,
     investmentPeriod: 6,
     fundLife: 15,
-    latestNav: 180000000,
-    forecastIRR: 12.3,
   },
   {
     id: '4',
@@ -59,11 +51,8 @@ export const funds: Fund[] = [
     region: 'Europe',
     vintageYear: 2023,
     commitment: 75000000,
-    unfundedCommitment: 65000000,
     investmentPeriod: 3,
     fundLife: 8,
-    latestNav: 10000000,
-    forecastIRR: 15.0,
   },
   {
     id: '5',
@@ -72,11 +61,8 @@ export const funds: Fund[] = [
     region: 'North America',
     vintageYear: 2023,
     commitment: 60000000,
-    unfundedCommitment: 50000000,
     investmentPeriod: 5,
     fundLife: 10,
-    latestNav: 8000000,
-    forecastIRR: 25.0,
   },
   {
     id: '6',
@@ -85,145 +71,195 @@ export const funds: Fund[] = [
     region: 'Europe',
     vintageYear: 2019,
     commitment: 150000000,
-    unfundedCommitment: 20000000,
     investmentPeriod: 5,
     fundLife: 10,
-    latestNav: 160000000,
-    forecastIRR: 16.2,
   },
 ];
 
+// J-Curve and NAV modeling parameters by strategy
 const strategyParams = {
-  PE: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9 },
-  VC: { callPeak: 12, callDecay: 0.85, distStart: 20, distPeak: 28, distDecay: 0.9 },
-  Infra: { callPeak: 10, callDecay: 0.75, distStart: 16, distPeak: 28, distDecay: 0.85 },
-  Secondaries: { callPeak: 4, callDecay: 0.7, distStart: 6, distPeak: 14, distDecay: 0.8 },
-  Other: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9 },
+  PE: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9, navPeak: 24, targetMultiple: 2.2 },
+  VC: { callPeak: 12, callDecay: 0.85, distStart: 20, distPeak: 28, distDecay: 0.9, navPeak: 32, targetMultiple: 3.5 },
+  Infra: { callPeak: 10, callDecay: 0.75, distStart: 16, distPeak: 28, distDecay: 0.85, navPeak: 36, targetMultiple: 1.8 },
+  Secondaries: { callPeak: 4, callDecay: 0.7, distStart: 6, distPeak: 14, distDecay: 0.8, navPeak: 16, targetMultiple: 1.6 },
+  Other: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9, navPeak: 24, targetMultiple: 2.0 },
 };
 
-export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, asOfDate: Date = new Date()): PortfolioData => {
+export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, asOfDate: Date = new Date()): { portfolio: PortfolioData, funds: Fund[] } => {
     const FORECAST_START_DATE = asOfDate;
-    const NUM_QUARTERS_ACTUAL = 8;
-    const NUM_QUARTERS_FORECAST = 24;
+    const NUM_QUARTERS_ACTUAL = 12; // More historical data
+    const NUM_QUARTERS_FORECAST = 32; // Longer forecast horizon
 
     const generateDates = () => {
       const dates = [];
-      const today = FORECAST_START_DATE;
-      for (let i = -NUM_QUARTERS_ACTUAL; i < NUM_QUARTERS_FORECAST; i++) {
-        dates.push(addQuarters(today, i));
+      const firstDate = addQuarters(FORECAST_START_DATE, -NUM_QUARTERS_ACTUAL);
+      for (let i = 0; i < NUM_QUARTERS_ACTUAL + NUM_QUARTERS_FORECAST; i++) {
+        dates.push(addQuarters(firstDate, i));
       }
       return dates;
     };
     const DATES = generateDates();
 
     const getFundAgeInQuarters = (fund: Fund, date: Date) => {
-        return Math.floor((date.getTime() - new Date(fund.vintageYear, 0, 1).getTime()) / (1000 * 60 * 60 * 24 * 30.44 * 3));
+        const fundStartDate = new Date(fund.vintageYear, 0, 1);
+        return differenceInQuarters(date, fundStartDate);
     };
 
-    const generateFundCashflows = (fund: Fund, scenario: Scenario): CashflowData[] => {
-      const params = strategyParams[fund.strategy];
+    // This function generates the full lifecycle projections for a single fund
+    const generateFundProjections = (fund: Fund, scenario: Scenario): { cashflows: CashflowData[], nav: NavData[] } => {
+      const params = strategyParams[fund.strategy] || strategyParams.Other;
       let callFactor = 1;
       let distFactor = 1;
+      let navFactor = 1;
 
       switch (scenario) {
-        case 'Slow Exit': distFactor = 0.7; break;
-        case 'Fast Exit': distFactor = 1.3; break;
-        case 'Stress': callFactor = 1.1; distFactor = 0.6; break;
+        case 'Slow Exit': distFactor = 0.7; navFactor = 0.9; break;
+        case 'Fast Exit': distFactor = 1.3; navFactor = 1.1; break;
+        case 'Stress': callFactor = 1.1; distFactor = 0.6; navFactor = 0.8; break;
       }
       
       let unfunded = fund.commitment;
+      let nav = 0;
+      const cashflows: CashflowData[] = [];
+      const navs: NavData[] = [];
 
-      return DATES.map(date => {
-        const age = getFundAgeInQuarters(fund, date);
-        let capitalCall = 0;
-        
-        if (age > 0 && age <= params.callPeak) {
-          capitalCall = (fund.commitment / (params.callPeak * 2)) * (1 + Math.random() * 0.5) * callFactor;
-        } else if (age > params.callPeak && age <= fund.investmentPeriod * 4) {
-          capitalCall = (fund.commitment / (params.callPeak * 2)) * Math.pow(params.callDecay, age - params.callPeak) * (1 + Math.random() * 0.3) * callFactor;
-        }
-        capitalCall = Math.min(capitalCall, unfunded);
-        unfunded -= capitalCall;
+      for (const date of DATES) {
+          const age = getFundAgeInQuarters(fund, date);
+          let capitalCall = 0;
+          
+          if (age >= 0 && unfunded > 0) {
+              const callPacing = (age / (fund.investmentPeriod * 4)) ** 1.5;
+              const randomFactor = 1 + (Math.random() - 0.5) * 0.4;
+              let potentialCall = (fund.commitment / (fund.investmentPeriod * 4)) * callPacing * randomFactor * callFactor;
+              
+              if (age > params.callPeak) {
+                  potentialCall *= Math.pow(params.callDecay, age - params.callPeak);
+              }
 
-        let distribution = 0;
-        if (age > params.distStart) {
-          const distAge = age - params.distStart;
-          if (distAge <= (params.distPeak - params.distStart)) {
-            distribution = (fund.commitment * 2.5 / (params.distPeak-params.distStart) / 4) * (1 + Math.random() * 0.6) * distFactor;
-          } else {
-            distribution = (fund.commitment * 2.5 / (params.distPeak-params.distStart) / 4) * Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart)) * (1 + Math.random() * 0.4) * distFactor;
+              capitalCall = Math.max(0, Math.min(potentialCall, unfunded));
+              unfunded -= capitalCall;
           }
-        }
-        
+
+          let distribution = 0;
+          if (age > params.distStart && nav > 0) {
+            const distAge = age - params.distStart;
+            const randomFactor = 1 + (Math.random() - 0.5) * 0.5;
+            let potentialDist = (nav / (fund.fundLife * 4 - age)) * randomFactor * distFactor;
+
+            if (distAge > (params.distPeak - params.distStart)) {
+                potentialDist *= Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart));
+            }
+            distribution = Math.min(nav + capitalCall, potentialDist); // Cannot distribute more than NAV
+          }
+
+          // NAV calculation
+          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 + (Math.random() - 0.5) * 0.02) * navFactor : -0.01;
+          nav = nav * (1 + growthRate) + capitalCall - distribution;
+          nav = Math.max(0, nav);
+
+          cashflows.push({
+            date: format(date, 'yyyy-MM-dd'),
+            isActual: isBefore(date, FORECAST_START_DATE),
+            capitalCall,
+            distribution,
+            netCashflow: distribution - capitalCall,
+          });
+
+          navs.push({
+              date: format(date, 'yyyy-MM-dd'),
+              nav,
+          });
+      }
+      return { cashflows, nav: navs };
+    };
+
+    const aggregateProjections = <T extends { date: string }>(
+        allProjections: T[][], 
+        reducer: (acc: Omit<T, 'date' | 'isActual'>, current: T) => Omit<T, 'date' | 'isActual'>,
+        initial: Omit<T, 'date' | 'isActual'>
+      ): T[] => {
+      if (allProjections.length === 0) return [];
+      return DATES.map((date, i) => {
+        const aggregated = allProjections.reduce((acc, fundProjections) => {
+          return reducer(acc, fundProjections[i]);
+        }, { ...initial });
         return {
           date: format(date, 'yyyy-MM-dd'),
           isActual: isBefore(date, FORECAST_START_DATE),
-          capitalCall,
-          distribution,
-          netCashflow: distribution - capitalCall,
-        };
+          ...aggregated
+        } as T;
       });
     };
-
-    const aggregateCashflows = (allFundCashflows: CashflowData[][]): CashflowData[] => {
-      if (allFundCashflows.length === 0) return [];
-      return DATES.map((date, i) => {
-        return allFundCashflows.reduce((acc, fundCashflows) => {
-          const cf = fundCashflows[i];
-          acc.capitalCall += cf.capitalCall;
-          acc.distribution += cf.distribution;
-          acc.netCashflow += cf.netCashflow;
-          return acc;
-        }, {
-          date: format(date, 'yyyy-MM-dd'),
-          isActual: isBefore(date, FORECAST_START_DATE),
-          capitalCall: 0,
-          distribution: 0,
-          netCashflow: 0,
-        });
-      });
-    };
-
-    const getDrivers = (allFundCashflows: CashflowData[][], targetFunds: Fund[], nextQuarters: number): { upcomingCalls: FundDriver[], expectedDistributions: FundDriver[] } => {
-      const forecastStartIndex = DATES.findIndex(d => isAfter(d, FORECAST_START_DATE));
-      if (forecastStartIndex === -1) return { upcomingCalls: [], expectedDistributions: [] };
-      
-      const upcomingCalls: FundDriver[] = [];
-      const expectedDistributions: FundDriver[] = [];
-
-      targetFunds.forEach((fund, fundIndex) => {
-        let callValue = 0;
-        let distValue = 0;
-        let nextCallDate = '';
-        let nextDistDate = '';
-
-        for (let i = forecastStartIndex; i < forecastStartIndex + nextQuarters; i++) {
-          if (allFundCashflows[fundIndex] && allFundCashflows[fundIndex][i]) {
-            const cf = allFundCashflows[fundIndex][i];
-            callValue += cf.capitalCall;
-            distValue += cf.distribution;
-            if (!nextCallDate && cf.capitalCall > 0) nextCallDate = cf.date;
-            if (!nextDistDate && cf.distribution > 0) nextDistDate = cf.date;
-          }
-        }
-
-        if (callValue > 0) upcomingCalls.push({ fundId: fund.id, fundName: fund.name, value: callValue, nextCashflowDate: nextCallDate });
-        if (distValue > 0) expectedDistributions.push({ fundId: fund.id, fundName: fund.name, value: distValue, nextCashflowDate: nextDistDate });
-      });
-
-      return {
-        upcomingCalls: upcomingCalls.sort((a, b) => b.value - a.value).slice(0, 5),
-        expectedDistributions: expectedDistributions.sort((a, b) => b.value - a.value).slice(0, 5),
-      };
-    };
-
-    const targetFunds = fundId ? funds.filter(f => f.id === fundId) : funds;
     
-    const allFundCashflows = targetFunds.map(fund => generateFundCashflows(fund, scenario));
-    const portfolioCashflows = aggregateCashflows(allFundCashflows);
+    const fundsForProcessing = fundId ? funds.filter(f => f.id === fundId) : funds;
+    
+    const allFundProjections = fundsForProcessing.map(fund => generateFundProjections(fund, scenario));
+    const allFundCashflows = allFundProjections.map(p => p.cashflows);
+    const allFundNavs = allFundProjections.map(p => p.nav);
 
+    const portfolioCashflows = aggregateProjections(allFundCashflows, (acc, cf) => {
+        (acc as any).capitalCall += cf.capitalCall;
+        (acc as any).distribution += cf.distribution;
+        (acc as any).netCashflow += cf.netCashflow;
+        return acc;
+    }, { capitalCall: 0, distribution: 0, netCashflow: 0 });
+
+    const portfolioNav = aggregateProjections(allFundNavs, (acc, nav) => {
+        (acc as any).nav += nav.nav;
+        return acc;
+    }, { nav: 0 });
+
+    // Calculate dynamic unfunded and NAV for all funds based on asOfDate, for the fund list page
+    const allFundsWithCurrentData = funds.map((fund) => {
+        const asOfIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
+        const { cashflows, nav } = generateFundProjections(fund, 'Base'); // use base scenario for list
+        const historicalCashflows = cashflows.slice(0, asOfIndex);
+        const calledToDate = historicalCashflows.reduce((sum, cf) => sum + cf.capitalCall, 0);
+        const latestNav = nav[asOfIndex -1]?.nav || 0;
+        
+        return {
+            ...fund,
+            unfundedCommitment: Math.max(0, fund.commitment - calledToDate),
+            latestNav: latestNav,
+            forecastIRR: 15 + Math.random() * 10 // IRR calculation is complex, using random for now
+        };
+    });
+
+    const getDrivers = (nextQuarters: number): { upcomingCalls: FundDriver[], expectedDistributions: FundDriver[] } => {
+        const forecastStartIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
+        if (forecastStartIndex === -1) return { upcomingCalls: [], expectedDistributions: [] };
+      
+        const upcomingCalls: FundDriver[] = [];
+        const expectedDistributions: FundDriver[] = [];
+
+        fundsForProcessing.forEach((fund, fundIndex) => {
+          let callValue = 0;
+          let distValue = 0;
+          let nextCallDate = '';
+          let nextDistDate = '';
+
+          for (let i = forecastStartIndex; i < forecastStartIndex + nextQuarters; i++) {
+              const cf = allFundCashflows[fundIndex]?.[i];
+              if(cf) {
+                callValue += cf.capitalCall;
+                distValue += cf.distribution;
+                if (!nextCallDate && cf.capitalCall > 0) nextCallDate = cf.date;
+                if (!nextDistDate && cf.distribution > 0) nextDistDate = cf.date;
+              }
+          }
+
+          if (callValue > 0) upcomingCalls.push({ fundId: fund.id, fundName: fund.name, value: callValue, nextCashflowDate: nextCallDate });
+          if (distValue > 0) expectedDistributions.push({ fundId: fund.id, fundName: fund.name, value: distValue, nextCashflowDate: nextDistDate });
+        });
+
+        return {
+          upcomingCalls: upcomingCalls.sort((a, b) => b.value - a.value).slice(0, 5),
+          expectedDistributions: expectedDistributions.sort((a, b) => b.value - a.value).slice(0, 5),
+        };
+    }
+    
     // KPIs
-    const forecastStartIndex = DATES.findIndex(d => isAfter(d, FORECAST_START_DATE));
+    const forecastStartIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
     const next90DaysDate = addMonths(FORECAST_START_DATE, 3);
     const netCashRequirementNext90Days = portfolioCashflows
       .filter(cf => isAfter(new Date(cf.date), FORECAST_START_DATE) && isBefore(new Date(cf.date), next90DaysDate))
@@ -233,9 +269,15 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
       .slice(forecastStartIndex)
       .reduce((peak, cf) => (cf.netCashflow < peak.value ? { value: cf.netCashflow, date: cf.date } : peak), { value: 0, date: '' });
 
-    const remainingUnfunded = targetFunds.reduce((sum, f) => sum + f.unfundedCommitment, 0);
+    const remainingUnfunded = fundsForProcessing.map((fund, i) => {
+      const asOfIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
+      const historicalCashflows = allFundCashflows[i].slice(0, asOfIndex);
+      const calledToDate = historicalCashflows.reduce((sum, cf) => sum + cf.capitalCall, 0);
+      return fund.commitment - calledToDate;
+    }).reduce((sum, unfunded) => sum + unfunded, 0);
+
     const availableLiquidity = 50_000_000; // Dummy value
-    const liquidityBufferRatio = remainingUnfunded > 0 ? availableLiquidity / remainingUnfunded : 0;
+    const liquidityBufferRatio = remainingUnfunded > 0 ? Math.max(0, availableLiquidity / remainingUnfunded) : 1;
     
     const next12MonthsDate = addMonths(FORECAST_START_DATE, 12);
     const expectedDistributionsNext12Months = portfolioCashflows
@@ -243,11 +285,11 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
       .reduce((sum, cf) => sum + cf.distribution, 0);
     
     let cumulativeNet = portfolioCashflows.slice(0, forecastStartIndex).reduce((sum, cf) => sum + cf.netCashflow, 0);
-    const breakevenCfs = portfolioCashflows.slice(forecastStartIndex).filter(cf => {
+    const breakevenCf = portfolioCashflows.slice(forecastStartIndex).find(cf => {
         cumulativeNet += cf.netCashflow;
         return cumulativeNet > 0;
     });
-    const breakevenTiming = { from: breakevenCfs[0]?.date || 'N/A', to: breakevenCfs[1]?.date || '' };
+    const breakevenTiming = { from: breakevenCf?.date || 'N/A', to: '' };
 
     // Liquidity Forecast
     let currentLiquidity = availableLiquidity;
@@ -255,32 +297,32 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
       currentLiquidity += cf.netCashflow;
       return {
         date: cf.date,
-        availableLiquidity: currentLiquidity,
+        availableLiquidity: currentLiquidity > 0 ? currentLiquidity : 0,
         netOutflow: cf.netCashflow < 0 ? -cf.netCashflow : 0,
-        fundingGap: Math.max(0, -currentLiquidity),
+        fundingGap: currentLiquidity < 0 ? -currentLiquidity : 0,
       }
     });
 
     // Drivers
-    const { upcomingCalls, expectedDistributions } = getDrivers(allFundCashflows, targetFunds, 4);
-    const largestUnfunded = [...targetFunds].sort((a, b) => b.unfundedCommitment - a.unfundedCommitment).slice(0, 5).map(f => ({
+    const { upcomingCalls, expectedDistributions } = getDrivers(4); // 4 quarters = 1 year
+    const largestUnfunded = [...allFundsWithCurrentData].filter(f => fundsForProcessing.some(fp => fp.id === f.id)).sort((a, b) => (b.unfundedCommitment ?? 0) - (a.unfundedCommitment ?? 0)).slice(0, 5).map(f => ({
       fundId: f.id,
       fundName: f.name,
-      value: f.unfundedCommitment,
+      value: f.unfundedCommitment ?? 0,
       nextCashflowDate: '',
     }));
     
     // Composition
     const composition: Composition = {
-      strategy: Object.entries(targetFunds.reduce((acc, f) => {
+      strategy: Object.entries(fundsForProcessing.reduce((acc, f) => {
         acc[f.strategy] = (acc[f.strategy] || 0) + f.commitment;
         return acc;
       }, {} as Record<string, number>)).map(([name, value]) => ({ name, value })),
-      vintage: Object.entries(targetFunds.reduce((acc, f) => {
-        acc[f.vintageYear] = (acc[f.vintageYear] || 0) + f.commitment;
+      vintage: Object.entries(fundsForProcessing.reduce((acc, f) => {
+        acc[String(f.vintageYear)] = (acc[String(f.vintageYear)] || 0) + f.commitment;
         return acc;
-      }, {} as Record<string, number>)).map(([name, value]) => ({ name, value })),
-      region: Object.entries(targetFunds.reduce((acc, f) => {
+      }, {} as Record<string, number>)).map(([name, value]) => ({ name, value: value })),
+      region: Object.entries(fundsForProcessing.reduce((acc, f) => {
         acc[f.region] = (acc[f.region] || 0) + f.commitment;
         return acc;
       }, {} as Record<string, number>)).map(([name, value]) => ({ name, value })),
@@ -295,17 +337,24 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
       recentActivity: [
         { fundName: 'Growth Equity Fund V', status: 'Success', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
         { fundName: 'Venture Partners II', status: 'Success', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
+        { fundName: 'Global Infrastructure Fund', status: 'Failed', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
       ],
+    };
+
+    const formatCurrency = (value: number) => {
+        if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
+        if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+        return `$${value.toFixed(0)}`;
     };
 
     // Dummy Alerts
     const alerts: Alert[] = [
-        { id: '1', title: 'Liquidity Gap Risk', description: 'Projected funding gap of $12M in Q3 2025', severity: 'High' },
+        { id: '1', title: 'Liquidity Gap Risk', description: `Projected funding gap of ${formatCurrency(liquidityForecast.find(l => l.fundingGap > 0)?.fundingGap || 12000000)} in Q3 2025`, severity: 'High' },
         { id: '2', title: 'Delayed Distribution', description: 'European Buyout Leaders IV distribution delayed', severity: 'Medium' },
-        { id: '3', title: 'Missing Statement', description: 'Innovate BioTech Fund Q4 2024 statement overdue', severity: 'Low' },
+        { id: '3', title: 'Missing Statement', description: 'Innovate BioTech Fund Q1 2025 statement overdue', severity: 'Low' },
     ];
     
-    return {
+    const portfolio = {
         kpis: {
           netCashRequirementNext90Days,
           peakProjectedOutflow,
@@ -317,11 +366,13 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
           lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
         },
         cashflowForecast: portfolioCashflows,
-        navProjection: [], // This can be built similarly to cashflows if needed
+        navProjection: portfolioNav,
         liquidityForecast,
         drivers: { upcomingCalls, expectedDistributions, largestUnfunded },
         composition,
         dataHealth,
         alerts,
     };
+
+    return { portfolio, funds: allFundsWithCurrentData };
 }

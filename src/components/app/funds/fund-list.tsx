@@ -1,4 +1,6 @@
-import { funds } from '@/lib/data';
+'use client';
+
+import { usePortfolioContext } from '@/components/layout/app-layout';
 import {
   Table,
   TableBody,
@@ -23,6 +25,8 @@ type FundListProps = {
 }
 
 export function FundList({ showHeader = true }: FundListProps) {
+  const { funds } = usePortfolioContext();
+  
   const formatCurrency = (amount: number) => {
     return `$${(amount / 1000000).toFixed(1)}M`;
   };
@@ -58,12 +62,12 @@ export function FundList({ showHeader = true }: FundListProps) {
                   {formatCurrency(fund.commitment)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(fund.latestNav)}
+                  {formatCurrency(fund.latestNav ?? 0)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatCurrency(fund.unfundedCommitment)}
+                  {formatCurrency(fund.unfundedCommitment ?? 0)}
                 </TableCell>
-                <TableCell className="text-right">{fund.forecastIRR.toFixed(1)}%</TableCell>
+                <TableCell className="text-right">{(fund.forecastIRR ?? 0).toFixed(1)}%</TableCell>
                 <TableCell className="text-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

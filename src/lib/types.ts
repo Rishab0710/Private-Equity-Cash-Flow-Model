@@ -5,11 +5,11 @@ export type Fund = {
   region: 'North America' | 'Europe' | 'Asia' | 'Global';
   vintageYear: number;
   commitment: number;
-  unfundedCommitment: number;
   investmentPeriod: number;
   fundLife: number;
-  latestNav: number;
-  forecastIRR: number;
+  unfundedCommitment?: number;
+  latestNav?: number;
+  forecastIRR?: number;
 };
 
 export type Scenario = 'Base' | 'Slow Exit' | 'Fast Exit' | 'Stress';

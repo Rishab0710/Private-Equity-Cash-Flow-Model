@@ -2,12 +2,13 @@
 
 import { Header } from '@/components/layout/header';
 import { createContext, useContext, type ReactNode, useState, useEffect } from 'react';
-import { getPortfolioData } from '@/lib/data';
-import type { PortfolioData, Scenario } from '@/lib/types';
+import { getPortfolioData, funds as staticFunds } from '@/lib/data';
+import type { PortfolioData, Scenario, Fund } from '@/lib/types';
 import { usePathname } from 'next/navigation';
 
 type PortfolioContextType = {
   portfolioData: PortfolioData | null;
+  funds: Fund[];
   scenario: Scenario;
   setScenario: (scenario: Scenario) => void;
   fundId: string;
@@ -32,17 +33,20 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [scenario, setScenario] = useState<Scenario>('Base');
   const [asOfDate, setAsOfDate] = useState<Date>(new Date());
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+  const [funds, setFunds] = useState<Fund[]>(staticFunds);
 
   useEffect(() => {
-    // We only need to generate portfolio data for the dashboard page
-    if (pathname === '/dashboard') {
-      // Data generation is deferred to the client to prevent hydration mismatch
-      setPortfolioData(getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate));
+    // We only need to generate portfolio data for data-heavy pages
+    const dataPages = ['/dashboard', '/cashflow-engine', '/funds'];
+    if (dataPages.includes(pathname)) {
+      const { portfolio, funds: newFunds } = getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate);
+      setPortfolioData(portfolio);
+      setFunds(newFunds);
     }
   }, [fundId, scenario, pathname, asOfDate]);
 
   return (
-    <PortfolioContext.Provider value={{ portfolioData, scenario, setScenario, fundId, setFundId, asOfDate, setAsOfDate }}>
+    <PortfolioContext.Provider value={{ portfolioData, funds, scenario, setScenario, fundId, setFundId, asOfDate, setAsOfDate }}>
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
