@@ -1,13 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const MetricRow = ({ label, value, isSub = false }: { label: string, value: string | number, isSub?: boolean }) => (
-    <div className={`flex justify-between items-center py-1.5 ${isSub ? 'pl-4' : ''}`}>
-        <p className={`text-xs ${isSub ? 'text-muted-foreground' : 'font-medium'}`}>{label}</p>
-        <p className="text-xs font-semibold">{value}</p>
-    </div>
-);
-
 type AssumptionsPanelProps = {
     assumptions: any;
     startingBalance: number;
@@ -21,6 +14,19 @@ type AssumptionsPanelProps = {
     analysisTimePeriod: number;
     setAnalysisTimePeriod: (value: number) => void;
 }
+
+const AssetAllocationRow = ({ label, percentage, balance }: { label: string, percentage: string, balance: number }) => {
+    const value = balance * (parseFloat(percentage) / 100);
+    const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1 }).format(val);
+    
+    return (
+        <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-3">
+            <p className={`text-xs text-muted-foreground`}>{label}</p>
+            <p className="text-xs font-semibold text-right">{formatCurrency(value)}</p>
+            <p className="text-xs font-semibold text-right">{percentage}</p>
+        </div>
+    );
+};
 
 export function AssumptionsPanel({ 
     assumptions, 
@@ -76,16 +82,17 @@ export function AssumptionsPanel({
             </div>
 
             <div className="divide-y divide-border rounded-lg border">
-                <div className="flex justify-between items-center py-1.5 px-4 font-medium">
+                <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-4 font-medium">
                      <p className="text-xs">Asset Allocation</p>
-                     <p className="text-xs">Current</p>
+                     <p className="text-xs text-right">Value</p>
+                     <p className="text-xs text-right">Current</p>
                 </div>
-                 <MetricRow label="Equities" value={assumptions.assetAllocation.equities} isSub />
-                 <MetricRow label="Fixed Income" value={assumptions.assetAllocation.fixedIncome} isSub />
-                 <MetricRow label="Cash" value={assumptions.assetAllocation.cash} isSub />
-                 <MetricRow label="Real Assets" value={assumptions.assetAllocation.realAssets} isSub />
-                 <MetricRow label="Hedge Fund Strategies" value={assumptions.assetAllocation.hedgeFundStrategies} isSub />
-                 <MetricRow label="Private Equity" value={assumptions.assetAllocation.privateEquity} isSub />
+                <AssetAllocationRow label="Equities" percentage={assumptions.assetAllocation.equities} balance={startingBalance} />
+                <AssetAllocationRow label="Fixed Income" percentage={assumptions.assetAllocation.fixedIncome} balance={startingBalance} />
+                <AssetAllocationRow label="Cash" percentage={assumptions.assetAllocation.cash} balance={startingBalance} />
+                <AssetAllocationRow label="Real Assets" percentage={assumptions.assetAllocation.realAssets} balance={startingBalance} />
+                <AssetAllocationRow label="Hedge Fund Strategies" percentage={assumptions.assetAllocation.hedgeFundStrategies} balance={startingBalance} />
+                <AssetAllocationRow label="Private Equity" percentage={assumptions.assetAllocation.privateEquity} balance={startingBalance} />
             </div>
         </div>
     )
