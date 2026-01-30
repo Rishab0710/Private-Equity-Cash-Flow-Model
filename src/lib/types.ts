@@ -78,6 +78,8 @@ export type PortfolioData = {
     breakevenTiming: { from: string; to: string };
     modelConfidence: number;
     lastStatementUpdate: string;
+    liquidityRunwayInMonths?: number;
+    nextFundingGap?: LiquidityData;
   };
   cashflowForecast: CashflowData[];
   navProjection: NavData[];

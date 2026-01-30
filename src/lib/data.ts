@@ -1,4 +1,4 @@
-import { addMonths, addQuarters, format, isAfter, isBefore, subMonths, differenceInQuarters } from 'date-fns';
+import { addMonths, addQuarters, format, isAfter, isBefore, subMonths, differenceInQuarters, differenceInMonths } from 'date-fns';
 import type {
   Alert,
   CashflowData,
@@ -303,6 +303,13 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
       }
     });
 
+    const runwayBreach = liquidityForecast.find(l => l.availableLiquidity <= 0);
+    let liquidityRunwayInMonths = (NUM_QUARTERS_FORECAST * 3);
+    if (runwayBreach) {
+        liquidityRunwayInMonths = differenceInMonths(new Date(runwayBreach.date), FORECAST_START_DATE);
+    }
+    const nextFundingGap = liquidityForecast.find(l => l.fundingGap > 0);
+
     // Drivers
     const { upcomingCalls, expectedDistributions } = getDrivers(4); // 4 quarters = 1 year
     const largestUnfunded = [...allFundsWithCurrentData].filter(f => fundsForProcessing.some(fp => fp.id === f.id)).sort((a, b) => (b.unfundedCommitment ?? 0) - (a.unfundedCommitment ?? 0)).slice(0, 5).map(f => ({
@@ -364,6 +371,8 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
           breakevenTiming,
           modelConfidence: 0.85,
           lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
+          liquidityRunwayInMonths,
+          nextFundingGap,
         },
         cashflowForecast: portfolioCashflows,
         navProjection: portfolioNav,

@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
 
 const KpiCard = ({ title, value, description }: { title: string, value: string, description?: string }) => (
     <Card className="bg-card">
@@ -22,13 +23,19 @@ export function LiquidityKpiPanel({ kpis }: { kpis: any }) {
     }
     const peakDate = kpis.peakProjectedOutflow.date ? new Date(kpis.peakProjectedOutflow.date) : null;
 
+    const runwayValue = kpis.liquidityRunwayInMonths >= 24 
+        ? `${(kpis.liquidityRunwayInMonths / 12).toFixed(1)} years` 
+        : `${kpis.liquidityRunwayInMonths} months`;
 
     return (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <KpiCard title="Liquidity Coverage" value={formatPercent(kpis.liquidityBufferRatio)} description="Available vs Unfunded" />
             <KpiCard title="Peak Funding Need" value={formatCurrency(kpis.peakProjectedOutflow.value)} description={peakDate ? `in ${peakDate.toLocaleString('default', { month: 'short' })} ${peakDate.getFullYear()}` : ''} />
-            <KpiCard title="Liquidity Runway" value="18 months" description="Until buffer breach" />
-            <KpiCard title="Next Funding Gap" value="Q3 2026" description="Est. $15M deficit" />
+            <KpiCard title="Liquidity Runway" value={runwayValue} description="Until buffer breach" />
+            <KpiCard 
+                title="Next Funding Gap" 
+                value={kpis.nextFundingGap ? format(new Date(kpis.nextFundingGap.date), 'MMM yyyy') : 'None'} 
+                description={kpis.nextFundingGap ? `Est. ${formatCurrency(kpis.nextFundingGap.fundingGap)} deficit` : 'No gaps projected'} />
         </div>
     );
 }
