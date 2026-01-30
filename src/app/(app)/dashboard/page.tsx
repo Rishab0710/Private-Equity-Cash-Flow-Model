@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StatCard } from '@/components/app/dashboard/stat-card';
 import { PortfolioJCurve } from '@/components/app/dashboard/j-curve-chart';
 import { NetCashflowForecast } from '@/components/app/dashboard/cashflow-chart';
 import { UnfundedCommitmentChart } from '@/components/app/dashboard/unfunded-commitment-chart';
 import { ScenarioSelector } from '@/components/app/dashboard/scenario-selector';
 import { getPortfolioData } from '@/lib/data';
-import type { Scenario } from '@/lib/types';
+import type { Scenario, PortfolioData } from '@/lib/types';
 import { format } from 'date-fns';
 import { AlertCircle, Clock } from 'lucide-react';
 import {
@@ -17,10 +17,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
   const [scenario, setScenario] = useState<Scenario>('Base Case');
-  const portfolioData = getPortfolioData(scenario);
+  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+
+  useEffect(() => {
+    // Data generation is deferred to the client to prevent hydration mismatch
+    setPortfolioData(getPortfolioData(scenario));
+  }, [scenario]);
 
   const formatCurrency = (value: number) => {
     if (Math.abs(value) >= 1_000_000) {
@@ -32,6 +38,31 @@ export default function DashboardPage() {
     return `$${value.toFixed(0)}`;
   };
   
+  if (!portfolioData) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Skeleton className="h-10 w-[200px]" />
+          <Skeleton className="h-5 w-[250px]" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-[380px]" />
+          <Skeleton className="h-[380px]" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-[380px]" />
+          <Skeleton className="h-[180px]" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -29,3 +29,17 @@ export type UnfundedCommitmentData = {
 };
 
 export type Scenario = 'Base Case' | 'Slow Deployment' | 'Fast Deployment' | 'Downside Vintage';
+
+export type PortfolioData = {
+  navProjection: NavData[];
+  cashflowForecast: CashflowData[];
+  unfundedCommitment: UnfundedCommitmentData[];
+  stats: {
+    totalCommitment: number;
+    projectedNav: number;
+    peakCapitalOutflow: number;
+    peakCapitalOutflowDate: string;
+    breakeven: string;
+    lastUpdated: string;
+  };
+};
