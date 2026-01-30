@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
@@ -48,7 +49,7 @@ const CustomLegend = (props: any) => {
 
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
-      <div className="h-[350px] w-full">
+      <div className="h-[290px] w-full rounded-lg border">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <LineChart
                 data={data}
@@ -70,7 +71,7 @@ export function GrowthChart({ data, likelihoods }: Props) {
                 <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value * 1000)}
+                    tickFormatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value) * 1000)}
                     label={{ value: 'Potential Wealth Estimates ($ in Thousands)', angle: -90, position: 'insideLeft', offset: -50, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
                     tickMargin={10}
                     domain={['dataMin', 'dataMax']}
