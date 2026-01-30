@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, Line, ComposedChart, Tooltip } from 'recharts';
+import { Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Legend, Line, Tooltip, ReferenceLine, Label } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { CashflowData } from '@/lib/types';
 import {
@@ -35,6 +35,8 @@ export function CashflowCommandChart({ data }: Props) {
     ...item,
     capitalCall: -item.capitalCall, // Negative for charting
   }));
+
+  const forecastStartDate = data.find(d => !d.isActual)?.date;
 
   return (
     <Card>
@@ -80,12 +82,24 @@ export function CashflowCommandChart({ data }: Props) {
                           <span className="font-semibold">{formatCurrency(Math.abs(Number(value)))}</span>
                         </div>
                     )}
-                    labelFormatter={(label) => format(new Date(label), 'MMM yyyy')}
+                    labelFormatter={(label, payload) => {
+                        const point = payload?.[0]?.payload;
+                        const dateLabel = format(new Date(label), 'MMM yyyy');
+                        if (point) {
+                            return `${dateLabel} (${point.isActual ? 'Actual' : 'Forecast'})`;
+                        }
+                        return dateLabel;
+                    }}
                     indicator="dot"
                   />
                 }
               />
             <Legend />
+            {forecastStartDate && (
+                <ReferenceLine x={forecastStartDate} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3">
+                    <Label value="Forecast" position="insideTopLeft" fill="hsl(var(--muted-foreground))" fontSize={12} offset={10} />
+                </ReferenceLine>
+            )}
             <Bar dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[4, 4, 0, 0]} />
             <Bar dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" radius={[4, 4, 0, 0]} />
             <Line type="monotone" dataKey="netCashflow" strokeWidth={2} stroke="var(--color-netCashflow)" dot={false} />
