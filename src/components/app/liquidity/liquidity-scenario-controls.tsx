@@ -27,14 +27,14 @@ export function LiquidityScenarioControls({
             <div className="space-y-2 flex-1 min-w-[200px]">
                 <div className="flex justify-between items-center">
                     <Label>Capital Call Pacing</Label>
-                    <span className="text-xs font-medium text-muted-foreground">{capitalCallPacing}%</span>
+                    <span className="text-xs font-medium text-muted-foreground">{(capitalCallPacing / 100).toFixed(1)}x</span>
                 </div>
                 <Slider value={[capitalCallPacing]} onValueChange={([v]) => setCapitalCallPacing(v)} min={50} max={150} step={5} />
             </div>
             <div className="space-y-2 flex-1 min-w-[200px]">
                 <div className="flex justify-between items-center">
                     <Label>Distribution Velocity</Label>
-                    <span className="text-xs font-medium text-muted-foreground">{distributionVelocity}%</span>
+                    <span className="text-xs font-medium text-muted-foreground">{(distributionVelocity / 100).toFixed(1)}x</span>
                 </div>
                 <Slider value={[distributionVelocity]} onValueChange={([v]) => setDistributionVelocity(v)} min={50} max={150} step={5} />
             </div>
