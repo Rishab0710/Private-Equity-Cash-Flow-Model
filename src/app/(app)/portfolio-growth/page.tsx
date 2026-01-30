@@ -29,7 +29,7 @@ const generateChartData = (params: {
     const { startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod, meanRateOfReturn, standardDeviation } = params;
     
     const data = [];
-    const baseAmount = startingBalance / 1000;
+    const baseAmount = startingBalance / 1000000;
     let cons = baseAmount;
     let mod = baseAmount;
     let agg = baseAmount;
@@ -54,7 +54,7 @@ const generateChartData = (params: {
     });
 
     for (let i = 1; i <= analysisTimePeriod; i++) {
-        const netAnnualFlow = (currentContribution - currentWithdrawal) / 1000;
+        const netAnnualFlow = (currentContribution - currentWithdrawal) / 1000000;
         
         cons += netAnnualFlow;
         mod += netAnnualFlow;
@@ -179,9 +179,9 @@ export default function PortfolioGrowthPage() {
         const lastDataPoint = data[data.length - 1];
         if (lastDataPoint) {
             setPotentialWealth({
-                conservative: lastDataPoint.conservative * 1000,
-                moderate: lastDataPoint.moderate * 1000,
-                aggressive: lastDataPoint.aggressive * 1000,
+                conservative: lastDataPoint.conservative * 1000000,
+                moderate: lastDataPoint.moderate * 1000000,
+                aggressive: lastDataPoint.aggressive * 1000000,
             });
         }
         setLikelihoods(calculateLikelihoods(params));
@@ -261,4 +261,5 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
+
 

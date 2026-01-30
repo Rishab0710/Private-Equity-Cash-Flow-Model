@@ -70,15 +70,15 @@ export function GrowthChart({ data, likelihoods }: Props) {
                 <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value) * 1000)}
-                    label={{ value: 'Potential Wealth Estimates ($ in Thousands)', angle: -90, position: 'insideLeft', offset: -50, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
+                    tickFormatter={(value) => `$${value}M`}
+                    label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -50, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
                     tickMargin={10}
                     domain={['dataMin', 'dataMax']}
                 />
                 <Tooltip
                     content={
                     <ChartTooltipContent
-                        formatter={(value, name) => [new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(value) * 1000), name]}
+                        formatter={(value, name) => [`$${Number(value).toFixed(2)}M`, name]}
                         indicator="dot"
                     />
                     }
