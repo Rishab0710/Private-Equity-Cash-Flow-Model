@@ -260,7 +260,7 @@ export default function PortfolioGrowthPage() {
   return (
     <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold tracking-tight">
+            <h1 className="text-lg font-semibold tracking-tight text-highlight">
                 Potential Growth of Your Fund's Wealth
             </h1>
             <FundSelector
@@ -315,5 +315,6 @@ export default function PortfolioGrowthPage() {
     
 
     
+
 
 
