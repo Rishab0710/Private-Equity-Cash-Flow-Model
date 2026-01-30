@@ -157,10 +157,11 @@ export default function JCurveEditorPage() {
     
     const [chartData, setChartData] = useState<any[]>([]);
     const [impactData, setImpactData] = useState<any>(null);
-    const [baselineMetrics, setBaselineMetrics] = useState<any>(null);
-
+    
     useEffect(() => {
-        // Set baseline on initial render
+        // This effect runs on the client after mount, and whenever a slider changes.
+        // It calculates all data in one go to prevent hydration errors.
+
         const baselineData = generateJCurveData({
             deploymentPacing: 50,
             investmentPeriod: 5,
@@ -168,15 +169,8 @@ export default function JCurveEditorPage() {
             distributionVelocity: 60,
             navRampSpeed: 70,
         });
-        setBaselineMetrics(calculateImpactMetrics(baselineData));
+        const baselineMetrics = calculateImpactMetrics(baselineData);
 
-        // Set initial chart data
-        const initialData = generateJCurveData({ deploymentPacing, investmentPeriod, exitTiming, distributionVelocity, navRampSpeed });
-        setChartData(initialData);
-
-    }, []); // Run only once on mount
-
-    useEffect(() => {
         const data = generateJCurveData({
             deploymentPacing,
             investmentPeriod,
@@ -186,45 +180,43 @@ export default function JCurveEditorPage() {
         });
         setChartData(data);
         
-        if (baselineMetrics) {
-            const currentMetrics = calculateImpactMetrics(data);
-            
-            const getRiskChange = (base: string, current: string) => {
-                const riskOrder = { "Low": 0, "Medium": 1, "High": 2 };
-                if (riskOrder[current as keyof typeof riskOrder] < riskOrder[base as keyof typeof riskOrder]) return "Improved";
-                if (riskOrder[current as keyof typeof riskOrder] > riskOrder[base as keyof typeof riskOrder]) return "Worsened";
-                return "No Change";
-            }
-
-            setImpactData({
-                peakFundingRequirement: {
-                    value: currentMetrics.peakFundingRequirement,
-                    change: currentMetrics.peakFundingRequirement - (baselineMetrics.peakFundingRequirement ?? 0),
-                },
-                liquidityGapRisk: {
-                    value: currentMetrics.liquidityGapRisk,
-                    change: getRiskChange(baselineMetrics.liquidityGapRisk ?? 'Low', currentMetrics.liquidityGapRisk),
-                },
-                breakevenTiming: {
-                    value: currentMetrics.breakevenTiming,
-                    change: currentMetrics.breakevenTiming - (baselineMetrics.breakevenTiming ?? 0),
-                },
-                netMultiple: {
-                    value: currentMetrics.netMultiple,
-                    change: currentMetrics.netMultiple - (baselineMetrics.netMultiple ?? 0),
-                },
-                tvpi: {
-                    value: currentMetrics.tvpi,
-                    change: currentMetrics.tvpi - (baselineMetrics.tvpi ?? 0),
-                },
-                peakNav: {
-                    value: currentMetrics.peakNav.value,
-                    change: currentMetrics.peakNav.value - (baselineMetrics.peakNav?.value ?? 0),
-                    year: currentMetrics.peakNav.year,
-                }
-            });
+        const currentMetrics = calculateImpactMetrics(data);
+        
+        const getRiskChange = (base: string, current: string) => {
+            const riskOrder = { "Low": 0, "Medium": 1, "High": 2 };
+            if (riskOrder[current as keyof typeof riskOrder] < riskOrder[base as keyof typeof riskOrder]) return "Improved";
+            if (riskOrder[current as keyof typeof riskOrder] > riskOrder[base as keyof typeof riskOrder]) return "Worsened";
+            return "No Change";
         }
-    }, [deploymentPacing, investmentPeriod, exitTiming, distributionVelocity, navRampSpeed, baselineMetrics]);
+
+        setImpactData({
+            peakFundingRequirement: {
+                value: currentMetrics.peakFundingRequirement,
+                change: currentMetrics.peakFundingRequirement - (baselineMetrics.peakFundingRequirement ?? 0),
+            },
+            liquidityGapRisk: {
+                value: currentMetrics.liquidityGapRisk,
+                change: getRiskChange(baselineMetrics.liquidityGapRisk ?? 'Low', currentMetrics.liquidityGapRisk),
+            },
+            breakevenTiming: {
+                value: currentMetrics.breakevenTiming,
+                change: currentMetrics.breakevenTiming - (baselineMetrics.breakevenTiming ?? 0),
+            },
+            netMultiple: {
+                value: currentMetrics.netMultiple,
+                change: currentMetrics.netMultiple - (baselineMetrics.netMultiple ?? 0),
+            },
+            tvpi: {
+                value: currentMetrics.tvpi,
+                change: currentMetrics.tvpi - (baselineMetrics.tvpi ?? 0),
+            },
+            peakNav: {
+                value: currentMetrics.peakNav.value,
+                change: currentMetrics.peakNav.value - (baselineMetrics.peakNav?.value ?? 0),
+                year: currentMetrics.peakNav.year,
+            }
+        });
+    }, [deploymentPacing, investmentPeriod, exitTiming, distributionVelocity, navRampSpeed]);
 
   return (
     <div className="space-y-4">
