@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePortfolioContext } from '@/components/layout/app-layout';
@@ -7,7 +8,6 @@ import { CashflowCommandChart } from '@/components/app/dashboard/cashflow-chart'
 import { LiquidityRunwayChart } from '@/components/app/dashboard/j-curve-chart';
 import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
 import { AlertsWatchlist } from '@/components/app/dashboard/alerts-exceptions';
-import { DataHealthPanel } from '@/components/app/dashboard/rebalance-queue';
 import { format } from 'date-fns';
 
 const formatCurrency = (value: number, decimals = 1) => {
@@ -39,7 +39,7 @@ export default function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  const { kpis, cashflowForecast, liquidityForecast, drivers, dataHealth, alerts } = portfolioData;
+  const { kpis, cashflowForecast, liquidityForecast, drivers, alerts } = portfolioData;
 
   return (
     <div className="space-y-4">
@@ -59,23 +59,18 @@ export default function DashboardPage() {
         <div className="col-span-12 lg:col-span-8">
           <CashflowCommandChart data={cashflowForecast} />
         </div>
-        <div className="col-span-12 lg:col-span-4 grid grid-rows-2 gap-4">
+        <div className="col-span-12 lg:col-span-4">
           <AlertsWatchlist alerts={alerts} />
-          <FundingDriversPanel drivers={drivers} />
         </div>
       </div>
       
       {/* Row 3 */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12">
+        <div className="col-span-12 lg:col-span-7">
           <LiquidityRunwayChart data={liquidityForecast}/>
         </div>
-      </div>
-
-      {/* Row 4 */}
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12">
-            <DataHealthPanel data={dataHealth} />
+        <div className="col-span-12 lg:col-span-5">
+          <FundingDriversPanel drivers={drivers} />
         </div>
       </div>
     </div>
@@ -89,13 +84,13 @@ const DashboardSkeleton = () => (
     </div>
     <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8 "><Skeleton className="h-[400px]" /></div>
-        <div className="col-span-12 lg:col-span-4 grid grid-rows-2 gap-4">
-            <Skeleton className="h-full" />
-            <Skeleton className="h-full" />
+        <div className="col-span-12 lg:col-span-4">
+            <Skeleton className="h-[220px]" />
         </div>
     </div>
      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12"><Skeleton className="h-64" /></div>
+        <div className="col-span-12 lg:col-span-7"><Skeleton className="h-[260px]" /></div>
+        <div className="col-span-12 lg:col-span-5"><Skeleton className="h-[260px]" /></div>
     </div>
   </div>
 );
