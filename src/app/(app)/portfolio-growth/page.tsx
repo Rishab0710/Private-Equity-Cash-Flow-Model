@@ -126,7 +126,7 @@ export default function PortfolioGrowthPage() {
     const [annualContribution, setAnnualContribution] = useState(0);
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
     const [annualIncrease, setAnnualIncrease] = useState(0);
-    const [analysisTimePeriod, setAnalysisTimePeriod] = useState(25);
+    const [analysisTimePeriod, setAnalysisTimePeriod] = useState(20);
 
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
