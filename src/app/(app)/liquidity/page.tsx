@@ -11,13 +11,13 @@ import { Slider } from '@/components/ui/slider';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 
 export default function LiquidityPage() {
-  const { portfolioData, fundId, setFundId, capitalCallPacing, setCapitalCallPacing, distributionVelocity, setDistributionVelocity } = usePortfolioContext();
+  const { portfolioData, fundId, setFundId, capitalCallPacing, setCapitalCallPacing, distributionVelocity, setDistributionVelocity, funds } = usePortfolioContext();
 
   if (!portfolioData) {
     return <LiquiditySkeleton />;
   }
 
-  const { liquidityForecast, cashflowForecast, kpis, alerts } = portfolioData;
+  const { liquidityForecast, cashflowForecast, kpis, alerts, allFundCashflows } = portfolioData;
 
   return (
     <div className="space-y-6">
@@ -51,7 +51,7 @@ export default function LiquidityPage() {
       <LiquidityTimelineChart liquidityData={liquidityForecast} cashflowData={cashflowForecast} />
       
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <FundingSpikeTable cashflowData={cashflowForecast} />
+          <FundingSpikeTable cashflowData={cashflowForecast} allFundCashflows={allFundCashflows} funds={funds} />
           <LiquidityActionPlanner alerts={alerts} />
       </div>
     </div>

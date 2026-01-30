@@ -82,6 +82,7 @@ export type PortfolioData = {
     nextFundingGap?: LiquidityData;
   };
   cashflowForecast: CashflowData[];
+  allFundCashflows: CashflowData[][];
   navProjection: NavData[];
   liquidityForecast: LiquidityData[];
   drivers: {

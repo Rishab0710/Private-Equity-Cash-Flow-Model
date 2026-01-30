@@ -385,6 +385,7 @@ export const getPortfolioData = (
           nextFundingGap,
         },
         cashflowForecast: portfolioCashflows,
+        allFundCashflows,
         navProjection: portfolioNav,
         liquidityForecast,
         drivers: { upcomingCalls, expectedDistributions, largestUnfunded },
