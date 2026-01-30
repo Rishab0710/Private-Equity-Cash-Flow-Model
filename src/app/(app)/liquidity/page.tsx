@@ -30,14 +30,11 @@ export default function LiquidityPage() {
       
       <LiquidityKpiPanel kpis={kpis} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-            <LiquidityTimelineChart liquidityData={liquidityForecast} cashflowData={cashflowForecast} />
-            <FundingSpikeTable cashflowData={cashflowForecast} />
-        </div>
-        <div className="lg:col-span-1 space-y-6">
-            <LiquidityActionPlanner alerts={alerts} />
-        </div>
+      <LiquidityTimelineChart liquidityData={liquidityForecast} cashflowData={cashflowForecast} />
+      
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <FundingSpikeTable cashflowData={cashflowForecast} />
+          <LiquidityActionPlanner alerts={alerts} />
       </div>
     </div>
   );
@@ -52,14 +49,12 @@ const LiquiditySkeleton = () => (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-                <Skeleton className="h-[430px]" />
-                <Skeleton className="h-[250px]" />
-            </div>
-            <div className="lg:col-span-1 space-y-6">
-                <Skeleton className="h-[200px]" />
-            </div>
+        
+        <Skeleton className="h-[430px]" />
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Skeleton className="h-[250px]" />
+            <Skeleton className="h-[250px]" />
         </div>
     </div>
 );
