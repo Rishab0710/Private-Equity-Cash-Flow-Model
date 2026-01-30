@@ -3,8 +3,8 @@ import { Label } from "@/components/ui/label";
 
 const MetricRow = ({ label, value, isSub = false }: { label: string, value: string | number, isSub?: boolean }) => (
     <div className={`flex justify-between items-center py-1.5 ${isSub ? 'pl-4' : ''}`}>
-        <p className={`text-sm ${isSub ? 'text-muted-foreground' : 'font-medium'}`}>{label}</p>
-        <p className="text-sm font-semibold">{value}</p>
+        <p className={`text-xs ${isSub ? 'text-muted-foreground' : 'font-medium'}`}>{label}</p>
+        <p className="text-xs font-semibold">{value}</p>
     </div>
 );
 
@@ -45,46 +45,46 @@ export function AssumptionsPanel({
         <div className="space-y-6">
             <div className="divide-y divide-border rounded-lg border p-2">
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="starting-balance" className="text-sm font-medium">Starting Balance</Label>
+                    <Label htmlFor="starting-balance" className="text-xs font-medium">Starting Balance</Label>
                     <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-sm">$</span>
-                        <Input id="starting-balance" type="number" value={startingBalance} onChange={e => setStartingBalance(Number(e.target.value))} className="h-8 w-36 pl-7 text-right" />
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
+                        <Input id="starting-balance" type="number" value={startingBalance} onChange={e => setStartingBalance(Number(e.target.value))} className="h-8 w-36 pl-7 text-right text-xs" />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-contribution" className="text-sm font-medium">Annual Contribution</Label>
+                    <Label htmlFor="annual-contribution" className="text-xs font-medium">Annual Contribution</Label>
                     <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-sm">$</span>
-                        <Input id="annual-contribution" type="number" value={annualContribution} onChange={e => setAnnualContribution(Number(e.target.value))} className="h-8 w-36 pl-7 text-right" />
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
+                        <Input id="annual-contribution" type="number" value={annualContribution} onChange={e => setAnnualContribution(Number(e.target.value))} className="h-8 w-36 pl-7 text-right text-xs" />
                     </div>
                 </div>
                  <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-withdrawal" className="text-sm font-medium">Annual Withdrawal</Label>
+                    <Label htmlFor="annual-withdrawal" className="text-xs font-medium">Annual Withdrawal</Label>
                     <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-sm">$</span>
-                        <Input id="annual-withdrawal" type="number" value={annualWithdrawal} onChange={e => setAnnualWithdrawal(Number(e.target.value))} className="h-8 w-36 pl-7 text-right" />
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
+                        <Input id="annual-withdrawal" type="number" value={annualWithdrawal} onChange={e => setAnnualWithdrawal(Number(e.target.value))} className="h-8 w-36 pl-7 text-right text-xs" />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-increase" className="text-sm font-medium">Annual Increase</Label>
+                    <Label htmlFor="annual-increase" className="text-xs font-medium">Annual Increase</Label>
                     <div className="relative">
-                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-8 w-36 pr-7 text-right" />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-sm">%</span>
+                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-8 w-36 pr-7 text-right text-xs" />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">%</span>
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="analysis-time-period" className="text-sm font-medium">Analysis Time Period</Label>
+                    <Label htmlFor="analysis-time-period" className="text-xs font-medium">Analysis Time Period</Label>
                     <div className="relative">
-                        <Input id="analysis-time-period" type="number" value={analysisTimePeriod} onChange={e => setAnalysisTimePeriod(Number(e.target.value))} className="h-8 w-36 pr-16 text-right" />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-sm">Years</span>
+                        <Input id="analysis-time-period" type="number" value={analysisTimePeriod} onChange={e => setAnalysisTimePeriod(Number(e.target.value))} className="h-8 w-36 pr-16 text-right text-xs" />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">Years</span>
                     </div>
                 </div>
             </div>
 
             <div className="divide-y divide-border rounded-lg border">
                 <div className="flex justify-between items-center py-1.5 px-4 font-medium">
-                     <p className="text-sm">Asset Allocation</p>
-                     <p className="text-sm">Current</p>
+                     <p className="text-xs">Asset Allocation</p>
+                     <p className="text-xs">Current</p>
                 </div>
                  <MetricRow label="Equities" value={assumptions.assetAllocation.equities} isSub />
                  <MetricRow label="Fixed Income" value={assumptions.assetAllocation.fixedIncome} isSub />
@@ -95,13 +95,13 @@ export function AssumptionsPanel({
             </div>
             
             <div className="divide-y divide-border rounded-lg border">
-                <div className="py-1.5 px-4 font-medium"><p className="text-sm">Portfolio</p></div>
+                <div className="py-1.5 px-4 font-medium"><p className="text-xs">Portfolio</p></div>
                  <MetricRow label="Mean Rate of Return" value={assumptions.portfolio.meanRateOfReturn} isSub/>
                  <MetricRow label="Standard Deviation" value={assumptions.portfolio.standardDeviation} isSub/>
             </div>
 
              <div className="divide-y divide-border rounded-lg border">
-                <div className="py-1.5 px-4 font-medium"><p className="text-sm">Potential Wealth</p></div>
+                <div className="py-1.5 px-4 font-medium"><p className="text-xs">Potential Wealth</p></div>
                 <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} isSub/>
                 <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} isSub/>
                 <MetricRow label="Aggressive Outlook" value={formatCurrency(potentialWealth.aggressive)} isSub/>
