@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState } from 'react';
 import { StatementUploader } from '@/components/app/extraction/statement-uploader';
 import { ExtractionReview } from '@/components/app/extraction/extraction-review';
-import { extractStatementData, type ExtractStatementDataOutput } from '@/ai/flows/statement-data-extraction';
+import { type ExtractStatementDataOutput } from '@/ai/flows/statement-data-extraction';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -24,33 +23,40 @@ export default function StatementExtractionPage() {
     if (!file) return;
 
     setIsLoading(true);
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      try {
-        const pdfDataUri = reader.result as string;
-        const result = await extractStatementData({ pdfDataUri });
-        setExtractionResult(result);
-      } catch (error) {
-        console.error('Extraction failed:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Extraction Failed',
-          description: 'Could not extract data from the PDF. Please try another file.',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+
+    // Simulate a delay for the extraction process to show a loading state
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const demoExtractionResult: ExtractStatementDataOutput = {
+      capitalCalls: [
+        { value: 1250000, period: 'Q4 2023', confidence: 0.98, sourcePage: 2 },
+        { value: 1500000, period: 'Q3 2023', confidence: 0.99, sourcePage: 2 },
+      ],
+      distributions: [
+         { value: 75000, period: 'Q4 2023', confidence: 0.95, sourcePage: 3 },
+      ],
+      navValues: [
+        { value: 45000000, period: 'Q4 2023', confidence: 1.0, sourcePage: 1 },
+      ],
+      feesAndExpenses: [
+        { value: 225000, period: 'Q4 2023', confidence: 0.88, sourcePage: 4 },
+      ],
+      remainingUnfundedCommitment: {
+        value: 55000000, period: 'Q4 2023', confidence: 0.99, sourcePage: 1
+      },
+      dpi: {
+        value: 0.85, period: 'Q4 2023', confidence: 0.92, sourcePage: 1
+      },
+      tvpi: {
+        value: 1.2, period: 'Q4 2023', confidence: 0.93, sourcePage: 1
+      },
+      irr: {
+        value: 18.5, period: 'Q4 2023', confidence: 0.85, sourcePage: 1
+      },
     };
-    reader.onerror = () => {
-      console.error('File could not be read.');
-      toast({
-        variant: 'destructive',
-        title: 'File Read Error',
-        description: 'There was an error reading your file. Please try again.',
-      });
-      setIsLoading(false);
-    };
+
+    setExtractionResult(demoExtractionResult);
+    setIsLoading(false);
   };
   
   const handleApprove = (approvedResult: ExtractStatementDataOutput) => {
