@@ -41,7 +41,7 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-header px-3">
       <div className="flex items-center gap-6">
         <Link href="/portfolio-growth" className="flex items-center gap-2">
-           <Image src="https://placehold.co/140x28/transparent/FFFFFF/?text=KAPNATIVE" alt="KAPNATIVE Logo" width={140} height={28} />
+           <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
         </Link>
         <nav className="hidden items-center gap-1 text-sm font-medium md:flex lg:gap-2">
           {navItems.map((item) => (
@@ -76,7 +76,7 @@ export function Header() {
                 href="/portfolio-growth"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
               >
-                <Image src="https://placehold.co/140x28/transparent/FFFFFF/?text=KAPNATIVE" alt="KAPNATIVE Logo" width={140} height={28} />
+                <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
               </Link>
               {navItems.map((item) => (
                 <Link
