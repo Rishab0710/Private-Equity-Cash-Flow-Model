@@ -39,6 +39,18 @@ export function AssumptionsPanel({
     investmentPeriod,
     setInvestmentPeriod
  }: AssumptionsPanelProps) {
+
+    const sortedAllocations = Object.entries(assumptions.assetAllocation)
+        .map(([key, percentage]) => {
+            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+            return {
+                label,
+                percentage: percentage as string,
+                value: startingBalance * (parseFloat(percentage as string) / 100)
+            }
+        })
+        .sort((a, b) => b.value - a.value);
+
     return (
         <div className="space-y-6">
             <div className="divide-y divide-border rounded-lg border p-2">
@@ -90,12 +102,14 @@ export function AssumptionsPanel({
                      <p className="text-xs text-right">Value</p>
                      <p className="text-xs text-right">Current</p>
                 </div>
-                <AssetAllocationRow label="Equities" percentage={assumptions.assetAllocation.equities} balance={startingBalance} />
-                <AssetAllocationRow label="Fixed Income" percentage={assumptions.assetAllocation.fixedIncome} balance={startingBalance} />
-                <AssetAllocationRow label="Cash" percentage={assumptions.assetAllocation.cash} balance={startingBalance} />
-                <AssetAllocationRow label="Real Assets" percentage={assumptions.assetAllocation.realAssets} balance={startingBalance} />
-                <AssetAllocationRow label="Hedge Fund Strategies" percentage={assumptions.assetAllocation.hedgeFundStrategies} balance={startingBalance} />
-                <AssetAllocationRow label="Private Equity" percentage={assumptions.assetAllocation.privateEquity} balance={startingBalance} />
+                {sortedAllocations.map(alloc => (
+                    <AssetAllocationRow 
+                        key={alloc.label}
+                        label={alloc.label} 
+                        percentage={alloc.percentage} 
+                        balance={startingBalance} 
+                    />
+                ))}
             </div>
         </div>
     )
