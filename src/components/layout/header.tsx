@@ -43,13 +43,13 @@ export function Header() {
         <Link href="/portfolio-growth" className="flex items-center gap-2">
            <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
         </Link>
-        <nav className="hidden items-center gap-1 text-sm font-medium md:flex lg:gap-2">
+        <nav className="hidden items-center gap-1 font-medium md:flex lg:gap-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'px-3 py-2 rounded-md transition-colors font-bold text-white'
+                'px-3 py-2 rounded-md transition-colors font-bold text-white text-base'
               )}
             >
               {item.label}
