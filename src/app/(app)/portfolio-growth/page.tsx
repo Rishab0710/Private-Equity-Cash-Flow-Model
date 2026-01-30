@@ -15,10 +15,6 @@ const staticAssumptions = {
         hedgeFundStrategies: '5.00%',
         privateEquity: '7.50%',
     },
-    portfolio: {
-        meanRateOfReturn: '8.50%',
-        standardDeviation: '14.50%',
-    },
 };
 
 const generateChartData = (params: {
@@ -27,8 +23,10 @@ const generateChartData = (params: {
     annualWithdrawal: number;
     annualIncrease: number;
     analysisTimePeriod: number;
+    meanRateOfReturn: number;
+    standardDeviation: number;
 }) => {
-    const { startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod } = params;
+    const { startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod, meanRateOfReturn, standardDeviation } = params;
     
     const data = [];
     const baseAmount = startingBalance / 1000;
@@ -39,8 +37,12 @@ const generateChartData = (params: {
     let currentContribution = annualContribution;
     let currentWithdrawal = annualWithdrawal;
 
-    const rates = { cons: 0.05, mod: 0.085, agg: 0.11 };
-    const volatility = { cons: 0.05, mod: 0.145, agg: 0.20 };
+    const moderateRate = meanRateOfReturn / 100;
+    const moderateStdev = standardDeviation / 100;
+
+    const rates = { cons: moderateRate - 0.035, mod: moderateRate, agg: moderateRate + 0.025 };
+    const volatility = { cons: moderateStdev * 0.35, mod: moderateStdev, agg: moderateStdev * 1.4 };
+
     const currentYear = new Date().getFullYear();
     const increaseFactor = 1 + annualIncrease / 100;
 
@@ -131,6 +133,10 @@ export default function PortfolioGrowthPage() {
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
     const [likelihoods, setLikelihoods] = useState<any | null>(null);
+    const [portfolioMetrics, setPortfolioMetrics] = useState({
+        meanRateOfReturn: 8.50,
+        standardDeviation: 14.50,
+    });
 
     useEffect(() => {
         const params = {
@@ -140,8 +146,26 @@ export default function PortfolioGrowthPage() {
             annualIncrease,
             analysisTimePeriod
         };
+        
+        const baseReturn = 8.50;
+        const baseStdev = 14.50;
 
-        const data = generateChartData(params);
+        const withdrawalPressure = (annualWithdrawal > 0 && startingBalance > 0) ? (annualWithdrawal / startingBalance) * 10 : 0;
+        const timeFactor = (analysisTimePeriod - 20) / 10; 
+
+        const returnAdjustment = (timeFactor * 0.5) - withdrawalPressure;
+        const stdevAdjustment = (timeFactor * 1.0) - (withdrawalPressure * 1.5);
+        
+        const newReturn = Math.max(5.0, Math.min(11.0, baseReturn + returnAdjustment));
+        const newStdev = Math.max(10.0, Math.min(20.0, baseStdev + stdevAdjustment));
+
+        const newPortfolioMetrics = {
+            meanRateOfReturn: newReturn,
+            standardDeviation: newStdev,
+        };
+        setPortfolioMetrics(newPortfolioMetrics);
+
+        const data = generateChartData({ ...params, ...newPortfolioMetrics });
         setChartData(data);
         const lastDataPoint = data[data.length - 1];
         if (lastDataPoint) {
@@ -207,8 +231,8 @@ export default function PortfolioGrowthPage() {
                             <div className="divide-y divide-border rounded-lg border">
                                 <div className="py-1 px-3 font-semibold text-xs">Portfolio</div>
                                 <div className="space-y-1 py-1">
-                                    <MetricRow label="Mean Rate of Return" value={staticAssumptions.portfolio.meanRateOfReturn} />
-                                    <MetricRow label="Standard Deviation" value={staticAssumptions.portfolio.standardDeviation} />
+                                    <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
+                                    <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                                 </div>
                             </div>
                             <div className="divide-y divide-border rounded-lg border">
