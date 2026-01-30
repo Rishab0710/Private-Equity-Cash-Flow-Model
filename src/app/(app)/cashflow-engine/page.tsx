@@ -4,7 +4,7 @@ import { usePortfolioContext } from '@/components/layout/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CashflowCommandChart } from '@/components/app/dashboard/cashflow-chart';
 import { NavEvolutionChart } from '@/components/app/cashflow-engine/nav-evolution-chart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
 
 export default function CashflowEnginePage() {
   const { portfolioData } = usePortfolioContext();
@@ -17,11 +17,12 @@ export default function CashflowEnginePage() {
                 <Skeleton className="h-[430px]" />
                 <Skeleton className="h-[430px]" />
             </div>
+            <Skeleton className="h-[256px]" />
         </div>
     );
   }
 
-  const { cashflowForecast, navProjection } = portfolioData;
+  const { cashflowForecast, navProjection, drivers } = portfolioData;
 
   return (
     <div className="space-y-6">
@@ -34,16 +35,7 @@ export default function CashflowEnginePage() {
         <CashflowCommandChart data={cashflowForecast} />
         <NavEvolutionChart data={navProjection} />
       </div>
-      <Card>
-        <CardHeader>
-            <CardTitle>Forecast Drivers</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
-                <p className="text-muted-foreground">Forecast driver decomposition coming soon...</p>
-            </div>
-        </CardContent>
-      </Card>
+      <FundingDriversPanel drivers={drivers} />
     </div>
   );
 }
