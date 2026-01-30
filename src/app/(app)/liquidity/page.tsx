@@ -4,7 +4,6 @@ import { usePortfolioContext } from '@/components/layout/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LiquidityKpiPanel } from '@/components/app/liquidity/liquidity-kpi-panel';
 import { LiquidityTimelineChart } from '@/components/app/liquidity/liquidity-timeline-chart';
-import { ScenarioConsole } from '@/components/app/dashboard/left-sidebar';
 import { FundingDriversPanel } from '@/components/app/dashboard/corporate-actions';
 import { FundingSpikeTable } from '@/components/app/liquidity/funding-spike-table';
 import { LiquidityActionPlanner } from '@/components/app/liquidity/liquidity-action-planner';
@@ -38,7 +37,6 @@ export default function LiquidityPage() {
             <FundingSpikeTable cashflowData={cashflowForecast} />
         </div>
         <div className="lg:col-span-1 space-y-6">
-            <ScenarioConsole />
             <FundingDriversPanel drivers={drivers} />
             <LiquidityActionPlanner alerts={alerts} />
         </div>
@@ -62,7 +60,6 @@ const LiquiditySkeleton = () => (
                 <Skeleton className="h-[250px]" />
             </div>
             <div className="lg:col-span-1 space-y-6">
-                <Skeleton className="h-[280px]" />
                 <Skeleton className="h-[250px]" />
                 <Skeleton className="h-[200px]" />
             </div>
