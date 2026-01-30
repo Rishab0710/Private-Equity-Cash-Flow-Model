@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Legend, Tooltip, ReferenceLine, Area } from 'recharts';
+import { Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Legend, Tooltip, ReferenceLine, Area, Line } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { CashflowData, LiquidityData } from '@/lib/types';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
@@ -14,7 +14,7 @@ type Props = {
 const chartConfig = {
   capitalCall: { label: 'Capital Calls', color: 'hsl(var(--chart-2))' },
   distribution: { label: 'Distributions', color: 'hsl(var(--chart-1))' },
-  availableLiquidity: { label: 'Liquidity Buffer', color: 'hsl(var(--chart-4))' },
+  liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-4))' },
   fundingGap: { label: 'Funding Gap', color: 'hsl(var(--chart-5))' },
 };
 
@@ -31,8 +31,8 @@ export function LiquidityTimelineChart({ liquidityData, cashflowData }: Props) {
     return {
         ...cf,
         capitalCall: -cf.capitalCall,
-        availableLiquidity: liqDataPoint?.availableLiquidity,
         fundingGap: liqDataPoint?.fundingGap,
+        liquidityBalance: liqDataPoint?.liquidityBalance,
     };
   });
 
@@ -79,11 +79,14 @@ export function LiquidityTimelineChart({ liquidityData, cashflowData }: Props) {
                     formatter={(value, name) => {
                        const config = chartConfig[name as keyof typeof chartConfig];
                        if (!config) return null;
+
+                        const displayValue = name === 'liquidityBalance' ? Number(value) : Math.abs(Number(value));
+
                        return (
                           <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full" style={{backgroundColor: config.color}}/>
                               <span>{config.label}: </span>
-                              <span className="font-semibold">{formatCurrency(Math.abs(Number(value)))}</span>
+                              <span className="font-semibold">{formatCurrency(displayValue)}</span>
                           </div>
                        )
                     }}
@@ -97,10 +100,11 @@ export function LiquidityTimelineChart({ liquidityData, cashflowData }: Props) {
                 <ReferenceLine yAxisId="left" x={forecastStartDate} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
             )}
              <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
+             <ReferenceLine yAxisId="right" y={0} stroke="hsl(var(--border))" strokeDasharray="3 3" />
             <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[4, 4, 0, 0]} />
             <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
-            <Area yAxisId="right" type="monotone" dataKey="availableLiquidity" fill="var(--color-availableLiquidity)" stroke="var(--color-availableLiquidity)" strokeWidth={2} fillOpacity={0.2} dot={false} connectNulls={false} />
-            <Area yAxisId="right" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="var(--color-fundingGap)" strokeWidth={2} fillOpacity={0.3} dot={false} connectNulls={false} />
+            <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} />
+            <Area yAxisId="right" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="var(--color-fundingGap)" strokeWidth={0} fillOpacity={0.3} dot={false} connectNulls={false} />
           </ComposedChart>
         </ChartContainer>
       </CardContent>

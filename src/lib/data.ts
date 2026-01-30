@@ -139,7 +139,7 @@ export const getPortfolioData = (
           
           if (age >= 0 && unfunded > 0) {
               const callPacing = (age / (fund.investmentPeriod * 4)) ** 1.5;
-              const randomFactor = 1 + (Math.random() - 0.5) * 0.4;
+              const randomFactor = 1 + (Math.random() - 0.5) * 0.2;
               let potentialCall = (fund.commitment / (fund.investmentPeriod * 4)) * callPacing * randomFactor * callFactor;
               
               if (age > params.callPeak) {
@@ -153,7 +153,7 @@ export const getPortfolioData = (
           let distribution = 0;
           if (age > params.distStart && nav > 0) {
             const distAge = age - params.distStart;
-            const randomFactor = 1 + (Math.random() - 0.5) * 0.5;
+            const randomFactor = 1 + (Math.random() - 0.5) * 0.3;
             let potentialDist = (nav / (fund.fundLife * 4 - age)) * randomFactor * distFactor;
 
             if (distAge > (params.distPeak - params.distStart)) {
@@ -163,7 +163,7 @@ export const getPortfolioData = (
           }
 
           // NAV calculation
-          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 + (Math.random() - 0.5) * 0.02) * navFactor : -0.01;
+          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 + (Math.random() - 0.5) * 0.01) * navFactor : -0.01;
           nav = nav * (1 + growthRate) + capitalCall - distribution;
           nav = Math.max(0, nav);
 
@@ -310,6 +310,7 @@ export const getPortfolioData = (
         availableLiquidity: currentLiquidity > 0 ? currentLiquidity : 0,
         netOutflow: cf.netCashflow < 0 ? -cf.netCashflow : 0,
         fundingGap: currentLiquidity < 0 ? -currentLiquidity : 0,
+        liquidityBalance: currentLiquidity,
       }
     });
 

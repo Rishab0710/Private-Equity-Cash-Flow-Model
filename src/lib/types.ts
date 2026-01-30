@@ -37,6 +37,7 @@ export type LiquidityData = {
   availableLiquidity: number;
   netOutflow: number;
   fundingGap: number;
+  liquidityBalance: number;
 };
 
 export type FundDriver = {
