@@ -2,13 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowUp, DollarSign, LineChart, TrendingDown, CalendarCheck2 } from 'lucide-react';
+import { ArrowUp, DollarSign, LineChart, TrendingDown, CalendarCheck2, AlertCircle } from 'lucide-react';
 
 const iconMap = {
   DollarSign,
   LineChart,
   TrendingDown,
   CalendarCheck2,
+  AlertCircle,
 };
 
 type StatCardProps = {

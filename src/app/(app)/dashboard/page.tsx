@@ -9,14 +9,7 @@ import { ScenarioSelector } from '@/components/app/dashboard/scenario-selector';
 import { getPortfolioData } from '@/lib/data';
 import type { Scenario, PortfolioData } from '@/lib/types';
 import { format } from 'date-fns';
-import { AlertCircle, Clock } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
@@ -45,7 +38,8 @@ export default function DashboardPage() {
           <Skeleton className="h-10 w-[200px]" />
           <Skeleton className="h-5 w-[250px]" />
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
@@ -55,9 +49,8 @@ export default function DashboardPage() {
           <Skeleton className="h-[380px]" />
           <Skeleton className="h-[380px]" />
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6">
           <Skeleton className="h-[380px]" />
-          <Skeleton className="h-[180px]" />
         </div>
       </div>
     );
@@ -73,7 +66,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <StatCard
           title="Total Commitment"
           value={formatCurrency(portfolioData.stats.totalCommitment)}
@@ -96,6 +89,12 @@ export default function DashboardPage() {
           description="When distributions exceed contributions"
           icon="CalendarCheck2"
         />
+        <StatCard
+          title="Liquidity Risk"
+          value="Moderate"
+          description="Potential shortfall in Q2 2025"
+          icon="AlertCircle"
+        />
       </div>
       
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -103,30 +102,8 @@ export default function DashboardPage() {
         <NetCashflowForecast data={portfolioData.cashflowForecast} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6">
         <UnfundedCommitmentChart data={portfolioData.unfundedCommitment} />
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Liquidity Risk</CardTitle>
-                <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold text-yellow-400">Moderate</div>
-                <p className="text-xs text-muted-foreground">
-                    Potential cash shortfall in Q2 2025 under stress scenarios.
-                </p>
-                <div className="mt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Cash Buffer</span>
-                        <span>$25.5M</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Next 30-day Calls</span>
-                        <span>$8.2M</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
       </div>
     </div>
   );
