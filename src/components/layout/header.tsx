@@ -11,12 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Settings,
   LifeBuoy,
   Menu,
   TrendingUp,
+  User,
+  ChevronDown,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -96,23 +97,18 @@ export function Header() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarImage
-                  src="https://picsum.photos/seed/1/64/64"
-                  alt="User avatar"
-                  data-ai-hint="profile person"
-                />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
+            <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-header hover:text-white/90">
+              <User className="h-5 w-5 text-accent" />
+              <span className="font-semibold text-sm">QA1 Guest</span>
+              <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Analyst Doe</p>
+                <p className="text-sm font-medium leading-none">QA1 Guest</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  analyst@verity.com
+                  qa1.guest@verity.com
                 </p>
               </div>
             </DropdownMenuLabel>
