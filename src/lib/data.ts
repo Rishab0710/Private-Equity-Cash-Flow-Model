@@ -85,7 +85,12 @@ const strategyParams = {
   Other: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9, navPeak: 24, targetMultiple: 2.0 },
 };
 
-export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, asOfDate: Date = new Date()): { portfolio: PortfolioData, funds: Fund[] } => {
+export const getPortfolioData = (
+  scenario: Scenario = 'Base',
+  fundId?: string,
+  asOfDate: Date = new Date(),
+  customFactors?: { callFactor: number; distFactor: number }
+): { portfolio: PortfolioData; funds: Fund[] } => {
     const FORECAST_START_DATE = asOfDate;
     const NUM_QUARTERS_ACTUAL = 12; // More historical data
     const NUM_QUARTERS_FORECAST = 32; // Longer forecast horizon
@@ -106,7 +111,7 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
     };
 
     // This function generates the full lifecycle projections for a single fund
-    const generateFundProjections = (fund: Fund, scenario: Scenario): { cashflows: CashflowData[], nav: NavData[] } => {
+    const generateFundProjections = (fund: Fund, scenario: Scenario, customFactors?: { callFactor: number, distFactor: number }): { cashflows: CashflowData[], nav: NavData[] } => {
       const params = strategyParams[fund.strategy] || strategyParams.Other;
       let callFactor = 1;
       let distFactor = 1;
@@ -116,6 +121,11 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
         case 'Slow Exit': distFactor = 0.7; navFactor = 0.9; break;
         case 'Fast Exit': distFactor = 1.3; navFactor = 1.1; break;
         case 'Stress': callFactor = 1.1; distFactor = 0.6; navFactor = 0.8; break;
+      }
+      
+      if(customFactors) {
+        callFactor = customFactors.callFactor;
+        distFactor = customFactors.distFactor;
       }
       
       let unfunded = fund.commitment;
@@ -193,7 +203,7 @@ export const getPortfolioData = (scenario: Scenario = 'Base', fundId?: string, a
     
     const fundsForProcessing = fundId ? funds.filter(f => f.id === fundId) : funds;
     
-    const allFundProjections = fundsForProcessing.map(fund => generateFundProjections(fund, scenario));
+    const allFundProjections = fundsForProcessing.map(fund => generateFundProjections(fund, scenario, customFactors));
     const allFundCashflows = allFundProjections.map(p => p.cashflows);
     const allFundNavs = allFundProjections.map(p => p.nav);
 

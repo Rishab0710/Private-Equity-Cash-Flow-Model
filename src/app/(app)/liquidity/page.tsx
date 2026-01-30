@@ -8,9 +8,10 @@ import { FundingSpikeTable } from '@/components/app/liquidity/funding-spike-tabl
 import { LiquidityActionPlanner } from '@/components/app/liquidity/liquidity-action-planner';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import { LiquidityScenarioControls } from '@/components/app/liquidity/liquidity-scenario-controls';
 
 export default function LiquidityPage() {
-  const { portfolioData } = usePortfolioContext();
+  const { portfolioData, capitalCallPacing, setCapitalCallPacing, distributionVelocity, setDistributionVelocity } = usePortfolioContext();
 
   if (!portfolioData) {
     return <LiquiditySkeleton />;
@@ -29,6 +30,13 @@ export default function LiquidityPage() {
       </div>
       
       <LiquidityKpiPanel kpis={kpis} />
+
+      <LiquidityScenarioControls
+        capitalCallPacing={capitalCallPacing}
+        setCapitalCallPacing={setCapitalCallPacing}
+        distributionVelocity={distributionVelocity}
+        setDistributionVelocity={setDistributionVelocity}
+      />
 
       <LiquidityTimelineChart liquidityData={liquidityForecast} cashflowData={cashflowForecast} />
       
@@ -50,6 +58,7 @@ const LiquiditySkeleton = () => (
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
         </div>
         
+        <Skeleton className="h-[120px]" />
         <Skeleton className="h-[430px]" />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
