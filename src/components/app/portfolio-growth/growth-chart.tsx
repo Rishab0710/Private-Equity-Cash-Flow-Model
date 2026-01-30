@@ -8,6 +8,11 @@ import {
 
 type Props = {
   data: any[];
+  likelihoods: {
+    conservative: string;
+    moderate: string;
+    aggressive: string;
+  };
 };
 
 const chartConfig = {
@@ -17,25 +22,21 @@ const chartConfig = {
 };
 
 const CustomLegend = (props: any) => {
-  const { payload } = props;
-  const likelihoods = {
-      Aggressive: '33% Likelihood',
-      Moderate: '50% Likelihood',
-      Conservative: '80% Likelihood'
-  }
+  const { payload, likelihoods } = props;
   // Re-order to match expected order if needed
   const orderedPayload = ['Conservative', 'Moderate', 'Aggressive'].map(name => payload.find((p: any) => p.value === name)).filter(Boolean);
 
   return (
     <div className="flex flex-row justify-center items-center gap-8 mt-6">
       {orderedPayload.map((entry: any) => {
-        const label = entry.value as keyof typeof likelihoods;
+        const label = entry.value as string;
+        const likelihoodText = likelihoods ? likelihoods[label.toLowerCase() as keyof typeof likelihoods] : '';
         return (
           <div key={entry.value} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
             <div>
               <p className="text-sm font-medium">{label}</p>
-              <p className="text-xs text-muted-foreground">{likelihoods[label]}</p>
+              {likelihoodText && <p className="text-xs text-muted-foreground">{likelihoodText}</p>}
             </div>
           </div>
         )
@@ -45,7 +46,7 @@ const CustomLegend = (props: any) => {
 };
 
 
-export function GrowthChart({ data }: Props) {
+export function GrowthChart({ data, likelihoods }: Props) {
   return (
       <div className="h-[450px] w-full">
           <ChartContainer config={chartConfig} className="h-full w-full">
@@ -82,7 +83,7 @@ export function GrowthChart({ data }: Props) {
                     />
                     }
                 />
-                <Legend content={<CustomLegend />} verticalAlign="bottom" height={80} />
+                <Legend content={<CustomLegend likelihoods={likelihoods} />} verticalAlign="bottom" height={80} />
                 <Line type="monotone" dataKey="conservative" name="Conservative" stroke="var(--color-conservative)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="moderate" name="Moderate" stroke="var(--color-moderate)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="aggressive" name="Aggressive" stroke="var(--color-aggressive)" strokeWidth={2} dot={false} />

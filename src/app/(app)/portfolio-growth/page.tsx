@@ -75,6 +75,40 @@ const generateChartData = (params: {
     return data;
 };
 
+const calculateLikelihoods = (params: {
+    startingBalance: number;
+    annualContribution: number;
+    annualWithdrawal: number;
+    analysisTimePeriod: number;
+}) => {
+    const { startingBalance, annualContribution, annualWithdrawal, analysisTimePeriod } = params;
+
+    const baseLikelihoods = {
+        conservative: 80,
+        moderate: 50,
+        aggressive: 33
+    };
+
+    const growthPressure = startingBalance > 0 ? ((annualContribution - annualWithdrawal) / startingBalance) * 100 : 0;
+    const timePressure = (analysisTimePeriod - 25) / 2.5;
+    const adjustment = growthPressure + timePressure;
+
+    const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(val, max));
+
+    const newLikelihoods = {
+        conservative: clamp(baseLikelihoods.conservative + adjustment, 60, 95),
+        moderate: clamp(baseLikelihoods.moderate + adjustment, 30, 70),
+        aggressive: clamp(baseLikelihoods.aggressive + adjustment, 15, 50),
+    };
+
+    return {
+        conservative: `${Math.round(newLikelihoods.conservative)}% Likelihood`,
+        moderate: `${Math.round(newLikelihoods.moderate)}% Likelihood`,
+        aggressive: `${Math.round(newLikelihoods.aggressive)}% Likelihood`,
+    }
+};
+
+
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
@@ -96,15 +130,18 @@ export default function PortfolioGrowthPage() {
 
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
+    const [likelihoods, setLikelihoods] = useState<any | null>(null);
 
     useEffect(() => {
-        const data = generateChartData({
+        const params = {
             startingBalance,
             annualContribution,
             annualWithdrawal,
             annualIncrease,
             analysisTimePeriod
-        });
+        };
+
+        const data = generateChartData(params);
         setChartData(data);
         const lastDataPoint = data[data.length - 1];
         if (lastDataPoint) {
@@ -114,10 +151,12 @@ export default function PortfolioGrowthPage() {
                 aggressive: lastDataPoint.aggressive * 1000,
             });
         }
+        setLikelihoods(calculateLikelihoods(params));
+
     }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, analysisTimePeriod]);
 
 
-    if (!chartData || !potentialWealth) {
+    if (!chartData || !potentialWealth || !likelihoods) {
         return (
              <Card>
                 <CardHeader>
@@ -182,7 +221,7 @@ export default function PortfolioGrowthPage() {
                                 </div>
                             </div>
                         </div>
-                        <GrowthChart data={chartData} />
+                        <GrowthChart data={chartData} likelihoods={likelihoods} />
                     </div>
                 </div>
             </CardContent>
