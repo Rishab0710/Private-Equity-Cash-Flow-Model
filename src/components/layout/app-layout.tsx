@@ -15,6 +15,10 @@ type PortfolioContextType = {
   setFundId: (fundId: string) => void;
   asOfDate: Date | undefined;
   setAsOfDate: (date: Date) => void;
+  capitalCallPacing: number;
+  setCapitalCallPacing: (pacing: number) => void;
+  distributionVelocity: number;
+  setDistributionVelocity: (velocity: number) => void;
 };
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -34,6 +38,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [asOfDate, setAsOfDate] = useState<Date | undefined>(undefined);
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [funds, setFunds] = useState<Fund[]>(staticFunds);
+  const [capitalCallPacing, setCapitalCallPacing] = useState(100);
+  const [distributionVelocity, setDistributionVelocity] = useState(100);
+
 
   useEffect(() => {
     setAsOfDate(new Date());
@@ -41,16 +48,33 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // We only need to generate portfolio data for data-heavy pages
-    const dataPages = ['/cashflow-engine', '/funds', '/portfolio-growth'];
+    const dataPages = ['/dashboard', '/liquidity', '/portfolio-growth'];
     if (dataPages.includes(pathname) && asOfDate) {
-      const { portfolio, funds: newFunds } = getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate);
+      const customFactors = {
+          callFactor: capitalCallPacing / 100,
+          distFactor: distributionVelocity / 100,
+      }
+      const { portfolio, funds: newFunds } = getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate, customFactors);
       setPortfolioData(portfolio);
       setFunds(newFunds);
     }
-  }, [fundId, scenario, pathname, asOfDate]);
+  }, [fundId, scenario, pathname, asOfDate, capitalCallPacing, distributionVelocity]);
 
   return (
-    <PortfolioContext.Provider value={{ portfolioData, funds, scenario, setScenario, fundId, setFundId, asOfDate, setAsOfDate: (date) => setAsOfDate(date) }}>
+    <PortfolioContext.Provider value={{ 
+        portfolioData, 
+        funds, 
+        scenario, 
+        setScenario, 
+        fundId, 
+        setFundId, 
+        asOfDate, 
+        setAsOfDate: (date) => setAsOfDate(date),
+        capitalCallPacing,
+        setCapitalCallPacing,
+        distributionVelocity,
+        setDistributionVelocity
+      }}>
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-1 p-4 md:p-5 lg:p-6">{children}</main>
