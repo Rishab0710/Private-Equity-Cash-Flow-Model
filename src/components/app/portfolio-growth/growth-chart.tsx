@@ -66,14 +66,16 @@ export function GrowthChart({ data, likelihoods }: Props) {
                     axisLine={false} 
                     tickMargin={10} 
                     interval={5}
+                    tick={{ fill: 'black' }}
                 />
                 <YAxis
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(value) => `$${value}M`}
-                    label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -40, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
+                    label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -40, style: { textAnchor: 'middle', fill: 'black' } }}
                     tickMargin={5}
                     domain={['dataMin', 'dataMax']}
+                    tick={{ fill: 'black' }}
                 />
                 <Tooltip
                     content={
