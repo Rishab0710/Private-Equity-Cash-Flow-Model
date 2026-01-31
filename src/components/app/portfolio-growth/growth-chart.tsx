@@ -36,7 +36,7 @@ const CustomLegend = (props: any) => {
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
             <div>
               <p className="text-xs font-medium">{label}</p>
-              {likelihoodText && <p className="text-xs text-muted-foreground">{likelihoodText}</p>}
+              {likelihoodText && <p className="text-xs text-black">{likelihoodText}</p>}
             </div>
           </div>
         )
