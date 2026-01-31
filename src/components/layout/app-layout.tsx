@@ -48,7 +48,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // We only need to generate portfolio data for data-heavy pages
-    const dataPages = ['/dashboard', '/liquidity', '/portfolio-growth'];
+    const dataPages = ['/liquidity', '/portfolio-growth'];
     if (dataPages.includes(pathname) && asOfDate) {
       const customFactors = {
           callFactor: capitalCallPacing / 100,
