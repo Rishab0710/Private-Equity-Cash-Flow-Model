@@ -62,7 +62,7 @@ export function AssumptionsPanel({
                             type="text"
                             value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
                             disabled
-                            className="h-7 w-36 pl-3 text-xs text-left"
+                            className="h-7 w-36 pl-3 text-xs text-left text-foreground disabled:opacity-100"
                         />
                     </div>
                 </div>
