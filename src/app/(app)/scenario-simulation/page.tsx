@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -10,7 +9,8 @@ import {
     Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, 
     TrendingUp, Landmark, Shield, BarChart, Hourglass, Activity, Clock, Rocket, 
     ClipboardList, Search, Briefcase, ShieldCheck, Gauge, FileBarChart, Building, 
-    Filter, Target, FileWarning, ListTodo, Ban, MousePointerSquare, Sailboat, Scaling 
+    Filter, Target, FileWarning, ListTodo, Ban, MousePointerSquare, Sailboat, Scaling,
+    Lightbulb, Info, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPortfolioData } from '@/lib/data';
@@ -23,8 +23,15 @@ import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TooltipProvider, Tooltip as UITooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
 
 type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch';
+
+type AssumptionValue = {
+  value: string;
+  description: string;
+};
 
 type Scenario = {
   id: ScenarioId;
@@ -39,13 +46,14 @@ type Scenario = {
     growth: string;
     risk: string;
     liquidity: string;
+    keyOpportunities: string;
   };
   assumptions: {
-    growthOutlook: 'Positive' | 'Neutral' | 'Negative';
-    volatility: 'Low' | 'Medium' | 'High';
-    inflation: 'Low' | 'Elevated' | 'High';
-    liquidity: 'Abundant' | 'Tight' | 'Stressed';
-    cashflowTiming: 'Front-loaded' | 'Evenly-paced' | 'Back-loaded';
+    growthOutlook: AssumptionValue;
+    volatility: AssumptionValue;
+    inflation: AssumptionValue;
+    liquidity: AssumptionValue;
+    cashflowTiming: AssumptionValue;
   };
 };
 
@@ -53,58 +61,61 @@ const scenarios: Record<ScenarioId, Scenario> = {
   base: {
     id: 'base',
     name: 'Base Case',
-    description: 'A balanced projection assuming moderate growth and stable market conditions, aligned with historical averages.',
+    description: 'A balanced projection assuming moderate growth and stable market conditions.',
     badge: { text: 'Balanced', variant: 'default', icon: Zap },
     implications: {
       growth: 'Steady, in-line with long-term expectations.',
       risk: 'Market-level risk with standard volatility.',
       liquidity: 'Predictable capital calls and distributions.',
+      keyOpportunities: 'Execute on the long-term plan and allow compounding to work effectively.'
     },
     assumptions: {
-      growthOutlook: 'Neutral',
-      volatility: 'Medium',
-      inflation: 'Low',
-      liquidity: 'Abundant',
-      cashflowTiming: 'Evenly-paced',
+      growthOutlook: { value: 'Neutral', description: 'Assumes economic growth aligns with long-term historical averages, without significant booms or busts.'},
+      volatility: { value: 'Medium', description: 'Standard market fluctuations are expected, with no prolonged periods of extreme price swings.' },
+      inflation: { value: 'Low', description: 'Inflation remains around central bank targets of 2-3%, preserving real returns.' },
+      liquidity: { value: 'Abundant', description: 'Capital markets are open and functioning normally, allowing for easy transaction flow.' },
+      cashflowTiming: { value: 'Evenly-paced', description: 'Capital calls and distributions occur in a predictable, steady pattern over the fund\'s life.' },
     },
   },
   recession: {
     id: 'recession',
     name: 'Recession & Recovery',
-    description: 'Models a sharp economic downturn followed by a gradual, U-shaped recovery over 2-3 years.',
+    description: 'Models a sharp economic downturn followed by a gradual, U-shaped recovery.',
     badge: { text: 'Stress Test', variant: 'destructive', icon: TrendingDown },
     implications: {
       growth: 'Initial NAV markdowns and delayed exits, but potential for strong returns during recovery.',
       risk: 'Significantly elevated volatility and potential for permanent capital loss in weaker assets.',
       liquidity: 'Distributions slow dramatically while GPs may accelerate capital calls to fund portfolio companies.',
+      keyOpportunities: 'Deploy "dry powder" into a down market at attractive valuations, potentially leading to outsized returns.'
     },
     assumptions: {
-      growthOutlook: 'Negative',
-      volatility: 'High',
-      inflation: 'Low',
-      liquidity: 'Stressed',
-      cashflowTiming: 'Back-loaded',
+      growthOutlook: { value: 'Negative', description: 'A period of economic contraction with rising unemployment and reduced corporate earnings.' },
+      volatility: { value: 'High', description: 'Characterized by sharp, unpredictable market movements and heightened investor fear.' },
+      inflation: { value: 'Low', description: 'Recessions are typically disinflationary as demand collapses.' },
+      liquidity: { value: 'Stressed', description: 'Credit markets tighten, making it harder and more expensive to borrow. M&A and IPO markets may freeze.' },
+      cashflowTiming: { value: 'Back-loaded', description: 'Early distributions are delayed, with the majority of returns expected in the latter half of the fund\'s life.' },
     },
   },
   risingRates: {
     id: 'risingRates',
     name: 'Rising Rates',
-    description: 'Simulates an environment of persistent interest rate hikes, impacting valuations and deal flow.',
+    description: 'Simulates an environment of persistent interest rate hikes, impacting valuations.',
     badge: { text: 'Valuation Risk', variant: 'secondary', icon: CircleDollarSign },
     implications: {
       growth: 'Lower exit multiples and compressed NAV growth as discount rates increase.',
       risk: 'High sensitivity for long-duration assets and venture capital.',
       liquidity: 'Deal activity slows, potentially delaying both new investments and exits.',
+      keyOpportunities: 'Favors managers skilled in operational value creation over financial engineering. Private credit strategies may thrive.'
     },
     assumptions: {
-      growthOutlook: 'Negative',
-      volatility: 'Medium',
-      inflation: 'Elevated',
-      liquidity: 'Tight',
-      cashflowTiming: 'Back-loaded',
+      growthOutlook: { value: 'Negative', description: 'Higher borrowing costs cool economic activity and depress corporate growth expectations.' },
+      volatility: { value: 'Medium', description: 'Markets re-price assets to reflect new interest rate realities, causing initial volatility.' },
+      inflation: { value: 'Elevated', description: 'Central banks raise rates specifically to combat persistent, above-target inflation.' },
+      liquidity: { value: 'Tight', description: 'As the cost of money rises, liquidity becomes less available and more expensive across the system.' },
+      cashflowTiming: { value: 'Back-loaded', description: 'Buyers and sellers struggle to agree on price, delaying M&A and IPOs, thus pushing out distributions.' },
     },
   },
-    stagflation: {
+  stagflation: {
     id: 'stagflation',
     name: 'Inflation / Stagflation',
     description: 'A challenging mix of high inflation and low economic growth, eroding real returns.',
@@ -113,31 +124,33 @@ const scenarios: Record<ScenarioId, Scenario> = {
       growth: 'Nominal NAV may grow, but real returns are compressed. Pricing power becomes critical.',
       risk: 'Assets struggle to pass on costs, leading to margin compression.',
       liquidity: 'Central banks tighten policy, restricting liquidity across the system.',
+      keyOpportunities: 'Real assets (infrastructure, real estate) and companies with strong pricing power can outperform.'
     },
     assumptions: {
-      growthOutlook: 'Negative',
-      volatility: 'High',
-      inflation: 'High',
-      liquidity: 'Stressed',
-      cashflowTiming: 'Evenly-paced',
+      growthOutlook: { value: 'Negative', description: 'Economic growth stagnates or declines while prices continue to rise.' },
+      volatility: { value: 'High', description: 'Uncertainty about policy responses and economic direction leads to high market volatility.' },
+      inflation: { value: 'High', description: 'Inflation is persistent and well-above central bank targets, eroding purchasing power.' },
+      liquidity: { value: 'Stressed', description: 'Aggressive central bank tightening to fight inflation drains liquidity from the financial system.' },
+      cashflowTiming: { value: 'Evenly-paced', description: 'Cashflows may not be delayed but their real value is diminished by inflation.' },
     },
   },
   liquidityCrunch: {
     id: 'liquidityCrunch',
     name: 'Liquidity Crunch',
-    description: 'A scenario where capital markets freeze, halting distributions and forcing reliance on existing credit.',
+    description: 'A scenario where capital markets freeze, halting distributions and forcing reliance on credit.',
     badge: { text: 'Cashflow Stress', variant: 'destructive', icon: Waves },
      implications: {
       growth: 'Secondary market evaporates and M&A activity stops, freezing NAV.',
       risk: 'Highest risk of capital call defaults and potential for forced asset sales.',
       liquidity: 'Extreme stress. Distributions halt completely, calls may be accelerated.',
+      keyOpportunities: 'For LPs with available capital, secondary markets can offer deep discounts on high-quality assets.'
     },
     assumptions: {
-      growthOutlook: 'Negative',
-      volatility: 'High',
-      inflation: 'Low',
-      liquidity: 'Stressed',
-      cashflowTiming: 'Front-loaded',
+      growthOutlook: { value: 'Negative', description: 'Triggered by a systemic financial shock, leading to a sharp halt in economic activity.' },
+      volatility: { value: 'High', description: 'Panic selling and a flight to safety cause extreme volatility and correlation across assets.' },
+      inflation: { value: 'Low', description: 'The crisis is typically deflationary as credit evaporates and demand disappears.' },
+      liquidity: { value: 'Stressed', description: 'System-wide panic. Interbank lending freezes and credit becomes unavailable at any price.' },
+      cashflowTiming: { value: 'Front-loaded', description: 'GPs accelerate capital calls to shore up portfolio company balance sheets, while distributions stop entirely.' },
     },
   },
 };
@@ -158,7 +171,8 @@ const formatCurrency = (value: number) => {
     return `$${value.toFixed(0)}`;
 };
 
-const AssumptionTag = ({ label, value }: { label: string, value: string }) => {
+const AssumptionTag = ({ label, assumption }: { label: string, assumption: AssumptionValue }) => {
+    const { value, description } = assumption;
     const colorClasses: Record<string, string> = {
         'Positive': 'bg-green-100 text-green-800', 'Neutral': 'bg-blue-100 text-blue-800', 'Negative': 'bg-red-100 text-red-800',
         'Low': 'bg-green-100 text-green-800', 'Medium': 'bg-yellow-100 text-yellow-800', 'High': 'bg-red-100 text-red-800',
@@ -169,14 +183,34 @@ const AssumptionTag = ({ label, value }: { label: string, value: string }) => {
     const colorClass = colorClasses[value] || 'bg-gray-100 text-gray-800';
 
     return (
-        <div className="flex flex-col items-center justify-center p-2 text-center bg-muted/50 rounded-lg">
-            <div className="text-xs text-muted-foreground">{label}</div>
-            <div className={`mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${colorClass}`}>
-                {value}
+        <UITooltip>
+            <div className="flex flex-col items-center justify-center p-2 text-center bg-card rounded-lg border">
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    {label}
+                    <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 cursor-pointer text-muted-foreground/80 hover:text-foreground" />
+                    </TooltipTrigger>
+                </div>
+                <div className={`mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${colorClass}`}>
+                    {value}
+                </div>
             </div>
-        </div>
+            <TooltipContent>
+                <p className="max-w-[250px] text-sm">{description}</p>
+            </TooltipContent>
+        </UITooltip>
     );
 };
+
+const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: React.ElementType, title: string, description: string, color: string }) => (
+    <div className="flex items-start gap-4 rounded-lg border p-4 bg-card">
+        <Icon className={`h-7 w-7 shrink-0 ${color}`} />
+        <div>
+            <h4 className="font-semibold text-foreground mb-1">{title}</h4>
+            <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+    </div>
+);
 
 const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: PortfolioData | null }) => {
     if (!portfolioData) {
@@ -621,8 +655,8 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                                         const isBest = value === best;
                                         const isWorst = value === worst;
                                         let cellClass = 'text-center';
-                                        if (isBest) cellClass += ' bg-green-50 text-green-800 font-bold';
-                                        if (isWorst) cellClass += ' bg-red-50 text-red-800 font-bold';
+                                        if (isBest && best !== worst) cellClass += ' bg-green-50 text-green-800 font-bold';
+                                        if (isWorst && best !== worst) cellClass += ' bg-red-50 text-red-800 font-bold';
                                         return (
                                             <TableCell key={data.id} className={cellClass}>
                                                 {metric.format ? metric.format(value) : value}
@@ -709,28 +743,22 @@ export default function ScenarioSimulationPage() {
 
       {selectedScenario && (
         <Card>
-             <CardContent className="pt-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <Card className="p-3 bg-muted/30">
-                        <h4 className="text-sm font-semibold mb-1">Growth Implication</h4>
-                        <p className="text-xs text-muted-foreground">{selectedScenario.implications.growth}</p>
-                    </Card>
-                     <Card className="p-3 bg-muted/30">
-                        <h4 className="text-sm font-semibold mb-1">Risk Implication</h4>
-                        <p className="text-xs text-muted-foreground">{selectedScenario.implications.risk}</p>
-                    </Card>
-                     <Card className="p-3 bg-muted/30">
-                        <h4 className="text-sm font-semibold mb-1">Liquidity Implication</h4>
-                        <p className="text-xs text-muted-foreground">{selectedScenario.implications.liquidity}</p>
-                    </Card>
+            <CardContent className="pt-6 space-y-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ImplicationCard icon={TrendingUp} title="Growth" description={selectedScenario.implications.growth} color="text-chart-1" />
+                    <ImplicationCard icon={ShieldAlert} title="Risk" description={selectedScenario.implications.risk} color="text-chart-5" />
+                    <ImplicationCard icon={Waves} title="Liquidity" description={selectedScenario.implications.liquidity} color="text-chart-4" />
+                    <ImplicationCard icon={Sparkles} title="Key Opportunities" description={selectedScenario.implications.keyOpportunities} color="text-chart-2" />
                 </div>
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                    <AssumptionTag label="Growth Outlook" value={selectedScenario.assumptions.growthOutlook} />
-                    <AssumptionTag label="Volatility" value={selectedScenario.assumptions.volatility} />
-                    <AssumptionTag label="Inflation" value={selectedScenario.assumptions.inflation} />
-                    <AssumptionTag label="Liquidity" value={selectedScenario.assumptions.liquidity} />
-                    <AssumptionTag label="Cashflow Timing" value={selectedScenario.assumptions.cashflowTiming} />
-                </div>
+                <TooltipProvider>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                        <AssumptionTag label="Growth Outlook" assumption={selectedScenario.assumptions.growthOutlook} />
+                        <AssumptionTag label="Volatility" assumption={selectedScenario.assumptions.volatility} />
+                        <AssumptionTag label="Inflation" assumption={selectedScenario.assumptions.inflation} />
+                        <AssumptionTag label="Liquidity" assumption={selectedScenario.assumptions.liquidity} />
+                        <AssumptionTag label="Cashflow Timing" assumption={selectedScenario.assumptions.cashflowTiming} />
+                    </div>
+                </TooltipProvider>
             </CardContent>
         </Card>
       )}
@@ -747,4 +775,3 @@ export default function ScenarioSimulationPage() {
     </div>
   );
 }
-
