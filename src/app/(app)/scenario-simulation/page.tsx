@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -46,6 +45,7 @@ type Scenario = {
     growth: string;
     risk: string;
     liquidity: string;
+    cashflowTiming: string;
     keyOpportunities: string;
   };
   assumptions: {
@@ -67,6 +67,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       growth: 'Steady, in-line with long-term expectations.',
       risk: 'Market-level risk with standard volatility.',
       liquidity: 'Predictable capital calls and distributions.',
+      cashflowTiming: 'Evenly-paced cash flows with no major surprises.',
       keyOpportunities: 'Execute on the long-term plan and allow compounding to work effectively.'
     },
     assumptions: {
@@ -86,6 +87,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       growth: 'Initial NAV markdowns and delayed exits, but potential for strong returns during recovery.',
       risk: 'Significantly elevated volatility and potential for permanent capital loss in weaker assets.',
       liquidity: 'Distributions slow dramatically while GPs may accelerate capital calls to fund portfolio companies.',
+      cashflowTiming: 'Return profile becomes highly back-loaded as exits are pushed out several years.',
       keyOpportunities: 'Deploy "dry powder" into a down market at attractive valuations, potentially leading to outsized returns.'
     },
     assumptions: {
@@ -105,6 +107,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       growth: 'Lower exit multiples and compressed NAV growth as discount rates increase.',
       risk: 'High sensitivity for long-duration assets and venture capital.',
       liquidity: 'Deal activity slows, potentially delaying both new investments and exits.',
+      cashflowTiming: 'Significantly back-loaded cash flows as M&A/IPO markets cool and price discovery stalls.',
       keyOpportunities: 'Favors managers skilled in operational value creation over financial engineering. Private credit strategies may thrive.'
     },
     assumptions: {
@@ -124,6 +127,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       growth: 'Nominal NAV may grow, but real returns are compressed. Pricing power becomes critical.',
       risk: 'Assets struggle to pass on costs, leading to margin compression.',
       liquidity: 'Central banks tighten policy, restricting liquidity across the system.',
+      cashflowTiming: 'Cash flows may remain on schedule, but their real value is diminished by high inflation.',
       keyOpportunities: 'Real assets (infrastructure, real estate) and companies with strong pricing power can outperform.'
     },
     assumptions: {
@@ -143,6 +147,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       growth: 'Secondary market evaporates and M&A activity stops, freezing NAV.',
       risk: 'Highest risk of capital call defaults and potential for forced asset sales.',
       liquidity: 'Extreme stress. Distributions halt completely, calls may be accelerated.',
+      cashflowTiming: 'Capital calls are accelerated and front-loaded to defend assets; distributions stop entirely.',
       keyOpportunities: 'For LPs with available capital, secondary markets can offer deep discounts on high-quality assets.'
     },
     assumptions: {
@@ -203,11 +208,11 @@ const AssumptionTag = ({ label, assumption }: { label: string, assumption: Assum
 };
 
 const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: React.ElementType, title: string, description: string, color: string }) => (
-    <div className="flex items-start gap-4 rounded-lg border p-4 bg-card">
-        <Icon className={`h-7 w-7 shrink-0 ${color}`} />
+    <div className="flex items-start gap-3 rounded-lg border p-3 bg-card h-full">
+        <Icon className={`h-6 w-6 shrink-0 ${color}`} />
         <div>
-            <h4 className="font-semibold text-foreground mb-1">{title}</h4>
-            <p className="text-sm text-foreground">{description}</p>
+            <h4 className="font-semibold text-foreground mb-1 text-sm">{title}</h4>
+            <p className="text-xs text-foreground">{description}</p>
         </div>
     </div>
 );
@@ -291,9 +296,22 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         );
     }
 
-    const { kpis, navProjection, liquidityForecast } = portfolioData;
-    const endingValue = navProjection[navProjection.length - 1]?.nav || 0;
-    const totalGrowth = totalCommitment > 0 ? endingValue / totalCommitment : 0;
+    const { kpis, navProjection, liquidityForecast, cashflowForecast } = portfolioData;
+    
+    // Using a more robust TVPI calculation: (Ending NAV + Cumulative Distributions) / Cumulative Calls
+    const cumulativeCalls = cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
+    const cumulativeDists = cashflowForecast.reduce((s, c) => s + c.distribution, 0);
+    const endingValue = navProjection[navProjection.length-1]?.nav || 0;
+    const tvpi = cumulativeCalls > 0 ? (endingValue + cumulativeDists) / cumulativeCalls : 0;
+
+    let tvpiColor;
+    if (tvpi > 2.0) {
+        tvpiColor = 'text-green-500';
+    } else if (tvpi >= 1.5) {
+        tvpiColor = 'text-orange-500';
+    } else {
+        tvpiColor = 'text-red-500';
+    }
     
     const peakGap = Math.max(0, ...liquidityForecast.map(l => l.fundingGap));
     const simulatedPeakPressure = Math.max(Math.abs(kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
@@ -304,19 +322,38 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         liquidityColor = 'text-red-500';
     } else if (simulatedPeakPressure > totalCommitment * 0.05) {
         liquidityPressure = 'Medium';
-        liquidityColor = 'text-yellow-600';
+        liquidityColor = 'text-orange-500';
     } else {
         liquidityPressure = 'Low';
         liquidityColor = 'text-green-500';
+    }
+    
+    const breakevenYear = kpis.breakevenTiming.from && kpis.breakevenTiming.from !== 'N/A'
+        ? new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1
+        : Infinity;
+
+    let breakevenDisplay, breakevenColor;
+    if (breakevenYear === Infinity) {
+        breakevenDisplay = 'N/A';
+        breakevenColor = 'text-red-500';
+    } else {
+        breakevenDisplay = `Year ${breakevenYear}`;
+        if (breakevenYear <= 5) {
+            breakevenColor = 'text-green-500';
+        } else if (breakevenYear <= 8) {
+            breakevenColor = 'text-orange-500';
+        } else {
+            breakevenColor = 'text-red-500';
+        }
     }
     
     const OutcomeCard = ({ title, value, description, icon: Icon, valueClass }: { title: string, value: string, description?: string, icon: React.ElementType, valueClass?: string }) => (
         <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
             <Icon className="h-6 w-6 text-primary mt-1" />
             <div>
-                <p className="text-sm text-foreground">{title}</p>
+                <p className="text-sm text-black">{title}</p>
                 <p className={`text-xl font-bold ${valueClass}`}>{value}</p>
-                {description && <p className="text-xs text-foreground">{description}</p>}
+                {description && <p className="text-xs text-muted-foreground">{description}</p>}
             </div>
         </div>
     );
@@ -325,10 +362,10 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         <Card className="lg:col-span-1">
              <CardHeader><CardTitle>Scenario Outcomes</CardTitle></CardHeader>
              <CardContent className="space-y-3">
-                 <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} />
-                 <OutcomeCard title="Total Growth" value={`${totalGrowth.toFixed(2)}x`} description="Multiple on committed capital" icon={TrendingUp} />
+                 <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} valueClass={tvpiColor} />
+                 <OutcomeCard title="TVPI Multiple" value={`${tvpi.toFixed(2)}x`} description="Total Value to Paid-In" icon={TrendingUp} valueClass={tvpiColor} />
                  <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly need of ~${formatCurrency(simulatedPeakPressure)}`} icon={Shield} valueClass={liquidityColor} />
-                 <OutcomeCard title="Breakeven Point" value={kpis.breakevenTiming.from && kpis.breakevenTiming.from !== 'N/A' ? `Year ${new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1}` : 'N/A'} description="When cumulative cashflow turns positive" icon={Hourglass} />
+                 <OutcomeCard title="Breakeven Point" value={breakevenDisplay} description="When cumulative cashflow turns positive" icon={Hourglass} valueClass={breakevenColor} />
             </CardContent>
         </Card>
     );
@@ -540,18 +577,19 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
         const data = selectedIds.map(id => {
             const { scenario, factors } = scenarioFactorsMapping[id];
             const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
-            const totalCommitment = funds.reduce((sum, fund) => sum + fund.commitment, 0);
-
-            const endingValue = portfolio.navProjection[portfolio.navProjection.length - 1]?.nav || 0;
-            const totalGrowth = totalCommitment > 0 ? endingValue / totalCommitment : 0;
+            
+            const cumulativeCalls = portfolio.cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
+            const cumulativeDists = portfolio.cashflowForecast.reduce((s, c) => s + c.distribution, 0);
+            const endingValue = portfolio.navProjection[portfolio.navProjection.length-1]?.nav || 0;
+            const tvpi = cumulativeCalls > 0 ? (endingValue + cumulativeDists) / cumulativeCalls : 0;
             
             const peakGap = Math.max(0, ...portfolio.liquidityForecast.map(l => l.fundingGap));
             const simulatedPeakPressure = Math.max(Math.abs(portfolio.kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
 
             let liquidityPressure;
-            if (simulatedPeakPressure > totalCommitment * 0.1) {
+            if (simulatedPeakPressure > funds.reduce((sum, fund) => sum + fund.commitment, 0) * 0.1) {
                 liquidityPressure = 'High';
-            } else if (simulatedPeakPressure > totalCommitment * 0.05) {
+            } else if (simulatedPeakPressure > funds.reduce((sum, fund) => sum + fund.commitment, 0) * 0.05) {
                 liquidityPressure = 'Medium';
             } else {
                 liquidityPressure = 'Low';
@@ -568,7 +606,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                 id,
                 name: scenarios[id].name,
                 endingValue,
-                totalGrowth,
+                tvpi,
                 liquidityPressure,
                 breakevenYear,
                 peakFundingNeed,
@@ -580,7 +618,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
 
     const metrics = [
         { key: 'endingValue', label: 'Ending Portfolio Value', format: formatCurrency },
-        { key: 'totalGrowth', label: 'Total Growth Multiple', format: (v: number) => `${v.toFixed(2)}x` },
+        { key: 'tvpi', label: 'TVPI Multiple', format: (v: number) => `${v.toFixed(2)}x` },
         { key: 'peakFundingNeed', label: 'Peak Funding Need', format: formatCurrency },
         { key: 'liquidityRunway', label: 'Liquidity Runway', format: (v: number) => v >= 24 ? `${(v/12).toFixed(1)} years` : `${v} months` },
         { key: 'liquidityPressure', label: 'Peak Liquidity Pressure' },
@@ -593,7 +631,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
         const values = comparisonData.map(d => d[key as keyof typeof d]).filter(v => typeof v === 'number' && !isNaN(v as number)) as number[];
         if (values.length < 1) return {};
 
-        const higherIsBetterMetrics = ['endingValue', 'totalGrowth', 'liquidityRunway'];
+        const higherIsBetterMetrics = ['endingValue', 'tvpi', 'liquidityRunway'];
         const lowerIsBetterMetrics = ['breakevenYear', 'peakFundingNeed'];
 
         let isHigherBetter;
@@ -619,7 +657,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
             <div className="grid grid-cols-5 gap-6 mt-4">
                 <div className="col-span-1 space-y-2 border-r pr-4">
                     <h4 className="font-semibold text-sm">Select Scenarios</h4>
-                    <p className="text-xs text-foreground">Choose 2 to 4 scenarios to compare.</p>
+                    <p className="text-xs text-black">Choose 2 to 4 scenarios to compare.</p>
                     <div className="space-y-2 pt-2">
                         {Object.values(scenarios).map(scenario => (
                             <div key={scenario.id} className="flex items-center gap-2">
@@ -640,8 +678,8 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="text-foreground">Metric</TableHead>
-                                {comparisonData.map(data => <TableHead key={data.id} className="text-center text-foreground">{data.name}</TableHead>)}
+                                <TableHead className="text-black">Metric</TableHead>
+                                {comparisonData.map(data => <TableHead key={data.id} className="text-center text-black">{data.name}</TableHead>)}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -649,7 +687,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                                 const { best, worst } = getBestWorst(metric.key);
                                 return (
                                 <TableRow key={metric.key}>
-                                    <TableCell className="font-medium text-foreground">{metric.label}</TableCell>
+                                    <TableCell className="font-medium text-black">{metric.label}</TableCell>
                                     {comparisonData.map(data => {
                                         const value = data[metric.key];
                                         const isBest = value === best;
@@ -744,13 +782,14 @@ export default function ScenarioSimulationPage() {
       {selectedScenario && (
         <Card>
             <CardContent className="pt-6 space-y-6">
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                     <ImplicationCard icon={TrendingUp} title="Growth" description={selectedScenario.implications.growth} color="text-chart-1" />
                     <ImplicationCard icon={ShieldAlert} title="Risk" description={selectedScenario.implications.risk} color="text-chart-5" />
                     <ImplicationCard icon={Waves} title="Liquidity" description={selectedScenario.implications.liquidity} color="text-chart-4" />
+                    <ImplicationCard icon={Clock} title="Cashflow Timing" description={selectedScenario.implications.cashflowTiming} color="text-chart-3" />
                     <ImplicationCard icon={Sparkles} title="Key Opportunities" description={selectedScenario.implications.keyOpportunities} color="text-chart-2" />
                 </div>
-                <TooltipProvider>
+                {/* <TooltipProvider>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                         <AssumptionTag label="Growth Outlook" assumption={selectedScenario.assumptions.growthOutlook} />
                         <AssumptionTag label="Volatility" assumption={selectedScenario.assumptions.volatility} />
@@ -758,7 +797,7 @@ export default function ScenarioSimulationPage() {
                         <AssumptionTag label="Liquidity" assumption={selectedScenario.assumptions.liquidity} />
                         <AssumptionTag label="Cashflow Timing" assumption={selectedScenario.assumptions.cashflowTiming} />
                     </div>
-                </TooltipProvider>
+                </TooltipProvider> */}
             </CardContent>
         </Card>
       )}
@@ -775,4 +814,3 @@ export default function ScenarioSimulationPage() {
     </div>
   );
 }
-
