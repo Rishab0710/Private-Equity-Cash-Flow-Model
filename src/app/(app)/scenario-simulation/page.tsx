@@ -1,11 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit } from 'lucide-react';
+import { Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, TrendingUp, Landmark, Shield, BarChart, Hourglass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getPortfolioData } from '@/lib/data';
+import type { PortfolioData } from '@/lib/types';
+import { usePortfolioContext } from '@/components/layout/app-layout';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Area, Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, ReferenceLine } from 'recharts';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { format } from 'date-fns';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch' | 'strongGrowth';
 
@@ -143,23 +151,32 @@ const scenarios: Record<ScenarioId, Scenario> = {
   },
 };
 
+const scenarioFactorsMapping = {
+    base: { scenario: 'Base' as const, factors: { callFactor: 1.0, distFactor: 1.0 } },
+    recession: { scenario: 'Stress' as const, factors: { callFactor: 1.1, distFactor: 0.6 } },
+    risingRates: { scenario: 'Slow Exit' as const, factors: { callFactor: 0.9, distFactor: 0.7 } },
+    stagflation: { scenario: 'Stress' as const, factors: { callFactor: 1.0, distFactor: 0.8 } },
+    liquidityCrunch: { scenario: 'Stress' as const, factors: { callFactor: 1.2, distFactor: 0.4 } },
+    strongGrowth: { scenario: 'Fast Exit' as const, factors: { callFactor: 1.1, distFactor: 1.3 } },
+};
+
+const formatCurrency = (value: number) => {
+    const absValue = Math.abs(value);
+    if (absValue >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+    if (absValue >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+    if (absValue >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+    return `$${value.toFixed(0)}`;
+};
+
 const AssumptionTag = ({ label, value }: { label: string, value: string }) => {
-    const colorClasses = {
-        'Positive': 'bg-green-100 text-green-800',
-        'Neutral': 'bg-blue-100 text-blue-800',
-        'Negative': 'bg-red-100 text-red-800',
-        'Low': 'bg-green-100 text-green-800',
-        'Medium': 'bg-yellow-100 text-yellow-800',
-        'High': 'bg-red-100 text-red-800',
-        'Elevated': 'bg-yellow-100 text-yellow-800',
-        'Abundant': 'bg-blue-100 text-blue-800',
-        'Tight': 'bg-yellow-100 text-yellow-800',
-        'Stressed': 'bg-red-100 text-red-800',
-        'Front-loaded': 'bg-purple-100 text-purple-800',
-        'Evenly-paced': 'bg-blue-100 text-blue-800',
+    const colorClasses: Record<string, string> = {
+        'Positive': 'bg-green-100 text-green-800', 'Neutral': 'bg-blue-100 text-blue-800', 'Negative': 'bg-red-100 text-red-800',
+        'Low': 'bg-green-100 text-green-800', 'Medium': 'bg-yellow-100 text-yellow-800', 'High': 'bg-red-100 text-red-800',
+        'Elevated': 'bg-orange-100 text-orange-800', 'Abundant': 'bg-blue-100 text-blue-800', 'Tight': 'bg-yellow-100 text-yellow-800',
+        'Stressed': 'bg-red-100 text-red-800', 'Front-loaded': 'bg-purple-100 text-purple-800', 'Evenly-paced': 'bg-blue-100 text-blue-800',
         'Back-loaded': 'bg-orange-100 text-orange-800',
     };
-    const colorClass = colorClasses[value as keyof typeof colorClasses] || 'bg-gray-100 text-gray-800';
+    const colorClass = colorClasses[value] || 'bg-gray-100 text-gray-800';
 
     return (
         <div className="flex flex-col items-center justify-center p-2 text-center bg-muted/50 rounded-lg">
@@ -171,14 +188,147 @@ const AssumptionTag = ({ label, value }: { label: string, value: string }) => {
     );
 };
 
+const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: PortfolioData | null }) => {
+    if (!portfolioData) {
+        return <Skeleton className="h-80 w-full" />;
+    }
+
+    const { navProjection, cashflowForecast } = portfolioData;
+
+    const combinedData = cashflowForecast.map(cf => {
+        const navDataPoint = navProjection.find(nd => nd.date === cf.date);
+        return { ...cf, capitalCall: -cf.capitalCall, nav: navDataPoint?.nav };
+    });
+
+    const chartConfig = {
+        capitalCall: { label: 'Capital Calls', color: 'hsl(var(--chart-2))' },
+        distribution: { label: 'Distributions', color: 'hsl(var(--chart-1))' },
+        nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' },
+    };
+
+    return (
+        <Card className="lg:col-span-2">
+            <CardHeader><CardTitle>Scenario Visualization</CardTitle></CardHeader>
+            <CardContent className="h-[350px] -ml-2">
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                    <ComposedChart data={combinedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
+                        <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio Value", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
+                        <Tooltip content={<ChartTooltipContent formatter={(value, name) => formatCurrency(name === 'capitalCall' ? -value : value)} labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} indicator="dot" />} />
+                        <Legend />
+                        <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
+                        <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
+                        <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
+                    </ComposedChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+    );
+};
+
+const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: PortfolioData | null, totalCommitment: number }) => {
+    if (!portfolioData) {
+        return (
+            <>
+                <Skeleton className="h-48" />
+                <Skeleton className="h-48" />
+            </>
+        );
+    }
+
+    const { kpis, navProjection } = portfolioData;
+    const endingValue = navProjection[navProjection.length - 1]?.nav || 0;
+    const totalGrowth = totalCommitment > 0 ? endingValue / totalCommitment : 0;
+    
+    const liquidityPressureValue = Math.abs(kpis.peakProjectedOutflow.value);
+    let liquidityPressure, liquidityColor;
+    if (liquidityPressureValue > totalCommitment * 0.1) {
+        liquidityPressure = 'High';
+        liquidityColor = 'text-red-500';
+    } else if (liquidityPressureValue > totalCommitment * 0.05) {
+        liquidityPressure = 'Medium';
+        liquidityColor = 'text-yellow-600';
+    } else {
+        liquidityPressure = 'Low';
+        liquidityColor = 'text-green-500';
+    }
+    
+    const OutcomeCard = ({ title, value, description, icon: Icon, valueClass }: { title: string, value: string, description?: string, icon: React.ElementType, valueClass?: string }) => (
+        <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
+            <Icon className="h-6 w-6 text-primary mt-1" />
+            <div>
+                <p className="text-sm text-muted-foreground">{title}</p>
+                <p className={`text-xl font-bold ${valueClass}`}>{value}</p>
+                {description && <p className="text-xs text-muted-foreground">{description}</p>}
+            </div>
+        </div>
+    );
+    
+    return (
+        <Card>
+             <CardHeader><CardTitle>Scenario Outcomes</CardTitle></CardHeader>
+             <CardContent className="space-y-3">
+                 <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} />
+                 <OutcomeCard title="Total Growth" value={`${totalGrowth.toFixed(2)}x`} description="Multiple on committed capital" icon={TrendingUp} />
+                 <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly call of ${formatCurrency(liquidityPressureValue)}`} icon={Shield} valueClass={liquidityColor} />
+                 <OutcomeCard title="Breakeven Point" value={`Year ${kpis.breakevenTiming.from ? new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1 : 'N/A'}`} description="When cumulative cashflow turns positive" icon={Hourglass} />
+            </CardContent>
+        </Card>
+    );
+}
+
+const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
+    const insights: Record<ScenarioId, { title: string, text: string }> = {
+        base: { title: "Steady & Predictable", text: "The base case shows a standard J-curve with moderate growth. Cash flows are evenly paced, leading to a healthy return multiple with manageable liquidity needs. This represents a 'business as usual' outlook." },
+        recession: { title: "Short-term Pain, Long-term Gain?", text: "A recession causes early NAV markdowns and halts distributions. However, accelerated capital calls into a down market can lead to a powerful recovery and strong back-ended returns if the portfolio is resilient." },
+        risingRates: { title: "A Slower Grind", text: "Higher interest rates act as a headwind, compressing valuation multiples. This slows NAV growth and delays exits, resulting in a more back-loaded return profile and a lower overall IRR." },
+        stagflation: { title: "The Real Return Squeeze", text: "A toxic mix of high inflation and low growth. While nominal NAV might hold up, real returns are significantly eroded. Liquidity tightens, and only assets with strong pricing power can protect margins." },
+        liquidityCrunch: { title: "Cash is King", text: "This scenario models a market freeze. Distributions stop entirely, and capital calls are accelerated to defend portfolio companies, placing maximum stress on LP liquidity and credit facilities." },
+        strongGrowth: { title: "Riding the Wave", text: "An optimistic scenario where a booming economy accelerates both NAV growth and exit opportunities. This leads to early distributions and a front-loaded, higher-return profile, but risks frothy valuations." },
+    };
+
+    const insight = insights[scenarioId];
+
+    return (
+        <Card>
+             <CardHeader><CardTitle>Narrative Insights</CardTitle></CardHeader>
+             <CardContent>
+                 <div className="bg-muted/50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-sm mb-1">{insight.title}</h4>
+                    <p className="text-sm text-muted-foreground">{insight.text}</p>
+                 </div>
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function ScenarioSimulationPage() {
-  const [selectedScenarioId, setSelectedScenarioId] = useState<ScenarioId>('base');
-  const selectedScenario = scenarios[selectedScenarioId];
+    const [selectedScenarioId, setSelectedScenarioId] = useState<ScenarioId>('base');
+    const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const { funds } = usePortfolioContext();
+    const selectedScenario = scenarios[selectedScenarioId];
+
+    useEffect(() => {
+        setIsLoading(true);
+        // Use a timeout to simulate network latency for a better loading state experience
+        const timer = setTimeout(() => {
+            const { scenario, factors } = scenarioFactorsMapping[selectedScenarioId];
+            const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
+            setPortfolioData(portfolio);
+            setIsLoading(false);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [selectedScenarioId]);
+    
+    const totalCommitment = useMemo(() => funds.reduce((sum, fund) => sum + fund.commitment, 0), [funds]);
 
   return (
     <div className="space-y-6">
-      {/* 1. SCENARIO SELECTOR */}
       <Card>
         <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -203,12 +353,20 @@ export default function ScenarioSimulationPage() {
                 </Select>
             </div>
              <div className="flex items-center gap-2">
-                <Button variant="outline">Compare Scenarios</Button>
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" disabled>Compare Scenarios</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Coming Soon</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
             </div>
         </CardContent>
       </Card>
 
-      {/* 2. SCENARIO OVERVIEW */}
       {selectedScenario && (
         <Card>
             <CardHeader>
@@ -249,41 +407,12 @@ export default function ScenarioSimulationPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 3. VISUALIZATION */}
-        <Card className="lg:col-span-2">
-            <CardHeader>
-                <CardTitle>Scenario Visualization</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="h-80 flex items-center justify-center bg-muted/50 rounded-lg border-2 border-dashed">
-                    <p className="text-muted-foreground">Portfolio Value & Cashflow Charts Coming Soon</p>
-                </div>
-            </CardContent>
-        </Card>
-
-        {/* 4. OUTCOME & INSIGHTS */}
-        <Card>
-             <CardHeader>
-                <CardTitle>Scenario Outcomes</CardTitle>
-            </CardHeader>
-             <CardContent>
-                <div className="h-48 flex items-center justify-center bg-muted/50 rounded-lg border-2 border-dashed">
-                    <p className="text-muted-foreground">Outcome Cards Coming Soon</p>
-                </div>
-            </CardContent>
-        </Card>
-        <Card>
-             <CardHeader>
-                <CardTitle>Narrative Insights</CardTitle>
-            </CardHeader>
-             <CardContent>
-                <div className="h-48 flex items-center justify-center bg-muted/50 rounded-lg border-2 border-dashed">
-                    <p className="text-muted-foreground">Auto-generated Insights Coming Soon</p>
-                </div>
-            </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ScenarioVisualizationChart portfolioData={portfolioData} />
+        <div className="lg:col-span-1 space-y-6">
+          <ScenarioOutcomes portfolioData={portfolioData} totalCommitment={totalCommitment} />
+          <NarrativeInsights scenarioId={selectedScenarioId} />
+        </div>
       </div>
     </div>
   );
