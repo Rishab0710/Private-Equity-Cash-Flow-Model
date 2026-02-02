@@ -701,7 +701,7 @@ export default function ScenarioSimulationPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
+        <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex items-center gap-4">
                 <h1 className="text-lg font-semibold tracking-tight text-highlight flex items-center gap-2">
                     <BrainCircuit className="h-6 w-6" />
@@ -723,6 +723,14 @@ export default function ScenarioSimulationPage() {
                     </SelectContent>
                 </Select>
             </div>
+             
+            {selectedScenario && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground flex-grow min-w-[300px]">
+                    <Badge variant={selectedScenario.badge.variant}>{selectedScenario.badge.text}</Badge>
+                    <p>{selectedScenario.description}</p>
+                </div>
+            )}
+
              <div className="flex items-center gap-2">
                 <Dialog>
                     <DialogTrigger asChild>
@@ -737,16 +745,7 @@ export default function ScenarioSimulationPage() {
       {selectedScenario && (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle className="flex items-center gap-2">
-                             <selectedScenario.badge.icon className="h-5 w-5" />
-                            {selectedScenario.name}
-                        </CardTitle>
-                        <CardDescription className="mt-2">{selectedScenario.description}</CardDescription>
-                    </div>
-                     <Badge variant={selectedScenario.badge.variant}>{selectedScenario.badge.text}</Badge>
-                </div>
+                <CardTitle className="text-base font-semibold">Implications & Assumptions</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
