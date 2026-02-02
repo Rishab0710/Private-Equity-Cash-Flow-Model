@@ -19,8 +19,7 @@ import {
   User,
   ChevronDown,
   LogOut,
-  Droplets,
-  Spline
+  BrainCircuit,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -30,8 +29,7 @@ import { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/portfolio-growth', label: 'Portfolio Growth', icon: TrendingUp },
-  { href: '/liquidity', label: 'Liquidity Planning', icon: Droplets },
-  { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Spline },
+  { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
 ];
 
 export function Header() {
