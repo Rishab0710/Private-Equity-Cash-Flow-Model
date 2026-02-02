@@ -19,6 +19,8 @@ import {
   User,
   ChevronDown,
   LogOut,
+  Droplets,
+  Spline
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -27,7 +29,9 @@ import { usePortfolioContext } from './app-layout';
 import { useState, useEffect } from 'react';
 
 const navItems = [
-  { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
+  { href: '/portfolio-growth', label: 'Portfolio Growth', icon: TrendingUp },
+  { href: '/liquidity', label: 'Liquidity Planning', icon: Droplets },
+  { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Spline },
 ];
 
 export function Header() {
@@ -51,7 +55,10 @@ export function Header() {
               key={item.href}
               href={item.href}
               className={cn(
-                'px-3 py-2 rounded-md transition-colors font-bold text-white text-base'
+                'px-3 py-2 rounded-md transition-colors text-sm',
+                pathname.startsWith(item.href)
+                  ? 'bg-white/10 text-white font-semibold'
+                  : 'text-white/80 hover:bg-white/10 hover:text-white'
               )}
             >
               {item.label}
@@ -85,7 +92,10 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm font-bold text-foreground'
+                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
+                     pathname.startsWith(item.href)
+                      ? 'bg-muted text-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <item.icon className="h-5 w-5" />
