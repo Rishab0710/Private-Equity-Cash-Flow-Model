@@ -12,13 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 // Mappings from qualitative inputs to quantitative model factors
-const PACING_MAP = { 'front-loaded': 1.3, 'balanced': 1, 'back-loaded': 0.7 };
-const DEPTH_MAP = { 'shallow': 0.8, 'moderate': 1, 'deep': 1.2 };
-const BREAKEVEN_MAP = { 'early': -1.5, 'mid': 0, 'late': 1.5 }; // Year adjustment
-const DIST_START_MAP = { 'early': -1, 'typical': 0, 'late': 1 }; // Year adjustment
-const DIST_SPEED_MAP = { 'slow': 0.8, 'normal': 1, 'fast': 1.2 };
-const TAIL_LENGTH_MAP = { 'short': 1.2, 'medium': 1, 'long': 0.8 }; // Affects decay rate of distributions
-
 const generateAssumptionData = (params: any) => {
     const {
         investmentPeriod,
@@ -34,105 +27,75 @@ const generateAssumptionData = (params: any) => {
     const fundLife = 15;
     const commitment = 100;
     
-    const pacingFactor = PACING_MAP[deploymentPacing as keyof typeof PACING_MAP] || 1;
-    const depthFactor = DEPTH_MAP[jCurveDepth as keyof typeof DEPTH_MAP] || 1;
-    const breakevenAdj = BREAKEVEN_MAP[timeToBreakeven as keyof typeof BREAKEVEN_MAP] || 0;
-    const distStartAdj = DIST_START_MAP[distributionStart as keyof typeof DIST_START_MAP] || 0;
-    const distSpeedFactor = DIST_SPEED_MAP[distributionSpeed as keyof typeof DIST_SPEED_MAP] || 1;
-    const tailFactor = TAIL_LENGTH_MAP[tailLength as keyof typeof TAIL_LENGTH_MAP] || 1;
+    const pacingFactor = { 'front-loaded': 1.5, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
+    const depthFactor = { 'shallow': 0.8, 'moderate': 1, 'deep': 1.2 }[jCurveDepth as keyof typeof jCurveDepth] || 1; // Deeper curve = lower NAV growth
+    const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
+    const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
+    const distSpeedFactor = { 'slow': 0.8, 'normal': 1, 'fast': 1.2 }[distributionSpeed as keyof typeof distributionSpeed] || 1;
+    const tailFactor = { 'short': 1.2, 'medium': 1, 'long': 0.8 }[tailLength as keyof typeof tailLength] || 1; // Affects decay
     
-    const finalDistStartYear = investmentPeriod + 1 + distStartAdj;
-    
-    const jCurveData = [];
+    const returnFactor = (tvpiTarget / 2.2);
+
+    let jCurveData = [];
     let unfunded = commitment;
     let nav = 0;
     let totalCalls = 0;
     let totalDists = 0;
-    
+    let cumulativeNet = 0;
+
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
         if (year > 0 && year <= investmentPeriod && unfunded > 0) {
-            const remainingYears = investmentPeriod - year + 1;
-            const baseCall = (commitment / investmentPeriod) * (1 + (pacingFactor - 1) * (1 - (year-1)/investmentPeriod));
-            call = Math.min(unfunded, baseCall * (0.9 + Math.random() * 0.2));
+            const baseCall = commitment / investmentPeriod;
+            const pacingAdjustment = 1 + (pacingFactor - 1) * (1 - (year - 1) / investmentPeriod);
+            call = Math.min(unfunded, baseCall * pacingAdjustment);
         }
         unfunded -= call;
         totalCalls += call;
 
-        const growthRate = (year > 1 && year < fundLife - 2)
-            ? (0.20 - (year / fundLife * 0.15)) / depthFactor
-            : 0.02;
+        const growthRate = ( (0.22 * returnFactor) - ( (Math.abs(year - 6)) * 0.02) ) / depthFactor;
         const growth = nav * growthRate;
-
+        
         let distribution = 0;
-        if (year >= finalDistStartYear && nav > 0) {
-            const effectiveBreakevenYear = (investmentPeriod / 2) + breakevenAdj;
-            const distRamp = Math.max(0, (year - effectiveBreakevenYear) / (fundLife - effectiveBreakevenYear));
-            const baseDistRate = 0.1 * distRamp * distSpeedFactor;
-            distribution = nav * baseDistRate;
+        const distributionStartYear = investmentPeriod + distStartAdj + breakevenAdj;
+        if (year >= distributionStartYear && nav > 0) {
+            const baseDistRate = 0.15 * distSpeedFactor;
+            const tailDecay = Math.pow(tailFactor, -(year - distributionStartYear));
+            distribution = nav * baseDistRate * tailDecay;
         }
 
         nav += growth + call - distribution;
+
         if (nav < 0) {
-            distribution += nav; // Claw back distribution if NAV goes negative
+            distribution += nav;
             nav = 0;
         }
         distribution = Math.max(0, distribution);
         totalDists += distribution;
+        
+        const net = distribution - call;
+        cumulativeNet += net;
 
         jCurveData.push({
             year: `Yr ${year}`,
-            calls: -call, // Negative for charting
+            calls: -call,
             distributions: distribution,
-            net: distribution - call,
-            nav
+            net: net,
+            nav: nav,
+            cumulativeNet: cumulativeNet
         });
     }
+
+    const endingNav = nav;
+    const finalTvpi = totalCalls > 0 ? (totalDists + endingNav) / totalCalls : 0;
     
-    // Post-simulation adjustment to meet TVPI target
-    const endingNav = jCurveData[jCurveData.length - 1].nav;
-    const calculatedTvpi = totalCalls > 0 ? (totalDists + endingNav) / totalCalls : 0;
-    const adjustmentFactor = tvpiTarget / calculatedTvpi;
-
-    if (isFinite(adjustmentFactor) && adjustmentFactor > 0) {
-        let adjustedTotalDists = 0;
-        for(const point of jCurveData) {
-            point.distributions *= adjustmentFactor;
-            point.net = point.distributions + point.calls; // calls is negative
-            adjustedTotalDists += point.distributions;
-        }
-        // Recalculate NAV with adjusted distributions
-        let currentNav = 0;
-        for (let i = 0; i < jCurveData.length; i++) {
-            const point = jCurveData[i];
-            const prevNav = i > 0 ? jCurveData[i-1].nav : 0;
-            const call = -point.calls;
-            const dist = point.distributions;
-            const growth = prevNav * ((i > 1 && i < fundLife - 2) ? (0.20 - (i / fundLife * 0.15)) / depthFactor : 0.02);
-            currentNav = prevNav + growth + call - dist;
-            point.nav = Math.max(0, currentNav);
-        }
-        totalDists = adjustedTotalDists;
-    }
-
-
-    const finalEndingNav = jCurveData[jCurveData.length - 1].nav;
-    const finalTvpi = totalCalls > 0 ? (totalDists + finalEndingNav) / totalCalls : 0;
-    
-    let cumulativeNet = 0;
-    const breakevenPoint = jCurveData.find(d => {
-        cumulativeNet += d.net;
-        return cumulativeNet > 0;
-    });
-
-    const breakevenTiming = breakevenPoint 
-        ? `Year ${parseFloat(breakevenPoint.year.split(' ')[1]).toFixed(1)}`
-        : `Year ${fundLife}+`;
+    const breakevenPoint = jCurveData.find(d => d.cumulativeNet > 0);
+    const breakevenTiming = breakevenPoint ? `Year ${parseInt(breakevenPoint.year.split(' ')[1])}` : `Year ${fundLife}+`;
 
     const summaryOutputs = {
         totalCapitalCalled: totalCalls,
         totalDistributions: totalDists,
-        endingNav: finalEndingNav,
+        endingNav: endingNav,
         tvpi: finalTvpi,
         breakevenTiming,
     };
@@ -192,7 +155,7 @@ export default function AssumptionsStudioPage() {
         <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 className="text-xl font-bold tracking-tight text-highlight">
-                    J-Curve & Multiples Assumptions
+                    J-Curve &amp; Multiples Assumptions
                 </h1>
                 <p className="text-muted-foreground">
                     Set strategy and fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
@@ -230,7 +193,7 @@ export default function AssumptionsStudioPage() {
         <div className="lg:col-span-2 space-y-6">
             <JCurvePreview data={jCurveData} />
             <CashflowTimeline data={jCurveData} />
-            <SummaryOutputs data={summaryOutputs} />
+            <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} />
         </div>
       </div>
       <AssumptionSets />

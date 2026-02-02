@@ -29,7 +29,7 @@ const SummarySkeleton = () => (
     </div>
 )
 
-export function SummaryOutputs({ data }: { data: any | null }) {
+export function SummaryOutputs({ data, tvpiTarget }: { data: any | null, tvpiTarget: number }) {
     if (!data) {
         return (
              <Card>
@@ -48,7 +48,7 @@ export function SummaryOutputs({ data }: { data: any | null }) {
                     <SummaryMetric label="Total Capital Called" value={formatCurrency(data.totalCapitalCalled)} subValue={`${Math.round(data.totalCapitalCalled)}% of commitment`} />
                     <SummaryMetric label="Total Distributions" value={formatCurrency(data.totalDistributions)} />
                     <SummaryMetric label="Ending NAV" value={formatCurrency(data.endingNav)} />
-                    <SummaryMetric label="TVPI" value={formatMultiple(data.tvpi)} subValue={`Target: ${formatMultiple(data.tvpi)}`} />
+                    <SummaryMetric label="TVPI" value={formatMultiple(data.tvpi)} subValue={`Target: ${formatMultiple(tvpiTarget)}`} />
                     <SummaryMetric label="Breakeven Timing" value={data.breakevenTiming} />
                 </div>
             </CardContent>
