@@ -4,7 +4,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, TrendingUp, Landmark, Shield, BarChart, Hourglass, Activity, Clock } from 'lucide-react';
+import { 
+    Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, 
+    TrendingUp, Landmark, Shield, BarChart, Hourglass, Activity, Clock, Rocket, 
+    ClipboardList, Search, Briefcase, ShieldCheck, Gauge, FileBarChart, Building, 
+    Filter, Target, FileWarning, ListTodo, Ban, MousePointerSquare, Sailboat, Scaling 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPortfolioData } from '@/lib/data';
 import type { PortfolioData } from '@/lib/types';
@@ -380,6 +385,107 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
     )
 }
 
+type RecommendationPoint = {
+  icon: React.ElementType;
+  text: string;
+  color: string;
+};
+
+type Recommendation = {
+  title: string;
+  summary: string;
+  points: RecommendationPoint[];
+};
+
+const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) => {
+    const recommendations: Record<ScenarioId, Recommendation> = {
+        base: { 
+            title: "Stay the Course & Monitor", 
+            summary: "Your portfolio is aligned with baseline expectations. The key is to maintain discipline and monitor performance against your long-term goals.",
+            points: [
+                { icon: TrendingUp, text: "Regularly review portfolio performance against this baseline forecast to track progress.", color: 'text-blue-500' },
+                { icon: Landmark, text: "Continue with planned contributions to maximize the power of compounding.", color: 'text-green-500' },
+                { icon: ClipboardList, text: "Identify future cash needs and align them with the projected distribution schedule.", color: 'text-blue-500' },
+            ]
+        },
+        recession: { 
+            title: "Identify Opportunity, Manage Liquidity", 
+            summary: "Downturns test liquidity but also present opportunities. The focus should be on surviving the stress while being prepared to invest at attractive valuations.",
+            points: [
+                { icon: ShieldCheck, text: "Assess liquidity reserves to ensure you can comfortably meet accelerated capital calls from GPs.", color: 'text-red-500' },
+                { icon: Search, text: "Evaluate opportunities to commit to top-tier funds at potentially lower entry valuations.", color: 'text-yellow-600' },
+                { icon: Briefcase, text: "Stress test the portfolio for a longer-than-expected (i.e., 'U' or 'L' shaped) recovery period.", color: 'text-red-500' },
+            ]
+        },
+        risingRates: { 
+            title: "Focus on Value Creation",
+            summary: "In a rising rate environment, returns from simple multiple expansion are scarce. The focus shifts to managers who can create real operational value.",
+            points: [
+                { icon: Gauge, text: "Review exposure to long-duration assets (e.g., venture capital) that are most sensitive to rising discount rates.", color: 'text-yellow-600' },
+                { icon: BrainCircuit, text: "Prioritize managers with proven expertise in driving operational improvements in their portfolio companies.", color: 'text-blue-500' },
+                { icon: FileBarChart, text: "Model the impact of a slower M&A and IPO market on your portfolio's liquidity timeline.", color: 'text-yellow-600' },
+            ]
+        },
+        stagflation: { 
+            title: "Prioritize Real Returns & Pricing Power", 
+            summary: "The goal is to protect purchasing power. Assets that can pass on costs and strategies with inflation protection become critical.",
+            points: [
+                { icon: Building, text: "Consider increasing allocation to strategies that offer a natural inflation hedge, like real assets and infrastructure.", color: 'text-green-500' },
+                { icon: Filter, text: "Scrutinize underlying companies for strong pricing power—the ability to raise prices without losing business.", color: 'text-blue-500' },
+                { icon: Target, text: "Re-evaluate long-term return goals in 'real' (inflation-adjusted) terms, not just nominal.", color: 'text-yellow-600' },
+            ]
+        },
+        liquidityCrunch: { 
+            title: "Defensive Positioning & Cash Preservation", 
+            summary: "In a market freeze, 'cash is king.' The immediate priority is ensuring you can weather the storm without becoming a forced seller of assets.",
+            points: [
+                { icon: FileWarning, text: "Immediately confirm available credit lines and other sources of emergency liquidity.", color: 'text-red-500' },
+                { icon: ListTodo, text: "Rank all unfunded commitments by priority and explore possibilities for deferring non-essential calls.", color: 'text-red-500' },
+                { icon: Ban, text: "Halt any new, non-essential commitments until market stability and visibility returns.", color: 'text-yellow-600' },
+            ]
+        },
+        strongGrowth: { 
+            title: "Disciplined Deployment & Harvesting", 
+            summary: "Good times can lead to bad decisions. The key is to avoid 'fear of missing out' (FOMO) while taking advantage of favorable exit conditions.",
+            points: [
+                { icon: Sailboat, text: "Work with GPs to encourage taking advantage of the robust exit market to realize gains and return capital.", color: 'text-green-500' },
+                { icon: MousePointerSquare, text: "Maintain a disciplined capital deployment pace; avoid chasing overheated deals or sectors.", color: 'text-yellow-600' },
+                { icon: Scaling, text: "Systematically rebalance the portfolio to lock in profits and manage overall risk exposure.", color: 'text-blue-500' },
+            ]
+        },
+    };
+
+    const recommendation = recommendations[scenarioId];
+
+    return (
+        <Card>
+             <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <Rocket className="h-5 w-5 text-muted-foreground" />
+                    Recommendation - Next Steps
+                </CardTitle>
+             </CardHeader>
+             <CardContent className="space-y-4">
+                 <div className="bg-muted/50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-sm mb-1">{recommendation.title}</h4>
+                    <p className="text-sm text-muted-foreground">{recommendation.summary}</p>
+                 </div>
+                 <div className="space-y-3">
+                    {recommendation.points.map((point, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                            <point.icon className={`h-5 w-5 mt-0.5 shrink-0 ${point.color}`} />
+                            <p className="text-sm text-foreground flex-1">
+                                {point.text}
+                            </p>
+                        </div>
+                    ))}
+                 </div>
+            </CardContent>
+        </Card>
+    )
+};
+
+
 export default function ScenarioSimulationPage() {
     const [selectedScenarioId, setSelectedScenarioId] = useState<ScenarioId>('base');
     const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
@@ -486,7 +592,11 @@ export default function ScenarioSimulationPage() {
         <ScenarioVisualizationChart portfolioData={portfolioData} />
         <ScenarioOutcomes portfolioData={portfolioData} totalCommitment={totalCommitment} />
       </div>
-      <NarrativeInsights scenarioId={selectedScenarioId} />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <NarrativeInsights scenarioId={selectedScenarioId} />
+        <NextStepsRecommendations scenarioId={selectedScenarioId} />
+      </div>
     </div>
   );
 }
