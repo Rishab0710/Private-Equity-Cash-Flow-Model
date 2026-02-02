@@ -117,7 +117,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
     implications: {
       growth: 'Steady, in-line with long-term expectations.',
       risk: 'Market-level risk with standard volatility.',
-      liquidity: 'Predictable capital calls and distributions.',
+      liquidity: 'Predictable contributions and withdrawals.',
       cashflowTiming: 'Evenly-paced cash flows with no major surprises.',
       keyOpportunities: 'Execute on the long-term plan and allow compounding to work effectively.'
     },
@@ -126,7 +126,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       volatility: { value: 'Medium', description: 'Standard market fluctuations are expected, with no prolonged periods of extreme price swings.' },
       inflation: { value: 'Low', description: 'Inflation remains around central bank targets of 2-3%, preserving real returns.' },
       liquidity: { value: 'Abundant', description: 'Capital markets are open and functioning normally, allowing for easy transaction flow.' },
-      cashflowTiming: { value: 'Evenly-paced', description: 'Capital calls and distributions occur in a predictable, steady pattern over the fund\'s life.' },
+      cashflowTiming: { value: 'Evenly-paced', description: 'Contributions and withdrawals occur in a predictable, steady pattern over the fund\'s life.' },
     },
   },
   recession: {
@@ -137,7 +137,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
     implications: {
       growth: 'Initial NAV markdowns and delayed exits, but potential for strong returns during recovery.',
       risk: 'Significantly elevated volatility and potential for permanent capital loss in weaker assets.',
-      liquidity: 'Distributions slow dramatically while GPs may accelerate capital calls to fund portfolio companies.',
+      liquidity: 'Withdrawals slow dramatically while GPs may accelerate contributions to fund portfolio companies.',
       cashflowTiming: 'Return profile becomes highly back-loaded as exits are pushed out several years.',
       keyOpportunities: 'Deploy "dry powder" into a down market at attractive valuations, potentially leading to outsized returns.'
     },
@@ -146,7 +146,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       volatility: { value: 'High', description: 'Characterized by sharp, unpredictable market movements and heightened investor fear.' },
       inflation: { value: 'Low', description: 'Recessions are typically disinflationary as demand collapses.' },
       liquidity: { value: 'Stressed', description: 'Credit markets tighten, making it harder and more expensive to borrow. M&A and IPO markets may freeze.' },
-      cashflowTiming: { value: 'Back-loaded', description: 'Early distributions are delayed, with the majority of returns expected in the latter half of the fund\'s life.' },
+      cashflowTiming: { value: 'Back-loaded', description: 'Early withdrawals are delayed, with the majority of returns expected in the latter half of the fund\'s life.' },
     },
   },
   risingRates: {
@@ -166,7 +166,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       volatility: { value: 'Medium', description: 'Markets re-price assets to reflect new interest rate realities, causing initial volatility.' },
       inflation: { value: 'Elevated', description: 'Central banks raise rates specifically to combat persistent, above-target inflation.' },
       liquidity: { value: 'Tight', description: 'As the cost of money rises, liquidity becomes less available and more expensive across the system.' },
-      cashflowTiming: { value: 'Back-loaded', description: 'Buyers and sellers struggle to agree on price, delaying M&A and IPOs, thus pushing out distributions.' },
+      cashflowTiming: { value: 'Back-loaded', description: 'Buyers and sellers struggle to agree on price, delaying M&A and IPOs, thus pushing out withdrawals.' },
     },
   },
   stagflation: {
@@ -192,13 +192,13 @@ const scenarios: Record<ScenarioId, Scenario> = {
   liquidityCrunch: {
     id: 'liquidityCrunch',
     name: 'Liquidity Crunch',
-    description: 'A scenario where capital markets freeze, halting distributions and forcing reliance on credit.',
+    description: 'A scenario where capital markets freeze, halting withdrawals and forcing reliance on credit.',
     badge: { text: 'Cashflow Stress', variant: 'destructive', icon: Waves },
      implications: {
       growth: 'Secondary market evaporates and M&A activity stops, freezing NAV.',
-      risk: 'Highest risk of capital call defaults and potential for forced asset sales.',
-      liquidity: 'Extreme stress. Distributions halt completely, calls may be accelerated.',
-      cashflowTiming: 'Capital calls are accelerated and front-loaded to defend assets; distributions stop entirely.',
+      risk: 'Highest risk of contribution defaults and potential for forced asset sales.',
+      liquidity: 'Extreme stress. Withdrawals halt completely, contributions may be accelerated.',
+      cashflowTiming: 'Contributions are accelerated and front-loaded to defend assets; withdrawals stop entirely.',
       keyOpportunities: 'For LPs with available capital, secondary markets can offer deep discounts on high-quality assets.'
     },
     assumptions: {
@@ -206,7 +206,7 @@ const scenarios: Record<ScenarioId, Scenario> = {
       volatility: { value: 'High', description: 'Panic selling and a flight to safety cause extreme volatility and correlation across assets.' },
       inflation: { value: 'Low', description: 'The crisis is typically deflationary as credit evaporates and demand disappears.' },
       liquidity: { value: 'Stressed', description: 'System-wide panic. Interbank lending freezes and credit becomes unavailable at any price.' },
-      cashflowTiming: { value: 'Front-loaded', description: 'GPs accelerate capital calls to shore up portfolio company balance sheets, while distributions stop entirely.' },
+      cashflowTiming: { value: 'Front-loaded', description: 'GPs accelerate contributions to shore up portfolio company balance sheets, while withdrawals stop entirely.' },
     },
   },
 };
@@ -260,7 +260,7 @@ const AssumptionTag = ({ label, assumption }: { label: string, assumption: Assum
 
 const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: React.ElementType, title: string, description: string, color: string }) => (
     <div className="flex items-start gap-3 rounded-lg border p-3 bg-card h-full">
-        <Icon className={`h-5 w-5 shrink-0 ${color}`} />
+        <Icon className={`h-4 w-4 shrink-0 ${color} mt-0.5`} />
         <div>
             <h4 className="font-semibold text-black mb-1 text-xs">{title}</h4>
             <p className="text-xs text-black">{description}</p>
@@ -280,15 +280,16 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         const liqDataPoint = liquidityForecast.find(ld => ld.date === cf.date);
         return { 
             ...cf, 
-            capitalCall: -cf.capitalCall, 
+            contribution: -cf.capitalCall, 
+            withdrawal: cf.distribution, 
             nav: navDataPoint?.nav,
             liquidityBalance: liqDataPoint?.liquidityBalance,
         };
     });
 
     const chartConfig = {
-        capitalCall: { label: 'Capital Calls', color: 'hsl(var(--chart-2))' },
-        distribution: { label: 'Distributions', color: 'hsl(var(--chart-1))' },
+        contribution: { label: 'Contributions', color: 'hsl(var(--chart-2))' },
+        withdrawal: { label: 'Withdrawals', color: 'hsl(var(--chart-1))' },
         nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' },
         liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-3))'},
     };
@@ -311,7 +312,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                                     const config = chartConfig[name as keyof typeof chartConfig];
                                     if (!config || (value === 0 && name !== 'liquidityBalance') || value === null) return null;
 
-                                    const displayValue = name === 'capitalCall' ? Math.abs(value as number) : value as number;
+                                    const displayValue = name === 'contribution' ? Math.abs(value as number) : value as number;
 
                                     return (
                                        <div className="flex w-full items-center justify-between gap-4">
@@ -327,8 +328,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         />
                         <Legend />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
-                        <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
+                        <Bar yAxisId="left" dataKey="withdrawal" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="contribution" fill="var(--color-contribution)" stackId="stack" />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
@@ -349,7 +350,6 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
 
     const { kpis, navProjection, liquidityForecast, cashflowForecast } = portfolioData;
     
-    // Using a more robust TVPI calculation: (Ending NAV + Cumulative Distributions) / Cumulative Calls
     const cumulativeCalls = cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
     const cumulativeDists = cashflowForecast.reduce((s, c) => s + c.distribution, 0);
     const endingValue = navProjection[navProjection.length-1]?.nav || 0;
@@ -423,7 +423,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
             <div>
                 <p className="text-sm text-black">{title}</p>
                 <p className={`text-xl font-bold ${valueClass}`}>{value}</p>
-                {description && <p className="text-xs text-muted-foreground">{description}</p>}
+                {description && <p className="text-xs text-black">{description}</p>}
             </div>
         </div>
     );
@@ -467,11 +467,11 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
         },
         recession: { 
             title: "Short-term Pain, Long-term Gain?", 
-            summary: "A recession causes early NAV markdowns and halts distributions. However, accelerated capital calls into a down market can lead to a powerful recovery.",
+            summary: "A recession causes early NAV markdowns and halts withdrawals. However, accelerated contributions into a down market can lead to a powerful recovery.",
             points: [
-                { icon: TrendingDown, text: "Initial NAV markdowns and a pause in distributions create early liquidity pressure.", color: 'text-red-500' },
+                { icon: TrendingDown, text: "Initial NAV markdowns and a pause in withdrawals create early liquidity pressure.", color: 'text-red-500' },
                 { icon: Clock, text: "Recovery is gradual (U-shaped), testing portfolio resilience over 2-3 years.", color: 'text-yellow-600' },
-                { icon: ChevronsUp, text: "Capital calls into a down market can fuel a powerful recovery and strong back-ended returns.", color: 'text-green-500' },
+                { icon: ChevronsUp, text: "Contributions into a down market can fuel a powerful recovery and strong back-ended returns.", color: 'text-green-500' },
             ]
         },
         risingRates: { 
@@ -479,7 +479,7 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
             summary: "Higher interest rates act as a headwind, compressing valuation multiples and slowing the pace of exits.",
             points: [
                 { icon: CircleDollarSign, text: "Valuation multiples compress as discount rates rise, slowing NAV growth.", color: 'text-yellow-600' },
-                { icon: Hourglass, text: "Exit markets cool down, delaying distributions and creating a more back-loaded return profile.", color: 'text-yellow-600' },
+                { icon: Hourglass, text: "Exit markets cool down, delaying withdrawals and creating a more back-loaded return profile.", color: 'text-yellow-600' },
                 { icon: BrainCircuit, text: "Manager skill in deal sourcing and value creation becomes paramount to navigate the environment.", color: 'text-blue-500' },
             ]
         },
@@ -494,10 +494,10 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
         },
         liquidityCrunch: { 
             title: "Cash is King", 
-            summary: "This scenario models a market freeze where exit markets evaporate and capital calls are accelerated to defend assets.",
+            summary: "This scenario models a market freeze where exit markets evaporate and contributions are accelerated to defend assets.",
             points: [
-                { icon: Waves, text: "Distributions halt entirely as exit markets (M&A, IPOs) effectively freeze.", color: 'text-red-500' },
-                { icon: TrendingDown, text: "Capital calls are accelerated to defend portfolio companies, creating maximum LP liquidity stress.", color: 'text-red-500' },
+                { icon: Waves, text: "Withdrawals halt entirely as exit markets (M&A, IPOs) effectively freeze.", color: 'text-red-500' },
+                { icon: TrendingDown, text: "Contributions are accelerated to defend portfolio companies, creating maximum LP liquidity stress.", color: 'text-red-500' },
                 { icon: Shield, text: "Survival and access to credit become the primary focus over short-term growth.", color: 'text-yellow-600' },
             ]
         },
@@ -553,14 +553,14 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
             points: [
                 { icon: TrendingUp, text: "Regularly review portfolio performance against this baseline forecast to track progress.", color: 'text-blue-500' },
                 { icon: Landmark, text: "Continue with planned contributions to maximize the power of compounding.", color: 'text-green-500' },
-                { icon: ClipboardList, text: "Identify future cash needs and align them with the projected distribution schedule.", color: 'text-blue-500' },
+                { icon: ClipboardList, text: "Identify future cash needs and align them with the projected withdrawal schedule.", color: 'text-blue-500' },
             ]
         },
         recession: { 
             title: "Identify Opportunity, Manage Liquidity", 
             summary: "Downturns test liquidity but also present opportunities. The focus should be on surviving the stress while being prepared to invest at attractive valuations.",
             points: [
-                { icon: ShieldCheck, text: "Assess liquidity reserves to ensure you can comfortably meet accelerated capital calls from GPs.", color: 'text-red-500' },
+                { icon: ShieldCheck, text: "Assess liquidity reserves to ensure you can comfortably meet accelerated contributions from GPs.", color: 'text-red-500' },
                 { icon: Search, text: "Evaluate opportunities to commit to top-tier funds at potentially lower entry valuations.", color: 'text-yellow-600' },
                 { icon: Briefcase, text: "Stress test the portfolio for a longer-than-expected (i.e., 'U' or 'L' shaped) recovery period.", color: 'text-red-500' },
             ]
@@ -588,7 +588,7 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
             summary: "In a market freeze, 'cash is king.' The immediate priority is ensuring you can weather the storm without becoming a forced seller of assets.",
             points: [
                 { icon: FileWarning, text: "Immediately confirm available credit lines and other sources of emergency liquidity.", color: 'text-red-500' },
-                { icon: ListTodo, text: "Rank all unfunded commitments by priority and explore possibilities for deferring non-essential calls.", color: 'text-red-500' },
+                { icon: ListTodo, text: "Rank all unfunded commitments by priority and explore possibilities for deferring non-essential contributions.", color: 'text-red-500' },
                 { icon: Ban, text: "Halt any new, non-essential commitments until market stability and visibility returns.", color: 'text-yellow-600' },
             ]
         },
@@ -869,15 +869,6 @@ export default function ScenarioSimulationPage() {
                     <ImplicationCard icon={Clock} title="Cashflow Timing" description={selectedScenario.implications.cashflowTiming} color="text-chart-3" />
                     <ImplicationCard icon={Sparkles} title="Key Opportunities" description={selectedScenario.implications.keyOpportunities} color="text-chart-2" />
                 </div>
-                {/* <TooltipProvider>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                        <AssumptionTag label="Growth Outlook" assumption={selectedScenario.assumptions.growthOutlook} />
-                        <AssumptionTag label="Volatility" assumption={selectedScenario.assumptions.volatility} />
-                        <AssumptionTag label="Inflation" assumption={selectedScenario.assumptions.inflation} />
-                        <AssumptionTag label="Liquidity" assumption={selectedScenario.assumptions.liquidity} />
-                        <AssumptionTag label="Cashflow Timing" assumption={selectedScenario.assumptions.cashflowTiming} />
-                    </div>
-                </TooltipProvider> */}
             </CardContent>
         </Card>
       )}
