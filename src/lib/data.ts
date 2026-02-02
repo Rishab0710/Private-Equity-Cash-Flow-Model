@@ -154,7 +154,7 @@ export const getPortfolioData = (
           if (age > params.distStart && nav > 0) {
             const distAge = age - params.distStart;
             const randomFactor = 1 + (Math.random() - 0.5) * 0.3;
-            let potentialDist = (nav / (fund.fundLife * 4 - age)) * randomFactor * distFactor;
+            let potentialDist = (nav * 0.05) * randomFactor * distFactor; // Distribute ~5% of NAV per quarter
 
             if (distAge > (params.distPeak - params.distStart)) {
                 potentialDist *= Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart));
@@ -163,7 +163,7 @@ export const getPortfolioData = (
           }
 
           // NAV calculation
-          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 + (Math.random() - 0.5) * 0.01) * navFactor : -0.01;
+          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 + (Math.random() - 0.5) * 0.01) * navFactor : 0.005; // Slow positive growth in later years
           nav = nav * (1 + growthRate) + capitalCall - distribution;
           nav = Math.max(0, nav);
 
