@@ -198,17 +198,24 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         return <Skeleton className="h-80 w-full" />;
     }
 
-    const { navProjection, cashflowForecast } = portfolioData;
+    const { navProjection, cashflowForecast, liquidityForecast } = portfolioData;
 
     const combinedData = cashflowForecast.map(cf => {
         const navDataPoint = navProjection.find(nd => nd.date === cf.date);
-        return { ...cf, capitalCall: -cf.capitalCall, nav: navDataPoint?.nav };
+        const liqDataPoint = liquidityForecast.find(ld => ld.date === cf.date);
+        return { 
+            ...cf, 
+            capitalCall: -cf.capitalCall, 
+            nav: navDataPoint?.nav,
+            fundingGap: liqDataPoint && liqDataPoint.fundingGap > 0 ? -liqDataPoint.fundingGap : null,
+        };
     });
 
     const chartConfig = {
         capitalCall: { label: 'Capital Calls', color: 'hsl(var(--chart-2))' },
         distribution: { label: 'Distributions', color: 'hsl(var(--chart-1))' },
         nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' },
+        fundingGap: { label: 'Funding Gap', color: 'hsl(var(--chart-5))' },
     };
 
     return (
@@ -221,11 +228,33 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
                         <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
                         <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio Value", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
-                        <Tooltip content={<ChartTooltipContent formatter={(value, name) => formatCurrency(name === 'capitalCall' ? -value : value)} labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} indicator="dot" />} />
+                        <Tooltip 
+                            content={<ChartTooltipContent 
+                                labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
+                                indicator="dot" 
+                                formatter={(value, name) => {
+                                    const config = chartConfig[name as keyof typeof chartConfig];
+                                    if (!config || value === 0 || value === null) return null;
+
+                                    const displayValue = Math.abs(value as number);
+
+                                    return (
+                                       <div className="flex w-full items-center justify-between gap-4">
+                                          <div className="flex flex-shrink-0 items-center gap-2">
+                                             <div className="h-2.5 w-2.5 rounded-full" style={{backgroundColor: config.color}}/>
+                                             <span>{config.label}</span>
+                                          </div>
+                                          <span className="font-bold text-foreground ml-4">{formatCurrency(displayValue)}</span>
+                                       </div>
+                                    )
+                                }}
+                            />} 
+                        />
                         <Legend />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
                         <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
                         <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
+                        <Area yAxisId="left" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="transparent" fillOpacity={0.4} />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                     </ComposedChart>
                 </ChartContainer>
