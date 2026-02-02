@@ -274,16 +274,16 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         const liqDataPoint = liquidityForecast.find(ld => ld.date === cf.date);
         return { 
             date: cf.date,
-            contribution: -cf.capitalCall, 
-            withdrawal: cf.distribution, 
+            contribution: cf.capitalCall, 
+            withdrawal: -cf.distribution, 
             nav: navDataPoint?.nav,
             liquidityBalance: liqDataPoint?.liquidityBalance,
         };
     });
 
     const chartConfig = {
-        contribution: { label: 'Contributions', color: 'hsl(var(--chart-2))' },
-        withdrawal: { label: 'Withdrawals', color: 'hsl(var(--chart-1))' },
+        contribution: { label: 'Contributions', color: 'hsl(var(--chart-1))' },
+        withdrawal: { label: 'Withdrawals', color: 'hsl(var(--chart-2))' },
         nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' },
         liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-3))'},
     };
@@ -306,7 +306,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                                     const config = chartConfig[name as keyof typeof chartConfig];
                                     if (!config || (value === 0 && name !== 'liquidityBalance') || value === null || value === undefined) return null;
 
-                                    const displayValue = name === 'contribution' ? Math.abs(value as number) : value as number;
+                                    const displayValue = (name === 'contribution' || name === 'withdrawal') ? Math.abs(value as number) : value as number;
                                     let label = config.label;
                                     
                                     return (
@@ -323,8 +323,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         />
                         <Legend formatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label || value} />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
-                        <Bar yAxisId="left" dataKey="withdrawal" name="withdrawal" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="contribution" name="contribution" fill="var(--color-contribution)" stackId="stack" />
+                        <Bar yAxisId="left" dataKey="contribution" name="contribution" fill="var(--color-contribution)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="withdrawal" name="withdrawal" fill="var(--color-withdrawal)" stackId="stack" />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
