@@ -19,12 +19,15 @@ const chartConfig = {
   conservative: { label: 'Conservative', color: 'hsl(var(--chart-3))' },
   moderate: { label: 'Moderate', color: 'hsl(var(--chart-1))' },
   aggressive: { label: 'Aggressive', color: 'hsl(var(--chart-2))' },
+  cumulativeNetCashFlow: { label: 'Net Cash Flow', color: 'hsl(var(--chart-4))' },
 };
 
 const CustomLegend = (props: any) => {
   const { payload, likelihoods } = props;
-  // Re-order to match expected order if needed
-  const orderedPayload = ['Conservative', 'Moderate', 'Aggressive'].map(name => payload.find((p: any) => p.value === name)).filter(Boolean);
+  const orderedPayloadNames = ['Conservative', 'Moderate', 'Aggressive', 'Net Cash Flow'];
+  const orderedPayload = orderedPayloadNames
+    .map(name => payload.find((p: any) => p.value === name))
+    .filter(Boolean);
 
   return (
     <div className="flex flex-row justify-center items-center gap-8 mt-2">
@@ -89,6 +92,7 @@ export function GrowthChart({ data, likelihoods }: Props) {
                 <Line type="monotone" dataKey="conservative" name="Conservative" stroke="var(--color-conservative)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="moderate" name="Moderate" stroke="var(--color-moderate)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="aggressive" name="Aggressive" stroke="var(--color-aggressive)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="cumulativeNetCashFlow" name="Net Cash Flow" stroke="var(--color-cumulativeNetCashFlow)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
             </LineChart>
           </ChartContainer>
       </div>

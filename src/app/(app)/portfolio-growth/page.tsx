@@ -39,6 +39,7 @@ const generateChartData = (params: {
 
     let currentContribution = annualContribution;
     let currentWithdrawal = annualWithdrawal;
+    let cumulativeNetCashFlow = 0;
 
     const moderateRate = meanRateOfReturn / 100;
     const moderateStdev = standardDeviation / 100;
@@ -54,10 +55,12 @@ const generateChartData = (params: {
         conservative: Math.round(cons),
         moderate: Math.round(mod),
         aggressive: Math.round(agg),
+        cumulativeNetCashFlow: 0,
     });
 
     for (let i = 1; i <= investmentPeriod; i++) {
         const netAnnualFlow = (currentContribution - currentWithdrawal) / 1000000;
+        cumulativeNetCashFlow += netAnnualFlow;
         
         cons += netAnnualFlow;
         mod += netAnnualFlow;
@@ -78,6 +81,7 @@ const generateChartData = (params: {
             conservative: Math.round(cons),
             moderate: Math.round(mod),
             aggressive: Math.round(agg),
+            cumulativeNetCashFlow: Math.round(cumulativeNetCashFlow),
         });
 
         currentContribution *= increaseFactor;
@@ -315,6 +319,7 @@ export default function PortfolioGrowthPage() {
     
 
     
+
 
 
 
