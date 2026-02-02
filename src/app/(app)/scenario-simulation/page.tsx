@@ -209,7 +209,6 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
             ...cf, 
             capitalCall: -cf.capitalCall, 
             nav: navDataPoint?.nav,
-            fundingGap: liqDataPoint?.fundingGap,
             liquidityBalance: liqDataPoint?.liquidityBalance,
         };
     });
@@ -219,7 +218,6 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         distribution: { label: 'Distributions', color: 'hsl(var(--chart-1))' },
         nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' },
         liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-3))'},
-        fundingGap: { label: 'Funding Gap', color: 'hsl(var(--chart-5))' },
     };
 
     return (
@@ -258,7 +256,6 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
                         <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
                         <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
-                        <Area yAxisId="right" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="var(--color-fundingGap)" fillOpacity={0.4} strokeWidth={2} />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
@@ -315,7 +312,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
                  <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} />
                  <OutcomeCard title="Total Growth" value={`${totalGrowth.toFixed(2)}x`} description="Multiple on committed capital" icon={TrendingUp} />
                  <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly need of ~${formatCurrency(simulatedPeakPressure)}`} icon={Shield} valueClass={liquidityColor} />
-                 <OutcomeCard title="Breakeven Point" value={`Year ${kpis.breakevenTiming.from ? new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1 : 'N/A'}`} description="When cumulative cashflow turns positive" icon={Hourglass} />
+                 <OutcomeCard title="Breakeven Point" value={kpis.breakevenTiming.from && kpis.breakevenTiming.from !== 'N/A' ? `Year ${new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1}` : 'N/A'} description="When cumulative cashflow turns positive" icon={Hourglass} />
             </CardContent>
         </Card>
     );
@@ -562,7 +559,12 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                 liquidityPressure = 'Low';
             }
             
-            const breakevenYear = portfolio.kpis.breakevenTiming.from ? new Date(portfolio.kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1 : 'N/A';
+            const breakevenYear = portfolio.kpis.breakevenTiming.from && portfolio.kpis.breakevenTiming.from !== 'N/A'
+                ? new Date(portfolio.kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1
+                : 'N/A';
+
+            const peakFundingNeed = Math.abs(portfolio.kpis.peakProjectedOutflow.value);
+            const liquidityRunway = portfolio.kpis.liquidityRunwayInMonths || 0;
 
             return {
                 id,
@@ -571,6 +573,8 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                 totalGrowth,
                 liquidityPressure,
                 breakevenYear,
+                peakFundingNeed,
+                liquidityRunway,
             };
         });
         setComparisonData(data);
@@ -579,18 +583,32 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
     const metrics = [
         { key: 'endingValue', label: 'Ending Portfolio Value', format: formatCurrency },
         { key: 'totalGrowth', label: 'Total Growth Multiple', format: (v: number) => `${v.toFixed(2)}x` },
+        { key: 'peakFundingNeed', label: 'Peak Funding Need', format: formatCurrency },
+        { key: 'liquidityRunway', label: 'Liquidity Runway', format: (v: number) => v >= 24 ? `${(v/12).toFixed(1)} years` : `${v} months` },
         { key: 'liquidityPressure', label: 'Peak Liquidity Pressure' },
         { key: 'breakevenYear', label: 'Breakeven Point', format: (v: number | string) => (typeof v === 'number' ? `Year ${v}` : v) },
     ];
     
     const getBestWorst = (key: string) => {
-        if (!comparisonData || comparisonData.length === 0 || typeof comparisonData[0]?.[key] !== 'number') return {};
+        if (!comparisonData || comparisonData.length === 0) return {};
         
-        const values = comparisonData.map(d => d[key]);
-        const isHigherBetter = key !== 'breakevenYear';
+        const values = comparisonData.map(d => d[key as keyof typeof d]).filter(v => typeof v === 'number' && !isNaN(v as number)) as number[];
+        if (values.length < 1) return {};
 
-        const best = isHigherBetter ? Math.max(...values) : Math.min(...values.filter(v => typeof v === 'number') as number[]);
-        const worst = isHigherBetter ? Math.min(...values) : Math.max(...values.filter(v => typeof v === 'number') as number[]);
+        const higherIsBetterMetrics = ['endingValue', 'totalGrowth', 'liquidityRunway'];
+        const lowerIsBetterMetrics = ['breakevenYear', 'peakFundingNeed'];
+
+        let isHigherBetter;
+        if (higherIsBetterMetrics.includes(key)) {
+            isHigherBetter = true;
+        } else if (lowerIsBetterMetrics.includes(key)) {
+            isHigherBetter = false;
+        } else {
+            return {};
+        }
+
+        const best = isHigherBetter ? Math.max(...values) : Math.min(...values);
+        const worst = isHigherBetter ? Math.min(...values) : Math.max(...values);
         
         return { best, worst };
     };
