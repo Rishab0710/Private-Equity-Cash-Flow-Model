@@ -185,10 +185,10 @@ const AssumptionTag = ({ label, assumption }: { label: string, assumption: Assum
     return (
         <UITooltip>
             <div className="flex flex-col items-center justify-center p-2 text-center bg-card rounded-lg border">
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <div className="text-xs text-foreground flex items-center gap-1">
                     {label}
                     <TooltipTrigger asChild>
-                        <Info className="h-3 w-3 cursor-pointer text-muted-foreground/80 hover:text-foreground" />
+                        <Info className="h-3 w-3 cursor-pointer text-foreground hover:text-foreground" />
                     </TooltipTrigger>
                 </div>
                 <div className={`mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${colorClass}`}>
@@ -207,7 +207,7 @@ const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: Reac
         <Icon className={`h-7 w-7 shrink-0 ${color}`} />
         <div>
             <h4 className="font-semibold text-foreground mb-1">{title}</h4>
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-sm text-foreground">{description}</p>
         </div>
     </div>
 );
@@ -245,8 +245,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                     <ComposedChart data={combinedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
-                        <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
+                        <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
                         <Tooltip 
                             content={<ChartTooltipContent 
                                 labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
@@ -314,9 +314,9 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
             <Icon className="h-6 w-6 text-primary mt-1" />
             <div>
-                <p className="text-sm text-muted-foreground">{title}</p>
+                <p className="text-sm text-foreground">{title}</p>
                 <p className={`text-xl font-bold ${valueClass}`}>{value}</p>
-                {description && <p className="text-xs text-muted-foreground">{description}</p>}
+                {description && <p className="text-xs text-foreground">{description}</p>}
             </div>
         </div>
     );
@@ -402,14 +402,14 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
         <Card>
              <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <BarChart className="h-5 w-5 text-muted-foreground" />
+                    <BarChart className="h-5 w-5 text-foreground" />
                     Narrative Insights
                 </CardTitle>
              </CardHeader>
              <CardContent className="space-y-4">
                  <div className="bg-muted/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-sm mb-1">{insight.title}</h4>
-                    <p className="text-sm text-muted-foreground">{insight.summary}</p>
+                    <p className="text-sm text-foreground">{insight.summary}</p>
                  </div>
                  <div className="space-y-3">
                     {insight.points.map((point, index) => (
@@ -493,14 +493,14 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
         <Card>
              <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <Rocket className="h-5 w-5 text-muted-foreground" />
+                    <Rocket className="h-5 w-5 text-foreground" />
                     Recommendation - Next Steps
                 </CardTitle>
              </CardHeader>
              <CardContent className="space-y-4">
                  <div className="bg-muted/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-sm mb-1">{recommendation.title}</h4>
-                    <p className="text-sm text-muted-foreground">{recommendation.summary}</p>
+                    <p className="text-sm text-foreground">{recommendation.summary}</p>
                  </div>
                  <div className="space-y-3">
                     {recommendation.points.map((point, index) => (
@@ -619,7 +619,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
             <div className="grid grid-cols-5 gap-6 mt-4">
                 <div className="col-span-1 space-y-2 border-r pr-4">
                     <h4 className="font-semibold text-sm">Select Scenarios</h4>
-                    <p className="text-xs text-muted-foreground">Choose 2 to 4 scenarios to compare.</p>
+                    <p className="text-xs text-foreground">Choose 2 to 4 scenarios to compare.</p>
                     <div className="space-y-2 pt-2">
                         {Object.values(scenarios).map(scenario => (
                             <div key={scenario.id} className="flex items-center gap-2">
@@ -640,8 +640,8 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Metric</TableHead>
-                                {comparisonData.map(data => <TableHead key={data.id} className="text-center">{data.name}</TableHead>)}
+                                <TableHead className="text-foreground">Metric</TableHead>
+                                {comparisonData.map(data => <TableHead key={data.id} className="text-center text-foreground">{data.name}</TableHead>)}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -649,7 +649,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                                 const { best, worst } = getBestWorst(metric.key);
                                 return (
                                 <TableRow key={metric.key}>
-                                    <TableCell className="font-medium text-muted-foreground">{metric.label}</TableCell>
+                                    <TableCell className="font-medium text-foreground">{metric.label}</TableCell>
                                     {comparisonData.map(data => {
                                         const value = data[metric.key];
                                         const isBest = value === best;
@@ -724,9 +724,9 @@ export default function ScenarioSimulationPage() {
             </div>
              
             {selectedScenario && (
-                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-grow min-w-0">
+                <div className="flex items-center gap-3 text-xs text-foreground flex-grow min-w-0">
                     <Badge variant={selectedScenario.badge.variant}>{selectedScenario.badge.text}</Badge>
-                    <p className="truncate flex-shrink min-w-0">{selectedScenario.description}</p>
+                    <p className="truncate flex-shrink min-w-0 text-foreground">{selectedScenario.description}</p>
                 </div>
             )}
 
@@ -775,3 +775,4 @@ export default function ScenarioSimulationPage() {
     </div>
   );
 }
+
