@@ -35,12 +35,12 @@ const generateAssumptionData = (params: any) => {
     const fundLife = 15;
     const commitment = 100;
     
-    const pacingFactor = PACING_MAP[deploymentPacing as keyof typeof PACING_MAP];
-    const depthFactor = DEPTH_MAP[jCurveDepth as keyof typeof DEPTH_MAP];
-    const breakevenAdj = BREAKEVEN_MAP[timeToBreakeven as keyof typeof BREAKEVEN_MAP];
-    const distStartAdj = DIST_START_MAP[distributionStart as keyof typeof DIST_START_MAP];
-    const distSpeedFactor = DIST_SPEED_MAP[distributionSpeed as keyof typeof DIST_SPEED_MAP];
-    const tailFactor = TAIL_LENGTH_MAP[tailLength as keyof typeof TAIL_LENGTH_MAP];
+    const pacingFactor = PACING_MAP[deploymentPacing as keyof typeof PACING_MAP] || 1;
+    const depthFactor = DEPTH_MAP[jCurveDepth as keyof typeof DEPTH_MAP] || 1;
+    const breakevenAdj = BREAKEVEN_MAP[timeToBreakeven as keyof typeof BREAKEVEN_MAP] || 0;
+    const distStartAdj = DIST_START_MAP[distributionStart as keyof typeof DIST_START_MAP] || 0;
+    const distSpeedFactor = DIST_SPEED_MAP[distributionSpeed as keyof typeof DIST_SPEED_MAP] || 1;
+    const tailFactor = TAIL_LENGTH_MAP[tailLength as keyof typeof TAIL_LENGTH_MAP] || 1;
     
     const finalDistStartYear = investmentPeriod + 1 + distStartAdj;
     
