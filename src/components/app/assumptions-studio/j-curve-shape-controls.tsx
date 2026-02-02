@@ -12,7 +12,39 @@ const ControlRow = ({ label, children }: { label: string; children: React.ReactN
     </div>
 );
 
-export function JCurveShapeControls() {
+type JCurveShapeControlsProps = {
+  investmentPeriod: number;
+  setInvestmentPeriod: (value: number) => void;
+  deploymentPacing: string;
+  setDeploymentPacing: (value: string) => void;
+  jCurveDepth: string;
+  setJCurveDepth: (value: string) => void;
+  timeToBreakeven: string;
+  setTimeToBreakeven: (value: string) => void;
+  distributionStart: string;
+  setDistributionStart: (value: string) => void;
+  distributionSpeed: string;
+  setDistributionSpeed: (value:string) => void;
+  tailLength: string;
+  setTailLength: (value: string) => void;
+};
+
+export function JCurveShapeControls({
+  investmentPeriod,
+  setInvestmentPeriod,
+  deploymentPacing,
+  setDeploymentPacing,
+  jCurveDepth,
+  setJCurveDepth,
+  timeToBreakeven,
+  setTimeToBreakeven,
+  distributionStart,
+  setDistributionStart,
+  distributionSpeed,
+  setDistributionSpeed,
+  tailLength,
+  setTailLength,
+}: JCurveShapeControlsProps) {
     return (
         <Card>
             <CardHeader>
@@ -24,12 +56,12 @@ export function JCurveShapeControls() {
             <CardContent className="space-y-6 pt-6">
                 <ControlRow label="Investment Period">
                     <div className="flex items-center gap-2">
-                        <Slider defaultValue={[5]} min={2} max={10} step={1} />
-                        <span className="text-sm font-medium w-12 text-center">5 yrs</span>
+                        <Slider value={[investmentPeriod]} onValueChange={([v]) => setInvestmentPeriod(v)} min={2} max={10} step={1} />
+                        <span className="text-sm font-medium w-12 text-center">{investmentPeriod} yrs</span>
                     </div>
                 </ControlRow>
                 <ControlRow label="Deployment Pacing">
-                    <Select defaultValue="balanced">
+                    <Select value={deploymentPacing} onValueChange={setDeploymentPacing}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="front-loaded">Front-loaded</SelectItem>
@@ -39,7 +71,7 @@ export function JCurveShapeControls() {
                     </Select>
                 </ControlRow>
                 <ControlRow label="J-Curve Depth">
-                    <Select defaultValue="moderate">
+                    <Select value={jCurveDepth} onValueChange={setJCurveDepth}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="shallow">Shallow</SelectItem>
@@ -49,7 +81,7 @@ export function JCurveShapeControls() {
                     </Select>
                 </ControlRow>
                  <ControlRow label="Time to Breakeven">
-                    <Select defaultValue="mid">
+                    <Select value={timeToBreakeven} onValueChange={setTimeToBreakeven}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="early">Early</SelectItem>
@@ -59,7 +91,7 @@ export function JCurveShapeControls() {
                     </Select>
                 </ControlRow>
                 <ControlRow label="Distribution Start">
-                    <Select defaultValue="typical">
+                     <Select value={distributionStart} onValueChange={setDistributionStart}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="early">Early</SelectItem>
@@ -69,7 +101,7 @@ export function JCurveShapeControls() {
                     </Select>
                 </ControlRow>
                 <ControlRow label="Distribution Speed">
-                    <Select defaultValue="normal">
+                    <Select value={distributionSpeed} onValueChange={setDistributionSpeed}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="slow">Slow</SelectItem>
@@ -79,7 +111,7 @@ export function JCurveShapeControls() {
                     </Select>
                 </ControlRow>
                 <ControlRow label="Tail Length">
-                    <Select defaultValue="medium">
+                    <Select value={tailLength} onValueChange={setTailLength}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="short">Short</SelectItem>
