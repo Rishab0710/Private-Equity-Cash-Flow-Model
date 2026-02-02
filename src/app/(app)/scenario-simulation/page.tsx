@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -701,14 +702,14 @@ export default function ScenarioSimulationPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <CardContent className="pt-6 flex items-center justify-between gap-x-4">
             <div className="flex items-center gap-4">
-                <h1 className="text-lg font-semibold tracking-tight text-highlight flex items-center gap-2">
+                <h1 className="text-base font-semibold tracking-tight text-highlight flex items-center gap-2">
                     <BrainCircuit className="h-6 w-6" />
                     Scenario Simulation
                 </h1>
                 <Select value={selectedScenarioId} onValueChange={(value) => setSelectedScenarioId(value as ScenarioId)}>
-                    <SelectTrigger className="w-[250px] bg-secondary/50 border-border h-9 text-xs">
+                    <SelectTrigger className="w-[220px] bg-secondary/50 border-border h-9 text-xs">
                         <SelectValue placeholder="Select a Scenario" />
                     </SelectTrigger>
                     <SelectContent>
@@ -725,9 +726,9 @@ export default function ScenarioSimulationPage() {
             </div>
              
             {selectedScenario && (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground flex-grow min-w-[300px]">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-grow min-w-[300px]">
                     <Badge variant={selectedScenario.badge.variant}>{selectedScenario.badge.text}</Badge>
-                    <p>{selectedScenario.description}</p>
+                    <p className="truncate">{selectedScenario.description}</p>
                 </div>
             )}
 
@@ -785,3 +786,5 @@ export default function ScenarioSimulationPage() {
     </div>
   );
 }
+
+  
