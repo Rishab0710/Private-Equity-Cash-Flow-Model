@@ -321,10 +321,10 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                                 }}
                             />} 
                         />
-                        <Legend />
+                        <Legend formatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label || value} />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
-                        <Bar yAxisId="left" dataKey="withdrawal" name="Withdrawals" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="contribution" name="Contributions" fill="var(--color-contribution)" stackId="stack" />
+                        <Bar yAxisId="left" dataKey="withdrawal" name="withdrawal" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="contribution" name="contribution" fill="var(--color-contribution)" stackId="stack" />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
@@ -393,19 +393,10 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         liquidityColor = 'text-green-500';
     }
     
-    const runwayInMonths = kpis.liquidityRunwayInMonths || 0;
-    const runwayDisplay = runwayInMonths >= 24 
-        ? `${(runwayInMonths / 12).toFixed(1)} years` 
-        : `${runwayInMonths} months`;
-    
-    let runwayColor;
-    if (runwayInMonths >= 24) { // > 2 years is good
-        runwayColor = 'text-green-500';
-    } else if (runwayInMonths >= 12) { // 1-2 years is neutral
-        runwayColor = 'text-orange-500';
-    } else { // < 1 year is bad
-        runwayColor = 'text-red-500';
-    }
+    const breakevenData = kpis.breakevenTiming;
+    const breakevenPoint = breakevenData.from && breakevenData.from !== 'N/A' 
+      ? `Year ${new Date(breakevenData.from).getFullYear() - new Date().getFullYear() + 1}`
+      : 'N/A';
     
     const OutcomeCard = ({ title, value, description, icon: Icon, valueClass }: { title: string, value: string, description?: string, icon: React.ElementType, valueClass?: string }) => (
         <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
@@ -425,7 +416,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
                  <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} valueClass={endingValueColor} />
                  <OutcomeCard title="ITD IRR" value={`${(itdIrr * 100).toFixed(1)}%`} description="Internal Rate of Return" icon={TrendingUp} valueClass={irrColor} />
                  <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly need of ~${formatCurrency(simulatedPeakPressure)}`} icon={Shield} valueClass={liquidityColor} />
-                 <OutcomeCard title="Liquidity Runway" value={runwayDisplay} description="Until liquidity buffer is breached" icon={Sailboat} valueClass={runwayColor} />
+                 <OutcomeCard title="Breakeven Point" value={breakevenPoint} description="When cumulative cashflow turns positive" icon={Sailboat} />
             </CardContent>
         </Card>
     );
