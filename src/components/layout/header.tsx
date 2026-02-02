@@ -20,6 +20,7 @@ import {
   ChevronDown,
   LogOut,
   BrainCircuit,
+  ClipboardList,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -29,6 +30,7 @@ import { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
+  { href: '/assumptions-studio', label: 'Assumptions Studio', icon: ClipboardList },
   { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
 ];
 
