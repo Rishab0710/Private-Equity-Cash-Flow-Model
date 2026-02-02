@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch' | 'strongGrowth';
+type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch';
 
 type Scenario = {
   id: ScenarioId;
@@ -139,24 +139,6 @@ const scenarios: Record<ScenarioId, Scenario> = {
       cashflowTiming: 'Front-loaded',
     },
   },
-  strongGrowth: {
-    id: 'strongGrowth',
-    name: 'Strong Growth',
-    description: 'An optimistic scenario with strong economic tailwinds, robust exit markets, and accelerated returns.',
-    badge: { text: 'Upside Case', variant: 'default', icon: ChevronsUp },
-     implications: {
-      growth: 'Accelerated NAV appreciation and higher exit multiples.',
-      risk: 'Lower perceived risk, but potential for over-heating and valuation bubbles.',
-      liquidity: 'Abundant distributions as GPs take advantage of favorable exit conditions.',
-    },
-    assumptions: {
-      growthOutlook: 'Positive',
-      volatility: 'Low',
-      inflation: 'Low',
-      liquidity: 'Abundant',
-      cashflowTiming: 'Front-loaded',
-    },
-  },
 };
 
 const scenarioFactorsMapping = {
@@ -165,7 +147,6 @@ const scenarioFactorsMapping = {
     risingRates: { scenario: 'Slow Exit' as const, factors: { callFactor: 0.9, distFactor: 0.7 } },
     stagflation: { scenario: 'Stress' as const, factors: { callFactor: 1.0, distFactor: 0.8 } },
     liquidityCrunch: { scenario: 'Stress' as const, factors: { callFactor: 1.2, distFactor: 0.4 } },
-    strongGrowth: { scenario: 'Fast Exit' as const, factors: { callFactor: 1.1, distFactor: 1.3 } },
 };
 
 const formatCurrency = (value: number) => {
@@ -379,15 +360,6 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
                 { icon: Shield, text: "Survival and access to credit become the primary focus over short-term growth.", color: 'text-yellow-600' },
             ]
         },
-        strongGrowth: { 
-            title: "Riding the Wave", 
-            summary: "An optimistic scenario where a booming economy accelerates both NAV growth and exit opportunities, pulling returns forward.",
-            points: [
-                { icon: ChevronsUp, text: "Robust exit markets lead to early and abundant distributions, improving IRR.", color: 'text-green-500' },
-                { icon: Zap, text: "Accelerated NAV appreciation occurs from strong company performance and higher exit multiples.", color: 'text-green-500' },
-                { icon: ShieldAlert, text: "Primary risk shifts to frothy valuations and ensuring disciplined capital deployment in a heated market.", color: 'text-yellow-600' },
-            ]
-        },
     };
 
     const insight = insights[scenarioId];
@@ -477,15 +449,6 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
                 { icon: FileWarning, text: "Immediately confirm available credit lines and other sources of emergency liquidity.", color: 'text-red-500' },
                 { icon: ListTodo, text: "Rank all unfunded commitments by priority and explore possibilities for deferring non-essential calls.", color: 'text-red-500' },
                 { icon: Ban, text: "Halt any new, non-essential commitments until market stability and visibility returns.", color: 'text-yellow-600' },
-            ]
-        },
-        strongGrowth: { 
-            title: "Disciplined Deployment & Harvesting", 
-            summary: "Good times can lead to bad decisions. The key is to avoid 'fear of missing out' (FOMO) while taking advantage of favorable exit conditions.",
-            points: [
-                { icon: Sailboat, text: "Work with GPs to encourage taking advantage of the robust exit market to realize gains and return capital.", color: 'text-green-500' },
-                { icon: MousePointerSquare, text: "Maintain a disciplined capital deployment pace; avoid chasing overheated deals or sectors.", color: 'text-yellow-600' },
-                { icon: Scaling, text: "Systematically rebalance the portfolio to lock in profits and manage overall risk exposure.", color: 'text-blue-500' },
             ]
         },
     };
@@ -689,9 +652,11 @@ export default function ScenarioSimulationPage() {
         setIsLoading(true);
         // Use a timeout to simulate network latency for a better loading state experience
         const timer = setTimeout(() => {
-            const { scenario, factors } = scenarioFactorsMapping[selectedScenarioId];
-            const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
-            setPortfolioData(portfolio);
+            if (selectedScenarioId) {
+                const { scenario, factors } = scenarioFactorsMapping[selectedScenarioId];
+                const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
+                setPortfolioData(portfolio);
+            }
             setIsLoading(false);
         }, 300);
         return () => clearTimeout(timer);
@@ -702,14 +667,14 @@ export default function ScenarioSimulationPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent className="pt-6 flex items-center justify-between gap-x-4">
-            <div className="flex items-center gap-4">
-                <h1 className="text-base font-semibold tracking-tight text-highlight flex items-center gap-2">
+        <CardContent className="pt-6 flex flex-nowrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="flex items-center gap-4 flex-shrink-0">
+                <h1 className="text-sm font-semibold tracking-tight text-highlight flex items-center gap-2">
                     <BrainCircuit className="h-6 w-6" />
                     Scenario Simulation
                 </h1>
                 <Select value={selectedScenarioId} onValueChange={(value) => setSelectedScenarioId(value as ScenarioId)}>
-                    <SelectTrigger className="w-[220px] bg-secondary/50 border-border h-9 text-xs">
+                    <SelectTrigger className="w-[180px] bg-secondary/50 border-border h-9 text-xs">
                         <SelectValue placeholder="Select a Scenario" />
                     </SelectTrigger>
                     <SelectContent>
@@ -726,13 +691,13 @@ export default function ScenarioSimulationPage() {
             </div>
              
             {selectedScenario && (
-                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-grow min-w-[300px]">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-grow min-w-0">
                     <Badge variant={selectedScenario.badge.variant}>{selectedScenario.badge.text}</Badge>
-                    <p className="truncate">{selectedScenario.description}</p>
+                    <p className="truncate flex-shrink min-w-0">{selectedScenario.description}</p>
                 </div>
             )}
 
-             <div className="flex items-center gap-2">
+             <div className="flex items-center gap-2 flex-shrink-0">
                 <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline">Compare Scenarios</Button>
@@ -788,3 +753,5 @@ export default function ScenarioSimulationPage() {
 }
 
   
+
+    
