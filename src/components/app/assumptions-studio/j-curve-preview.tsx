@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, Bar, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const chartConfig = {
   net: { label: "Net J-Curve", color: "hsl(var(--chart-1))" },
@@ -25,7 +26,12 @@ const formatTooltipValue = (value: number) => {
 
 export function JCurvePreview({ data }: { data: any[] }) {
     if (!data || data.length === 0) {
-        return <Card><CardHeader><CardTitle className="text-base">J-Curve Preview</CardTitle></CardHeader><CardContent><div className="h-[342px] flex items-center justify-center text-muted-foreground">Generating data...</div></CardContent></Card>
+        return (
+            <Card>
+                <CardHeader><CardTitle className="text-base">J-Curve Preview</CardTitle></CardHeader>
+                <CardContent><Skeleton className="h-[386px] w-full" /></CardContent>
+            </Card>
+        )
     }
     return (
         <Card>

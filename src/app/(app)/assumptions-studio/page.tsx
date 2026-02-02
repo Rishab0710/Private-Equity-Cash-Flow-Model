@@ -10,7 +10,6 @@ import { NotesTagging } from "@/components/app/assumptions-studio/notes-tagging"
 import { SummaryOutputs } from "@/components/app/assumptions-studio/summary-outputs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from '@/components/ui/skeleton';
 
 // Mappings from qualitative inputs to quantitative model factors
 const PACING_MAP = { 'front-loaded': 1.3, 'balanced': 1, 'back-loaded': 0.7 };
@@ -229,19 +228,9 @@ export default function AssumptionsStudioPage() {
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          {jCurveData.length > 0 ? (
-            <>
-              <JCurvePreview data={jCurveData} />
-              <CashflowTimeline data={jCurveData} />
-              <SummaryOutputs data={summaryOutputs} />
-            </>
-          ) : (
-            <div className="space-y-6">
-                <Skeleton className="h-[400px] w-full" />
-                <Skeleton className="h-[200px] w-full" />
-                <Skeleton className="h-[100px] w-full" />
-            </div>
-          )}
+            <JCurvePreview data={jCurveData} />
+            <CashflowTimeline data={jCurveData} />
+            <SummaryOutputs data={summaryOutputs} />
         </div>
       </div>
       <AssumptionSets />

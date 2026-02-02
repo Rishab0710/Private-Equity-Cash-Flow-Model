@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const timelineConfig = {
   calls: { label: "Calls/Contributions", color: "hsl(var(--chart-5))" },
@@ -12,7 +13,18 @@ const timelineConfig = {
 
 export function CashflowTimeline({ data }: { data: any[] }) {
     if (!data || data.length === 0) {
-        return <Card><CardHeader><CardTitle className="text-base flex items-center justify-between"><span>Cash Flow Timeline</span></CardTitle></CardHeader><CardContent><div className="h-[150px] flex items-center justify-center text-muted-foreground">Generating data...</div></CardContent></Card>
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base flex items-center justify-between">
+                        <span>Cash Flow Timeline</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-[150px] w-full" />
+                </CardContent>
+            </Card>
+        )
     }
 
     return (
