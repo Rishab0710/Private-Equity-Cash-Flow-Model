@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -40,6 +41,33 @@ export function AssumptionsPanel({
     setInvestmentPeriod
  }: AssumptionsPanelProps) {
 
+    const formatValue = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
+
+    const [contributionDisplay, setContributionDisplay] = useState(formatValue(annualContribution));
+    const [withdrawalDisplay, setWithdrawalDisplay] = useState(formatValue(annualWithdrawal));
+
+    useEffect(() => {
+        setContributionDisplay(formatValue(annualContribution));
+    }, [annualContribution]);
+
+    useEffect(() => {
+        setWithdrawalDisplay(formatValue(annualWithdrawal));
+    }, [annualWithdrawal]);
+
+    const handleDisplayChange = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setter(e.target.value);
+    }
+    
+    const parseAndSet = (displayValue: string, setter: (val: number) => void, originalValue: number) => {
+         const numericValue = parseFloat(displayValue.replace(/[^0-9.-]+/g,""));
+         if (!isNaN(numericValue)) {
+            setter(numericValue);
+         } else {
+            setter(originalValue);
+         }
+    }
+
+
     const sortedAllocations = Object.entries(assumptions.assetAllocation)
         .map(([key, percentage]) => {
             const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
@@ -50,15 +78,6 @@ export function AssumptionsPanel({
             }
         })
         .sort((a, b) => b.value - a.value);
-
-    const handleCurrencyChange = (setter: (value: number) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const numericValue = parseFloat(e.target.value.replace(/[^0-9.-]+/g, ''));
-        if (!isNaN(numericValue)) {
-            setter(numericValue);
-        } else if (e.target.value === '' || e.target.value === '$') {
-            setter(0);
-        }
-    };
 
 
     return (
@@ -82,8 +101,9 @@ export function AssumptionsPanel({
                         <Input 
                             id="annual-contribution" 
                             type="text" 
-                            value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(annualContribution)} 
-                            onChange={handleCurrencyChange(setAnnualContribution)}
+                            value={contributionDisplay}
+                            onChange={handleDisplayChange(setContributionDisplay)}
+                            onBlur={() => parseAndSet(contributionDisplay, setAnnualContribution, annualContribution)}
                             className="h-7 w-36 pl-3 text-xs text-left"
                         />
                     </div>
@@ -94,8 +114,9 @@ export function AssumptionsPanel({
                          <Input 
                             id="annual-withdrawal" 
                             type="text" 
-                            value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(annualWithdrawal)} 
-                            onChange={handleCurrencyChange(setAnnualWithdrawal)}
+                            value={withdrawalDisplay}
+                            onChange={handleDisplayChange(setWithdrawalDisplay)}
+                            onBlur={() => parseAndSet(withdrawalDisplay, setAnnualWithdrawal, annualWithdrawal)}
                             className="h-7 w-36 pl-3 text-xs text-left"
                         />
                     </div>
