@@ -254,7 +254,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
                         <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
                         <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
-                        <Area yAxisId="left" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="transparent" fillOpacity={0.4} />
+                        <Area yAxisId="left" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="hsl(var(--chart-5))" fillOpacity={0.4} />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                     </ComposedChart>
                 </ChartContainer>

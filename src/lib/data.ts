@@ -286,7 +286,7 @@ export const getPortfolioData = (
       return fund.commitment - calledToDate;
     }).reduce((sum, unfunded) => sum + unfunded, 0);
 
-    const availableLiquidity = 50_000_000; // Dummy value
+    const availableLiquidity = 20_000_000; // Dummy value
     const liquidityBufferRatio = remainingUnfunded > 0 ? Math.max(0, availableLiquidity / remainingUnfunded) : 1;
     
     const next12MonthsDate = addMonths(FORECAST_START_DATE, 12);
