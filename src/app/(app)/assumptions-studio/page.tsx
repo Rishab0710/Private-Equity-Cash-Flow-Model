@@ -84,7 +84,7 @@ const generateAssumptionData = (params: any) => {
         jCurveData.push({
             year: `Yr ${year}`,
             calls: -call, // Negative for charting
-            distributions,
+            distributions: distribution,
             net: distribution - call,
             nav
         });
