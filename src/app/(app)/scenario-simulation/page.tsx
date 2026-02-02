@@ -207,7 +207,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
             ...cf, 
             capitalCall: -cf.capitalCall, 
             nav: navDataPoint?.nav,
-            fundingGap: liqDataPoint && liqDataPoint.fundingGap > 0 ? -liqDataPoint.fundingGap : null,
+            fundingGap: liqDataPoint?.fundingGap,
+            liquidityBalance: liqDataPoint?.liquidityBalance,
         };
     });
 
@@ -215,6 +216,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         capitalCall: { label: 'Capital Calls', color: 'hsl(var(--chart-2))' },
         distribution: { label: 'Distributions', color: 'hsl(var(--chart-1))' },
         nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' },
+        liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-3))'},
         fundingGap: { label: 'Funding Gap', color: 'hsl(var(--chart-5))' },
     };
 
@@ -227,16 +229,16 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
                         <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio Value", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }} />
                         <Tooltip 
                             content={<ChartTooltipContent 
                                 labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
                                 indicator="dot" 
                                 formatter={(value, name) => {
                                     const config = chartConfig[name as keyof typeof chartConfig];
-                                    if (!config || value === 0 || value === null) return null;
+                                    if (!config || (value === 0 && name !== 'liquidityBalance') || value === null) return null;
 
-                                    const displayValue = Math.abs(value as number);
+                                    const displayValue = name === 'capitalCall' ? Math.abs(value as number) : value as number;
 
                                     return (
                                        <div className="flex w-full items-center justify-between gap-4">
@@ -254,8 +256,9 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
                         <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
                         <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
-                        <Area yAxisId="left" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="hsl(var(--chart-5))" fillOpacity={0.4} />
+                        <Area yAxisId="right" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="var(--color-fundingGap)" fillOpacity={0.4} strokeWidth={0} />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
+                        <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
                 </ChartContainer>
             </CardContent>
