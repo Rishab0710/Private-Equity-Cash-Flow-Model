@@ -299,11 +299,11 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
             <CardHeader><CardTitle>Scenario Visualization</CardTitle></CardHeader>
             <CardContent className="h-[350px] -ml-2">
                 <ChartContainer config={chartConfig} className="h-full w-full">
-                    <ComposedChart data={combinedData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                    <ComposedChart data={combinedData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
                         <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -20, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
                         <Tooltip 
                             content={<ChartTooltipContent 
                                 labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
