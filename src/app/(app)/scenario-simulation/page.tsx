@@ -298,14 +298,14 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
 
     return (
         <Card className="lg:col-span-2">
-            <CardHeader><CardTitle>Scenario Visualization</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base font-semibold text-highlight">Scenario Visualization</CardTitle></CardHeader>
             <CardContent className="h-[350px] -ml-2">
                 <ChartContainer config={chartConfig} className="h-full w-full">
                     <ComposedChart data={combinedData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
                         <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -20, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
                         <Tooltip 
                             content={<ChartTooltipContent 
                                 labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
@@ -436,7 +436,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
     
     return (
         <Card className="lg:col-span-1">
-             <CardHeader><CardTitle>Scenario Outcomes</CardTitle></CardHeader>
+             <CardHeader><CardTitle className="text-base font-semibold text-highlight">Scenario Outcomes</CardTitle></CardHeader>
              <CardContent className="space-y-3">
                  <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} valueClass={endingValueColor} />
                  <OutcomeCard title="ITD IRR" value={`${(itdIrr * 100).toFixed(1)}%`} description="Internal Rate of Return" icon={TrendingUp} valueClass={irrColor} />
