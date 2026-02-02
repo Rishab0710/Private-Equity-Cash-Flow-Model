@@ -403,24 +403,18 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         liquidityColor = 'text-green-500';
     }
     
-    const breakevenData = kpis.breakevenTiming;
-    const breakevenYear = breakevenData.from && breakevenData.from !== 'N/A' && !breakevenData.from.includes('+')
-        ? new Date(breakevenData.from).getFullYear() - new Date().getFullYear() + 1
-        : Infinity;
-
-    let breakevenDisplay, breakevenColor;
-    if (breakevenYear === Infinity) {
-        breakevenDisplay = breakevenData.from === 'Year 12+' ? 'Year 12+' : 'N/A';
-        breakevenColor = 'text-red-500';
-    } else {
-        breakevenDisplay = `Year ${breakevenYear}`;
-        if (breakevenYear <= 5) {
-            breakevenColor = 'text-green-500';
-        } else if (breakevenYear <= 8) {
-            breakevenColor = 'text-orange-500';
-        } else {
-            breakevenColor = 'text-red-500';
-        }
+    const runwayInMonths = kpis.liquidityRunwayInMonths || 0;
+    const runwayDisplay = runwayInMonths >= 24 
+        ? `${(runwayInMonths / 12).toFixed(1)} years` 
+        : `${runwayInMonths} months`;
+    
+    let runwayColor;
+    if (runwayInMonths >= 24) { // > 2 years is good
+        runwayColor = 'text-green-500';
+    } else if (runwayInMonths >= 12) { // 1-2 years is neutral
+        runwayColor = 'text-orange-500';
+    } else { // < 1 year is bad
+        runwayColor = 'text-red-500';
     }
     
     const OutcomeCard = ({ title, value, description, icon: Icon, valueClass }: { title: string, value: string, description?: string, icon: React.ElementType, valueClass?: string }) => (
@@ -441,7 +435,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
                  <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} valueClass={endingValueColor} />
                  <OutcomeCard title="ITD IRR" value={`${(itdIrr * 100).toFixed(1)}%`} description="Internal Rate of Return" icon={TrendingUp} valueClass={irrColor} />
                  <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly need of ~${formatCurrency(simulatedPeakPressure)}`} icon={Shield} valueClass={liquidityColor} />
-                 <OutcomeCard title="Breakeven Point" value={breakevenDisplay} description="When cumulative cashflow turns positive" icon={Hourglass} valueClass={breakevenColor} />
+                 <OutcomeCard title="Liquidity Runway" value={runwayDisplay} description="Until liquidity buffer is breached" icon={Sailboat} valueClass={runwayColor} />
             </CardContent>
         </Card>
     );
