@@ -57,6 +57,57 @@ type Scenario = {
   };
 };
 
+// A simple IRR solver using a bisection method. It's more stable than Newton-Raphson.
+const calculateQuarterlyIRR = (cashflows: number[], tvpiForFallback: number): number => {
+    let minRate = -0.999; // Almost -100%
+    let maxRate = 4.0;    // 400% quarterly rate
+    const tolerance = 1e-6;
+    const maxIterations = 100;
+
+    const calculateNPV = (rate: number) => cashflows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + rate, t), 0);
+    
+    let npvAtMin = calculateNPV(minRate);
+    let npvAtMax = calculateNPV(maxRate);
+
+    // If both ends have the same sign, bisection won't work.
+    // This can happen with unusual cash flow streams.
+    if (npvAtMin * npvAtMax > 0) {
+      // Fallback to a rough approximation based on TVPI
+      const durationYears = cashflows.length / 4;
+      if (tvpiForFallback <= 0 || durationYears <= 0) return 0;
+      // Use average investment period heuristic (e.g. 60% of total duration)
+      const avgDuration = durationYears * 0.6;
+      if (avgDuration <= 0) return 0;
+      const annualisedRoughIrr = Math.pow(tvpiForFallback, 1 / avgDuration) - 1;
+      // Convert annual rough IRR to quarterly
+      return Math.pow(1 + annualisedRoughIrr, 1/4) - 1;
+    }
+
+    for (let i = 0; i < maxIterations; i++) {
+        const midRate = (minRate + maxRate) / 2;
+        // If midRate is too close to -1, it can cause issues.
+        if (midRate <= -1) {
+          return minRate;
+        }
+        const npv = calculateNPV(midRate);
+
+        if (Math.abs(npv) < tolerance) {
+            return midRate;
+        }
+
+        if (npvAtMin * npv < 0) {
+            maxRate = midRate;
+            npvAtMax = npv;
+        } else {
+            minRate = midRate;
+            npvAtMin = npv;
+        }
+    }
+    // Return the best guess if max iterations are reached
+    return (minRate + maxRate) / 2;
+};
+
+
 const scenarios: Record<ScenarioId, Scenario> = {
   base: {
     id: 'base',
@@ -190,10 +241,10 @@ const AssumptionTag = ({ label, assumption }: { label: string, assumption: Assum
     return (
         <UITooltip>
             <div className="flex flex-col items-center justify-center p-2 text-center bg-card rounded-lg border">
-                <div className="text-xs text-foreground flex items-center gap-1">
+                <div className="text-xs text-black flex items-center gap-1">
                     {label}
                     <TooltipTrigger asChild>
-                        <Info className="h-3 w-3 cursor-pointer text-foreground hover:text-foreground" />
+                        <Info className="h-3 w-3 cursor-pointer text-black hover:text-black" />
                     </TooltipTrigger>
                 </div>
                 <div className={`mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${colorClass}`}>
@@ -209,10 +260,10 @@ const AssumptionTag = ({ label, assumption }: { label: string, assumption: Assum
 
 const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: React.ElementType, title: string, description: string, color: string }) => (
     <div className="flex items-start gap-3 rounded-lg border p-3 bg-card h-full">
-        <Icon className={`h-6 w-6 shrink-0 ${color}`} />
+        <Icon className={`h-5 w-5 shrink-0 ${color}`} />
         <div>
-            <h4 className="font-semibold text-foreground mb-1 text-sm">{title}</h4>
-            <p className="text-xs text-foreground">{description}</p>
+            <h4 className="font-semibold text-black mb-1 text-xs">{title}</h4>
+            <p className="text-xs text-black">{description}</p>
         </div>
     </div>
 );
@@ -268,7 +319,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                                              <div className="h-2.5 w-2.5 rounded-full" style={{backgroundColor: config.color}}/>
                                              <span>{config.label}</span>
                                           </div>
-                                          <span className="font-bold text-foreground ml-4">{formatCurrency(displayValue)}</span>
+                                          <span className="font-bold text-black ml-4">{formatCurrency(displayValue)}</span>
                                        </div>
                                     )
                                 }}
@@ -303,14 +354,33 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
     const cumulativeDists = cashflowForecast.reduce((s, c) => s + c.distribution, 0);
     const endingValue = navProjection[navProjection.length-1]?.nav || 0;
     const tvpi = cumulativeCalls > 0 ? (endingValue + cumulativeDists) / cumulativeCalls : 0;
+    
+    const irrCashflows = cashflowForecast.map(cf => cf.netCashflow);
+    if (irrCashflows.length > 0) {
+        irrCashflows[irrCashflows.length - 1] += endingValue;
+    }
+    const firstCfIndex = irrCashflows.findIndex(cf => cf !== 0);
+    const finalIrrCashflows = firstCfIndex > -1 ? irrCashflows.slice(firstCfIndex) : [];
+    
+    const quarterlyIrr = finalIrrCashflows.length > 1 ? calculateQuarterlyIRR(finalIrrCashflows, tvpi) : 0;
+    const itdIrr = quarterlyIrr ? (Math.pow(1 + quarterlyIrr, 4) - 1) : 0;
 
-    let tvpiColor;
-    if (tvpi > 2.0) {
-        tvpiColor = 'text-green-500';
+    let irrColor;
+    if (itdIrr > 0.15) { // > 15% is good
+        irrColor = 'text-green-500';
+    } else if (itdIrr >= 0.08) { // 8-15% is neutral
+        irrColor = 'text-orange-500';
+    } else { // < 8% is bad
+        irrColor = 'text-red-500';
+    }
+
+    let endingValueColor;
+     if (tvpi > 2.0) {
+        endingValueColor = 'text-green-500';
     } else if (tvpi >= 1.5) {
-        tvpiColor = 'text-orange-500';
+        endingValueColor = 'text-orange-500';
     } else {
-        tvpiColor = 'text-red-500';
+        endingValueColor = 'text-red-500';
     }
     
     const peakGap = Math.max(0, ...liquidityForecast.map(l => l.fundingGap));
@@ -362,8 +432,8 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         <Card className="lg:col-span-1">
              <CardHeader><CardTitle>Scenario Outcomes</CardTitle></CardHeader>
              <CardContent className="space-y-3">
-                 <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} valueClass={tvpiColor} />
-                 <OutcomeCard title="TVPI Multiple" value={`${tvpi.toFixed(2)}x`} description="Total Value to Paid-In" icon={TrendingUp} valueClass={tvpiColor} />
+                 <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} valueClass={endingValueColor} />
+                 <OutcomeCard title="ITD IRR" value={`${(itdIrr * 100).toFixed(1)}%`} description="Internal Rate of Return" icon={TrendingUp} valueClass={irrColor} />
                  <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly need of ~${formatCurrency(simulatedPeakPressure)}`} icon={Shield} valueClass={liquidityColor} />
                  <OutcomeCard title="Breakeven Point" value={breakevenDisplay} description="When cumulative cashflow turns positive" icon={Hourglass} valueClass={breakevenColor} />
             </CardContent>
@@ -439,20 +509,20 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
         <Card>
              <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <BarChart className="h-5 w-5 text-foreground" />
+                    <BarChart className="h-5 w-5 text-black" />
                     Narrative Insights
                 </CardTitle>
              </CardHeader>
              <CardContent className="space-y-4">
                  <div className="bg-muted/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-sm mb-1">{insight.title}</h4>
-                    <p className="text-sm text-foreground">{insight.summary}</p>
+                    <p className="text-sm text-black">{insight.summary}</p>
                  </div>
                  <div className="space-y-3">
                     {insight.points.map((point, index) => (
                         <div key={index} className="flex items-start gap-3">
                             <point.icon className={`h-5 w-5 mt-0.5 shrink-0 ${point.color}`} />
-                            <p className="text-sm text-foreground flex-1">
+                            <p className="text-sm text-black flex-1">
                                 {point.text}
                             </p>
                         </div>
@@ -530,20 +600,20 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
         <Card>
              <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <Rocket className="h-5 w-5 text-foreground" />
+                    <Rocket className="h-5 w-5 text-black" />
                     Recommendation - Next Steps
                 </CardTitle>
              </CardHeader>
              <CardContent className="space-y-4">
                  <div className="bg-muted/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-sm mb-1">{recommendation.title}</h4>
-                    <p className="text-sm text-foreground">{recommendation.summary}</p>
+                    <p className="text-sm text-black">{recommendation.summary}</p>
                  </div>
                  <div className="space-y-3">
                     {recommendation.points.map((point, index) => (
                         <div key={index} className="flex items-start gap-3">
                             <point.icon className={`h-5 w-5 mt-0.5 shrink-0 ${point.color}`} />
-                            <p className="text-sm text-foreground flex-1">
+                            <p className="text-sm text-black flex-1">
                                 {point.text}
                             </p>
                         </div>
@@ -583,6 +653,16 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
             const endingValue = portfolio.navProjection[portfolio.navProjection.length-1]?.nav || 0;
             const tvpi = cumulativeCalls > 0 ? (endingValue + cumulativeDists) / cumulativeCalls : 0;
             
+            const irrCashflows = portfolio.cashflowForecast.map(cf => cf.netCashflow);
+            if (irrCashflows.length > 0) {
+              irrCashflows[irrCashflows.length - 1] += endingValue;
+            }
+            const firstCfIndex = irrCashflows.findIndex(cf => cf !== 0);
+            const finalIrrCashflows = firstCfIndex > -1 ? irrCashflows.slice(firstCfIndex) : [];
+
+            const quarterlyIrr = finalIrrCashflows.length > 1 ? calculateQuarterlyIRR(finalIrrCashflows, tvpi) : 0;
+            const itdIrr = quarterlyIrr ? (Math.pow(1 + quarterlyIrr, 4) - 1) : 0;
+
             const peakGap = Math.max(0, ...portfolio.liquidityForecast.map(l => l.fundingGap));
             const simulatedPeakPressure = Math.max(Math.abs(portfolio.kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
 
@@ -606,7 +686,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                 id,
                 name: scenarios[id].name,
                 endingValue,
-                tvpi,
+                itdIrr,
                 liquidityPressure,
                 breakevenYear,
                 peakFundingNeed,
@@ -618,7 +698,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
 
     const metrics = [
         { key: 'endingValue', label: 'Ending Portfolio Value', format: formatCurrency },
-        { key: 'tvpi', label: 'TVPI Multiple', format: (v: number) => `${v.toFixed(2)}x` },
+        { key: 'itdIrr', label: 'ITD IRR', format: (v: number) => `${(v * 100).toFixed(1)}%` },
         { key: 'peakFundingNeed', label: 'Peak Funding Need', format: formatCurrency },
         { key: 'liquidityRunway', label: 'Liquidity Runway', format: (v: number) => v >= 24 ? `${(v/12).toFixed(1)} years` : `${v} months` },
         { key: 'liquidityPressure', label: 'Peak Liquidity Pressure' },
@@ -631,7 +711,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
         const values = comparisonData.map(d => d[key as keyof typeof d]).filter(v => typeof v === 'number' && !isNaN(v as number)) as number[];
         if (values.length < 1) return {};
 
-        const higherIsBetterMetrics = ['endingValue', 'tvpi', 'liquidityRunway'];
+        const higherIsBetterMetrics = ['endingValue', 'itdIrr', 'liquidityRunway'];
         const lowerIsBetterMetrics = ['breakevenYear', 'peakFundingNeed'];
 
         let isHigherBetter;
@@ -762,9 +842,9 @@ export default function ScenarioSimulationPage() {
             </div>
              
             {selectedScenario && (
-                <div className="flex items-center gap-3 text-xs text-foreground flex-grow min-w-0">
+                <div className="flex items-center gap-3 text-xs text-black flex-grow min-w-0">
                     <Badge variant={selectedScenario.badge.variant}>{selectedScenario.badge.text}</Badge>
-                    <p className="truncate flex-shrink min-w-0 text-foreground">{selectedScenario.description}</p>
+                    <p className="truncate flex-shrink min-w-0 text-black">{selectedScenario.description}</p>
                 </div>
             )}
 
