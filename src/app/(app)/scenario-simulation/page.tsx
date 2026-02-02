@@ -59,53 +59,54 @@ type Scenario = {
 
 // A simple IRR solver using a bisection method. It's more stable than Newton-Raphson.
 const calculateQuarterlyIRR = (cashflows: number[], tvpiForFallback: number): number => {
-    let minRate = -0.999; // Almost -100%
-    let maxRate = 4.0;    // 400% quarterly rate
-    const tolerance = 1e-6;
     const maxIterations = 100;
+    const tolerance = 1e-6;
 
+    // The function whose root we want to find (NPV)
     const calculateNPV = (rate: number) => cashflows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + rate, t), 0);
-    
-    let npvAtMin = calculateNPV(minRate);
-    let npvAtMax = calculateNPV(maxRate);
 
-    // If both ends have the same sign, bisection won't work.
-    // This can happen with unusual cash flow streams.
-    if (npvAtMin * npvAtMax > 0) {
-      // Fallback to a rough approximation based on TVPI
-      const durationYears = cashflows.length / 4;
-      if (tvpiForFallback <= 0 || durationYears <= 0) return 0;
-      // Use average investment period heuristic (e.g. 60% of total duration)
-      const avgDuration = durationYears * 0.6;
-      if (avgDuration <= 0) return 0;
-      const annualisedRoughIrr = Math.pow(tvpiForFallback, 1 / avgDuration) - 1;
-      // Convert annual rough IRR to quarterly
-      return Math.pow(1 + annualisedRoughIrr, 1/4) - 1;
+    let lowRate = -0.9999; // Close to -100%
+    let highRate = 5.0; // 500% quarterly, should be high enough
+
+    // Initial check to see if a solution exists in the range
+    let npvAtLow = calculateNPV(lowRate);
+    let npvAtHigh = calculateNPV(highRate);
+
+    if (npvAtLow * npvAtHigh > 0) {
+        // Bisection method requires the function to cross zero within the interval.
+        // If it doesn't, this indicates an unusual cash flow stream (e.g., all positive or all negative).
+        const durationYears = cashflows.length / 4;
+        if (tvpiForFallback <= 0 || durationYears <= 0) return 0;
+        const avgDuration = durationYears * 0.6; // Heuristic for average investment period
+        if (avgDuration <= 0) return 0;
+        const annualisedRoughIrr = Math.pow(tvpiForFallback, 1 / avgDuration) - 1;
+        return Math.pow(1 + annualisedRoughIrr, 1/4) - 1; // Convert annual rough IRR to quarterly
     }
 
     for (let i = 0; i < maxIterations; i++) {
-        const midRate = (minRate + maxRate) / 2;
-        // If midRate is too close to -1, it can cause issues.
-        if (midRate <= -1) {
-          return minRate;
-        }
-        const npv = calculateNPV(midRate);
+        let midRate = (lowRate + highRate) / 2;
+        if (midRate <= -1) midRate = -1 + tolerance; // Avoid -1
 
-        if (Math.abs(npv) < tolerance) {
-            return midRate;
+        let npvAtMid = calculateNPV(midRate);
+
+        if (Math.abs(npvAtMid) < tolerance) {
+            return midRate; // Found the root
         }
 
-        if (npvAtMin * npv < 0) {
-            maxRate = midRate;
-            npvAtMax = npv;
+        // Adjust the interval
+        if (npvAtLow * npvAtMid < 0) {
+            highRate = midRate;
+            npvAtHigh = npvAtMid;
         } else {
-            minRate = midRate;
-            npvAtMin = npv;
+            lowRate = midRate;
+            npvAtLow = npvAtMid;
         }
     }
-    // Return the best guess if max iterations are reached
-    return (minRate + maxRate) / 2;
+
+    // If max iterations reached, return the best guess
+    return (lowRate + highRate) / 2;
 };
+
 
 
 const scenarios: Record<ScenarioId, Scenario> = {
@@ -259,14 +260,15 @@ const AssumptionTag = ({ label, assumption }: { label: string, assumption: Assum
 };
 
 const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: React.ElementType, title: string, description: string, color: string }) => (
-    <div className="flex items-start gap-3 rounded-lg border p-3 bg-card h-full">
+    <div className="flex items-start gap-2 rounded-lg border p-2 bg-card h-full">
         <Icon className={`h-4 w-4 shrink-0 ${color} mt-0.5`} />
         <div>
-            <h4 className="font-semibold text-black mb-1 text-xs">{title}</h4>
-            <p className="text-xs text-black">{description}</p>
+            <h4 className="font-semibold text-black mb-0.5 text-xs">{title}</h4>
+            <p className="text-xs text-black leading-tight">{description}</p>
         </div>
     </div>
 );
+
 
 const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: PortfolioData | null }) => {
     if (!portfolioData) {
@@ -303,7 +305,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
                         <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -20, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
                         <Tooltip 
                             content={<ChartTooltipContent 
                                 labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
@@ -313,12 +315,15 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                                     if (!config || (value === 0 && name !== 'liquidityBalance') || value === null) return null;
 
                                     const displayValue = name === 'contribution' ? Math.abs(value as number) : value as number;
+                                    let label = config.label;
+                                    if (name === 'contribution') label = 'Contributions';
+                                    if (name === 'withdrawal') label = 'Withdrawals';
 
                                     return (
                                        <div className="flex w-full items-center justify-between gap-4">
                                           <div className="flex flex-shrink-0 items-center gap-2">
                                              <div className="h-2.5 w-2.5 rounded-full" style={{backgroundColor: config.color}}/>
-                                             <span>{config.label}</span>
+                                             <span>{label}</span>
                                           </div>
                                           <span className="font-bold text-black ml-4">{formatCurrency(displayValue)}</span>
                                        </div>
@@ -328,8 +333,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         />
                         <Legend />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
-                        <Bar yAxisId="left" dataKey="withdrawal" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="contribution" fill="var(--color-contribution)" stackId="stack" />
+                        <Bar yAxisId="left" dataKey="withdrawal" name="Withdrawals" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="contribution" name="Contributions" fill="var(--color-contribution)" stackId="stack" />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
@@ -398,13 +403,14 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         liquidityColor = 'text-green-500';
     }
     
-    const breakevenYear = kpis.breakevenTiming.from && kpis.breakevenTiming.from !== 'N/A'
-        ? new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1
+    const breakevenData = kpis.breakevenTiming;
+    const breakevenYear = breakevenData.from && breakevenData.from !== 'N/A' && !breakevenData.from.includes('+')
+        ? new Date(breakevenData.from).getFullYear() - new Date().getFullYear() + 1
         : Infinity;
 
     let breakevenDisplay, breakevenColor;
     if (breakevenYear === Infinity) {
-        breakevenDisplay = 'N/A';
+        breakevenDisplay = breakevenData.from === 'Year 12+' ? 'Year 12+' : 'N/A';
         breakevenColor = 'text-red-500';
     } else {
         breakevenDisplay = `Year ${breakevenYear}`;
@@ -508,8 +514,8 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
     return (
         <Card>
              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <BarChart className="h-5 w-5 text-black" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-highlight">
+                    <BarChart className="h-5 w-5" />
                     Narrative Insights
                 </CardTitle>
              </CardHeader>
@@ -599,8 +605,8 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
     return (
         <Card>
              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <Rocket className="h-5 w-5 text-black" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-highlight">
+                    <Rocket className="h-5 w-5" />
                     Recommendation - Next Steps
                 </CardTitle>
              </CardHeader>
@@ -645,8 +651,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
 
     useEffect(() => {
         const data = selectedIds.map(id => {
-            const { scenario, factors } = scenarioFactorsMapping[id];
-            const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
+            const { portfolio } = getPortfolioData(id, undefined, new Date());
             
             const cumulativeCalls = portfolio.cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
             const cumulativeDists = portfolio.cashflowForecast.reduce((s, c) => s + c.distribution, 0);
@@ -675,9 +680,11 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                 liquidityPressure = 'Low';
             }
             
-            const breakevenYear = portfolio.kpis.breakevenTiming.from && portfolio.kpis.breakevenTiming.from !== 'N/A'
-                ? new Date(portfolio.kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1
-                : 'N/A';
+            const breakevenData = portfolio.kpis.breakevenTiming;
+            const breakevenYear = breakevenData.from && breakevenData.from !== 'N/A' && !breakevenData.from.includes('+')
+                ? new Date(breakevenData.from).getFullYear() - new Date().getFullYear() + 1
+                : 12.1; // Represents "Year 12+" for sorting
+
 
             const peakFundingNeed = Math.abs(portfolio.kpis.peakProjectedOutflow.value);
             const liquidityRunway = portfolio.kpis.liquidityRunwayInMonths || 0;
@@ -688,7 +695,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
                 endingValue,
                 itdIrr,
                 liquidityPressure,
-                breakevenYear,
+                breakevenYear: breakevenYear > 12 ? '12+' : breakevenYear,
                 peakFundingNeed,
                 liquidityRunway,
             };
@@ -702,7 +709,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
         { key: 'peakFundingNeed', label: 'Peak Funding Need', format: formatCurrency },
         { key: 'liquidityRunway', label: 'Liquidity Runway', format: (v: number) => v >= 24 ? `${(v/12).toFixed(1)} years` : `${v} months` },
         { key: 'liquidityPressure', label: 'Peak Liquidity Pressure' },
-        { key: 'breakevenYear', label: 'Breakeven Point', format: (v: number | string) => (typeof v === 'number' ? `Year ${v}` : v) },
+        { key: 'breakevenYear', label: 'Breakeven Point', format: (v: number | string) => (typeof v === 'number' ? `Year ${v}` : `Year ${v}`) },
     ];
     
     const getBestWorst = (key: string) => {
@@ -804,8 +811,7 @@ export default function ScenarioSimulationPage() {
         setIsLoading(true);
         const timer = setTimeout(() => {
             if (selectedScenarioId) {
-                const { scenario, factors } = scenarioFactorsMapping[selectedScenarioId];
-                const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
+                const { portfolio } = getPortfolioData(selectedScenarioId, undefined, new Date());
                 setPortfolioData(portfolio);
             }
             setIsLoading(false);
@@ -862,7 +868,7 @@ export default function ScenarioSimulationPage() {
       {selectedScenario && (
         <Card>
             <CardContent className="pt-6 space-y-6">
-                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
                     <ImplicationCard icon={TrendingUp} title="Growth" description={selectedScenario.implications.growth} color="text-chart-1" />
                     <ImplicationCard icon={ShieldAlert} title="Risk" description={selectedScenario.implications.risk} color="text-chart-5" />
                     <ImplicationCard icon={Waves} title="Liquidity" description={selectedScenario.implications.liquidity} color="text-chart-4" />
