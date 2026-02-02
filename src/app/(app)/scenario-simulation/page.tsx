@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, TrendingUp, Landmark, Shield, BarChart, Hourglass } from 'lucide-react';
+import { Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, TrendingUp, Landmark, Shield, BarChart, Hourglass, Activity, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPortfolioData } from '@/lib/data';
 import type { PortfolioData } from '@/lib/types';
@@ -232,10 +232,9 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
 const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: PortfolioData | null, totalCommitment: number }) => {
     if (!portfolioData) {
         return (
-            <>
-                <Skeleton className="h-48" />
-                <Skeleton className="h-48" />
-            </>
+            <div className="lg:col-span-1">
+                <Skeleton className="h-full min-h-[300px]" />
+            </div>
         );
     }
 
@@ -268,7 +267,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
     );
     
     return (
-        <Card>
+        <Card className="lg:col-span-1">
              <CardHeader><CardTitle>Scenario Outcomes</CardTitle></CardHeader>
              <CardContent className="space-y-3">
                  <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} />
@@ -280,25 +279,101 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
     );
 }
 
+type InsightPoint = {
+  icon: React.ElementType;
+  text: string;
+  color: string;
+};
+
+type Narrative = {
+  title: string;
+  summary: string;
+  points: InsightPoint[];
+};
+
+
 const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
-    const insights: Record<ScenarioId, { title: string, text: string }> = {
-        base: { title: "Steady & Predictable", text: "The base case shows a standard J-curve with moderate growth. Cash flows are evenly paced, leading to a healthy return multiple with manageable liquidity needs. This represents a 'business as usual' outlook." },
-        recession: { title: "Short-term Pain, Long-term Gain?", text: "A recession causes early NAV markdowns and halts distributions. However, accelerated capital calls into a down market can lead to a powerful recovery and strong back-ended returns if the portfolio is resilient." },
-        risingRates: { title: "A Slower Grind", text: "Higher interest rates act as a headwind, compressing valuation multiples. This slows NAV growth and delays exits, resulting in a more back-loaded return profile and a lower overall IRR." },
-        stagflation: { title: "The Real Return Squeeze", text: "A toxic mix of high inflation and low growth. While nominal NAV might hold up, real returns are significantly eroded. Liquidity tightens, and only assets with strong pricing power can protect margins." },
-        liquidityCrunch: { title: "Cash is King", text: "This scenario models a market freeze. Distributions stop entirely, and capital calls are accelerated to defend portfolio companies, placing maximum stress on LP liquidity and credit facilities." },
-        strongGrowth: { title: "Riding the Wave", text: "An optimistic scenario where a booming economy accelerates both NAV growth and exit opportunities. This leads to early distributions and a front-loaded, higher-return profile, but risks frothy valuations." },
+    const insights: Record<ScenarioId, Narrative> = {
+        base: { 
+            title: "Steady & Predictable", 
+            summary: "The base case shows a standard J-curve with moderate growth. Cash flows are evenly paced, leading to a healthy return multiple with manageable liquidity needs.",
+            points: [
+                { icon: Activity, text: "Portfolio growth is consistent, tracking long-term market averages.", color: 'text-blue-500' },
+                { icon: Landmark, text: "Cash flows are evenly paced, with no major liquidity surprises.", color: 'text-blue-500' },
+                { icon: BarChart, text: "A healthy return multiple is achieved with manageable risk, representing a 'business as usual' outlook.", color: 'text-blue-500' },
+            ]
+        },
+        recession: { 
+            title: "Short-term Pain, Long-term Gain?", 
+            summary: "A recession causes early NAV markdowns and halts distributions. However, accelerated capital calls into a down market can lead to a powerful recovery.",
+            points: [
+                { icon: TrendingDown, text: "Initial NAV markdowns and a pause in distributions create early liquidity pressure.", color: 'text-red-500' },
+                { icon: Clock, text: "Recovery is gradual (U-shaped), testing portfolio resilience over 2-3 years.", color: 'text-yellow-600' },
+                { icon: ChevronsUp, text: "Capital calls into a down market can fuel a powerful recovery and strong back-ended returns.", color: 'text-green-500' },
+            ]
+        },
+        risingRates: { 
+            title: "A Slower Grind",
+            summary: "Higher interest rates act as a headwind, compressing valuation multiples and slowing the pace of exits.",
+            points: [
+                { icon: CircleDollarSign, text: "Valuation multiples compress as discount rates rise, slowing NAV growth.", color: 'text-yellow-600' },
+                { icon: Hourglass, text: "Exit markets cool down, delaying distributions and creating a more back-loaded return profile.", color: 'text-yellow-600' },
+                { icon: BrainCircuit, text: "Manager skill in deal sourcing and value creation becomes paramount to navigate the environment.", color: 'text-blue-500' },
+            ]
+        },
+        stagflation: { 
+            title: "The Real Return Squeeze", 
+            summary: "A toxic mix of high inflation and low growth. While nominal NAV might hold up, real returns are significantly eroded.",
+            points: [
+                { icon: ShieldAlert, text: "High inflation erodes the real value of returns, even if nominal NAV appears to grow.", color: 'text-red-500' },
+                { icon: Waves, text: "Central bank tightening restricts system-wide liquidity, stressing cash flow for all market participants.", color: 'text-red-500' },
+                { icon: TrendingUp, text: "Portfolio companies with strong pricing power are best positioned to protect margins and drive real value.", color: 'text-green-500' },
+            ]
+        },
+        liquidityCrunch: { 
+            title: "Cash is King", 
+            summary: "This scenario models a market freeze where exit markets evaporate and capital calls are accelerated to defend assets.",
+            points: [
+                { icon: Waves, text: "Distributions halt entirely as exit markets (M&A, IPOs) effectively freeze.", color: 'text-red-500' },
+                { icon: TrendingDown, text: "Capital calls are accelerated to defend portfolio companies, creating maximum LP liquidity stress.", color: 'text-red-500' },
+                { icon: Shield, text: "Survival and access to credit become the primary focus over short-term growth.", color: 'text-yellow-600' },
+            ]
+        },
+        strongGrowth: { 
+            title: "Riding the Wave", 
+            summary: "An optimistic scenario where a booming economy accelerates both NAV growth and exit opportunities, pulling returns forward.",
+            points: [
+                { icon: ChevronsUp, text: "Robust exit markets lead to early and abundant distributions, improving IRR.", color: 'text-green-500' },
+                { icon: Zap, text: "Accelerated NAV appreciation occurs from strong company performance and higher exit multiples.", color: 'text-green-500' },
+                { icon: ShieldAlert, text: "Primary risk shifts to frothy valuations and ensuring disciplined capital deployment in a heated market.", color: 'text-yellow-600' },
+            ]
+        },
     };
 
     const insight = insights[scenarioId];
 
     return (
         <Card>
-             <CardHeader><CardTitle>Narrative Insights</CardTitle></CardHeader>
-             <CardContent>
+             <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <BarChart className="h-5 w-5 text-muted-foreground" />
+                    Narrative Insights
+                </CardTitle>
+             </CardHeader>
+             <CardContent className="space-y-4">
                  <div className="bg-muted/50 p-4 rounded-lg">
                     <h4 className="font-semibold text-sm mb-1">{insight.title}</h4>
-                    <p className="text-sm text-muted-foreground">{insight.text}</p>
+                    <p className="text-sm text-muted-foreground">{insight.summary}</p>
+                 </div>
+                 <div className="space-y-3">
+                    {insight.points.map((point, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                            <point.icon className={`h-5 w-5 mt-0.5 shrink-0 ${point.color}`} />
+                            <p className="text-sm text-foreground flex-1">
+                                {point.text}
+                            </p>
+                        </div>
+                    ))}
                  </div>
             </CardContent>
         </Card>
@@ -409,11 +484,9 @@ export default function ScenarioSimulationPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ScenarioVisualizationChart portfolioData={portfolioData} />
-        <div className="lg:col-span-1 space-y-6">
-          <ScenarioOutcomes portfolioData={portfolioData} totalCommitment={totalCommitment} />
-          <NarrativeInsights scenarioId={selectedScenarioId} />
-        </div>
+        <ScenarioOutcomes portfolioData={portfolioData} totalCommitment={totalCommitment} />
       </div>
+      <NarrativeInsights scenarioId={selectedScenarioId} />
     </div>
   );
 }
