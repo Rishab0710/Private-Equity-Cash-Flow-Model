@@ -86,7 +86,7 @@ const strategyParams = {
 };
 
 export const getPortfolioData = (
-  scenario: Scenario = 'Base',
+  scenario: Scenario = 'base',
   fundId?: string,
   asOfDate: Date = new Date(),
   customFactors?: { callFactor: number; distFactor: number }
@@ -113,14 +113,46 @@ export const getPortfolioData = (
     // This function generates the full lifecycle projections for a single fund
     const generateFundProjections = (fund: Fund, scenario: Scenario, customFactors?: { callFactor: number, distFactor: number }): { cashflows: CashflowData[], nav: NavData[] } => {
       const params = strategyParams[fund.strategy] || strategyParams.Other;
-      let callFactor = 1;
-      let distFactor = 1;
-      let navFactor = 1;
+      
+      let callFactor = 1.0;
+      let distFactor = 1.0;
+      let navGrowthFactor = 1.0;
+      let navVolatilityFactor = 1.0;
+      let recessionDip = 0;
+      let recoveryQuarters = 0;
 
       switch (scenario) {
-        case 'Slow Exit': distFactor = 0.7; navFactor = 0.9; break;
-        case 'Fast Exit': distFactor = 1.3; navFactor = 1.1; break;
-        case 'Stress': callFactor = 1.1; distFactor = 0.6; navFactor = 0.8; break;
+          case 'recession':
+              callFactor = 1.15;
+              distFactor = 0.5;
+              navGrowthFactor = 0.8;
+              navVolatilityFactor = 2.0;
+              recessionDip = -0.20;
+              recoveryQuarters = 8; // U-shaped recovery over 2 years
+              break;
+          case 'risingRates':
+              callFactor = 0.9;
+              distFactor = 0.7;
+              navGrowthFactor = 0.85;
+              navVolatilityFactor = 1.5;
+              break;
+          case 'stagflation':
+              callFactor = 1.0;
+              distFactor = 0.85;
+              navGrowthFactor = 0.9;
+              navVolatilityFactor = 1.8;
+              break;
+          case 'liquidityCrunch':
+              callFactor = 1.3;
+              distFactor = 0.3;
+              navGrowthFactor = 0.6;
+              navVolatilityFactor = 2.5;
+              recessionDip = -0.25;
+              recoveryQuarters = 12; // L-shaped recovery, long and slow
+              break;
+          case 'base':
+          default:
+              break;
       }
       
       if(customFactors) {
@@ -132,15 +164,33 @@ export const getPortfolioData = (
       let nav = 0;
       const cashflows: CashflowData[] = [];
       const navs: NavData[] = [];
+      
+      let isRecessionActive = false;
+      let dipAmountApplied = 0;
+      let recoveryPerQuarter = 0;
+      let forecastStarted = false;
 
       for (const date of DATES) {
           const age = getFundAgeInQuarters(fund, date);
-          let capitalCall = 0;
+          const isForecast = isAfter(date, FORECAST_START_DATE) || date.getTime() === FORECAST_START_DATE.getTime();
+
+          if (isForecast && !forecastStarted) {
+              forecastStarted = true;
+              if (recessionDip < 0) {
+                  isRecessionActive = true;
+                  dipAmountApplied = nav * recessionDip;
+                  nav += dipAmountApplied;
+                  if (recoveryQuarters > 0) {
+                      recoveryPerQuarter = Math.abs(dipAmountApplied) / recoveryQuarters;
+                  }
+              }
+          }
           
+          let capitalCall = 0;
           if (age >= 0 && unfunded > 0) {
               const callPacing = (age / (fund.investmentPeriod * 4)) ** 1.5;
               const randomFactor = 1 + (Math.random() - 0.5) * 0.2;
-              let potentialCall = (fund.commitment / (fund.investmentPeriod * 4)) * callPacing * randomFactor * callFactor;
+              let potentialCall = (fund.commitment / (fund.investmentPeriod * 4)) * callPacing * randomFactor * (isForecast ? callFactor : 1.0);
               
               if (age > params.callPeak) {
                   potentialCall *= Math.pow(params.callDecay, age - params.callPeak);
@@ -154,17 +204,30 @@ export const getPortfolioData = (
           if (age > params.distStart && nav > 0) {
             const distAge = age - params.distStart;
             const randomFactor = 1 + (Math.random() - 0.5) * 0.3;
-            let potentialDist = (nav * 0.05) * randomFactor * distFactor; // Distribute ~5% of NAV per quarter
+            let potentialDist = (nav * 0.05) * randomFactor * (isForecast ? distFactor : 1.0);
 
             if (distAge > (params.distPeak - params.distStart)) {
                 potentialDist *= Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart));
             }
-            distribution = Math.min(nav + capitalCall, potentialDist); // Cannot distribute more than NAV
+            distribution = Math.min(nav + capitalCall, potentialDist);
           }
 
           // NAV calculation
-          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 + (Math.random() - 0.5) * 0.01) * navFactor : 0.005; // Slow positive growth in later years
+          const baseGrowthRate = (age > 0 && age < params.navPeak) ? 0.04 : 0.005;
+          const volatility = (Math.random() - 0.5) * 0.015 * (isForecast ? navVolatilityFactor : 1.0);
+          const growthRate = (baseGrowthRate * (isForecast ? navGrowthFactor : 1.0)) + volatility;
+
           nav = nav * (1 + growthRate) + capitalCall - distribution;
+          
+          if (isRecessionActive && dipAmountApplied < 0) {
+            const recoveryAmount = Math.min(recoveryPerQuarter, Math.abs(dipAmountApplied));
+            nav += recoveryAmount;
+            dipAmountApplied += recoveryAmount;
+            if (dipAmountApplied >= -0.001) {
+                isRecessionActive = false;
+            }
+          }
+          
           nav = Math.max(0, nav);
 
           cashflows.push({
@@ -222,7 +285,7 @@ export const getPortfolioData = (
     // Calculate dynamic unfunded and NAV for all funds based on asOfDate, for the fund list page
     const allFundsWithCurrentData = funds.map((fund) => {
         const asOfIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
-        const { cashflows, nav } = generateFundProjections(fund, 'Base'); // use base scenario for list
+        const { cashflows, nav } = generateFundProjections(fund, 'base'); // use base scenario for list
         const historicalCashflows = cashflows.slice(0, asOfIndex);
         const calledToDate = historicalCashflows.reduce((sum, cf) => sum + cf.capitalCall, 0);
         const latestNav = nav[asOfIndex -1]?.nav || 0;

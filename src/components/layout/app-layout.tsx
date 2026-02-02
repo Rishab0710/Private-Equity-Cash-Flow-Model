@@ -34,7 +34,7 @@ export function usePortfolioContext() {
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [fundId, setFundId] = useState<string>('all');
-  const [scenario, setScenario] = useState<Scenario>('Base');
+  const [scenario, setScenario] = useState<Scenario>('base');
   const [asOfDate, setAsOfDate] = useState<Date | undefined>(undefined);
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [funds, setFunds] = useState<Fund[]>(staticFunds);
@@ -48,7 +48,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // We only need to generate portfolio data for data-heavy pages
-    const dataPages = ['/liquidity', '/portfolio-growth'];
+    const dataPages = ['/liquidity', '/portfolio-growth', '/scenario-simulation'];
     if (dataPages.includes(pathname) && asOfDate) {
       const customFactors = {
           callFactor: capitalCallPacing / 100,

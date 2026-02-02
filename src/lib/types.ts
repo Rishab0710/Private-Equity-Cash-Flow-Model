@@ -12,7 +12,7 @@ export type Fund = {
   forecastIRR?: number;
 };
 
-export type Scenario = 'Base' | 'Slow Exit' | 'Fast Exit' | 'Stress';
+export type Scenario = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch';
 
 export type CashflowData = {
   date: string;

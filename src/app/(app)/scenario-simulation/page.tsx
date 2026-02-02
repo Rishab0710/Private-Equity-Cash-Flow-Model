@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPortfolioData } from '@/lib/data';
-import type { PortfolioData, Fund } from '@/lib/types';
+import type { PortfolioData, Fund, Scenario } from '@/lib/types';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Area, Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, ReferenceLine } from 'recharts';
@@ -32,7 +32,7 @@ type AssumptionValue = {
   description: string;
 };
 
-type Scenario = {
+type ScenarioDetails = {
   id: ScenarioId;
   name: string;
   description: string;
@@ -109,7 +109,7 @@ const calculateQuarterlyIRR = (cashflows: number[], tvpiForFallback: number): nu
 
 
 
-const scenarios: Record<ScenarioId, Scenario> = {
+const scenarios: Record<ScenarioId, ScenarioDetails> = {
   base: {
     id: 'base',
     name: 'Base Case',
@@ -212,14 +212,6 @@ const scenarios: Record<ScenarioId, Scenario> = {
   },
 };
 
-const scenarioFactorsMapping = {
-    base: { scenario: 'Base' as const, factors: { callFactor: 1.0, distFactor: 1.0 } },
-    recession: { scenario: 'Stress' as const, factors: { callFactor: 1.1, distFactor: 0.6 } },
-    risingRates: { scenario: 'Slow Exit' as const, factors: { callFactor: 0.9, distFactor: 0.7 } },
-    stagflation: { scenario: 'Stress' as const, factors: { callFactor: 1.0, distFactor: 0.8 } },
-    liquidityCrunch: { scenario: 'Stress' as const, factors: { callFactor: 1.2, distFactor: 0.4 } },
-};
-
 const formatCurrency = (value: number) => {
     const absValue = Math.abs(value);
     if (absValue >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
@@ -281,7 +273,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         const navDataPoint = navProjection.find(nd => nd.date === cf.date);
         const liqDataPoint = liquidityForecast.find(ld => ld.date === cf.date);
         return { 
-            ...cf, 
+            date: cf.date,
             contribution: -cf.capitalCall, 
             withdrawal: cf.distribution, 
             nav: navDataPoint?.nav,
@@ -312,13 +304,11 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                                 indicator="dot" 
                                 formatter={(value, name) => {
                                     const config = chartConfig[name as keyof typeof chartConfig];
-                                    if (!config || (value === 0 && name !== 'liquidityBalance') || value === null) return null;
+                                    if (!config || (value === 0 && name !== 'liquidityBalance') || value === null || value === undefined) return null;
 
                                     const displayValue = name === 'contribution' ? Math.abs(value as number) : value as number;
                                     let label = config.label;
-                                    if (name === 'contribution') label = 'Contributions';
-                                    if (name === 'withdrawal') label = 'Withdrawals';
-
+                                    
                                     return (
                                        <div className="flex w-full items-center justify-between gap-4">
                                           <div className="flex flex-shrink-0 items-center gap-2">
@@ -457,7 +447,7 @@ type Narrative = {
 const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
     const insights: Record<ScenarioId, Narrative> = {
         base: { 
-            title: "Steady & Predictable", 
+            title: "Stay the Course", 
             summary: "The base case shows a standard J-curve with moderate growth. Cash flows are evenly paced, leading to a healthy return multiple with manageable liquidity needs.",
             points: [
                 { icon: Activity, text: "Portfolio growth is consistent, tracking long-term market averages.", color: 'text-blue-500' },
@@ -794,24 +784,8 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
 
 
 export default function ScenarioSimulationPage() {
-    const [selectedScenarioId, setSelectedScenarioId] = useState<ScenarioId>('base');
-    const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const { funds } = usePortfolioContext();
+    const { scenario: selectedScenarioId, setScenario: setSelectedScenarioId, portfolioData, funds } = usePortfolioContext();
     const selectedScenario = scenarios[selectedScenarioId];
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timer = setTimeout(() => {
-            if (selectedScenarioId) {
-                const { portfolio } = getPortfolioData(selectedScenarioId, undefined, new Date());
-                setPortfolioData(portfolio);
-            }
-            setIsLoading(false);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [selectedScenarioId]);
     
     const totalCommitment = useMemo(() => funds.reduce((sum, fund) => sum + fund.commitment, 0), [funds]);
 
