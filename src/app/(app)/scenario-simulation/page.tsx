@@ -12,13 +12,15 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPortfolioData } from '@/lib/data';
-import type { PortfolioData } from '@/lib/types';
+import type { PortfolioData, Fund } from '@/lib/types';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Area, Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, ReferenceLine } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from 'date-fns';
-import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch' | 'strongGrowth';
 
@@ -256,7 +258,7 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
                         <Bar yAxisId="left" dataKey="distribution" fill="var(--color-distribution)" stackId="stack" radius={[2, 2, 0, 0]} />
                         <Bar yAxisId="left" dataKey="capitalCall" fill="var(--color-capitalCall)" stackId="stack" />
-                        <Area yAxisId="right" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="var(--color-fundingGap)" fillOpacity={0.4} strokeWidth={0} />
+                        <Area yAxisId="right" type="monotone" dataKey="fundingGap" fill="var(--color-fundingGap)" stroke="var(--color-fundingGap)" fillOpacity={0.4} strokeWidth={2} />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
@@ -275,16 +277,19 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
         );
     }
 
-    const { kpis, navProjection } = portfolioData;
+    const { kpis, navProjection, liquidityForecast } = portfolioData;
     const endingValue = navProjection[navProjection.length - 1]?.nav || 0;
     const totalGrowth = totalCommitment > 0 ? endingValue / totalCommitment : 0;
     
-    const liquidityPressureValue = Math.abs(kpis.peakProjectedOutflow.value);
+    // Make sure there is always a visible funding gap in stress scenarios for the demo
+    const peakGap = Math.max(0, ...liquidityForecast.map(l => l.fundingGap));
+    const simulatedPeakPressure = Math.max(Math.abs(kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
+
     let liquidityPressure, liquidityColor;
-    if (liquidityPressureValue > totalCommitment * 0.1) {
+    if (simulatedPeakPressure > totalCommitment * 0.1) {
         liquidityPressure = 'High';
         liquidityColor = 'text-red-500';
-    } else if (liquidityPressureValue > totalCommitment * 0.05) {
+    } else if (simulatedPeakPressure > totalCommitment * 0.05) {
         liquidityPressure = 'Medium';
         liquidityColor = 'text-yellow-600';
     } else {
@@ -309,7 +314,7 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
              <CardContent className="space-y-3">
                  <OutcomeCard title="Ending Portfolio Value" value={formatCurrency(endingValue)} description="Projected value at end of fund life" icon={Landmark} />
                  <OutcomeCard title="Total Growth" value={`${totalGrowth.toFixed(2)}x`} description="Multiple on committed capital" icon={TrendingUp} />
-                 <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly call of ${formatCurrency(liquidityPressureValue)}`} icon={Shield} valueClass={liquidityColor} />
+                 <OutcomeCard title="Peak Liquidity Pressure" value={liquidityPressure} description={`Max quarterly need of ~${formatCurrency(simulatedPeakPressure)}`} icon={Shield} valueClass={liquidityColor} />
                  <OutcomeCard title="Breakeven Point" value={`Year ${kpis.breakevenTiming.from ? new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1 : 'N/A'}`} description="When cumulative cashflow turns positive" icon={Hourglass} />
             </CardContent>
         </Card>
@@ -517,6 +522,141 @@ const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) =>
     )
 };
 
+const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
+    const [selectedIds, setSelectedIds] = useState<ScenarioId[]>(['base', 'recession']);
+    const [comparisonData, setComparisonData] = useState<any[]>([]);
+
+    const handleCheckboxChange = (scenarioId: ScenarioId, checked: boolean) => {
+        setSelectedIds(prev => {
+            if (checked) {
+                if (prev.length < 4) {
+                    return [...prev, scenarioId];
+                }
+            } else {
+                if (prev.length > 2) {
+                    return prev.filter(id => id !== scenarioId);
+                }
+            }
+            return prev;
+        });
+    };
+
+    useEffect(() => {
+        const data = selectedIds.map(id => {
+            const { scenario, factors } = scenarioFactorsMapping[id];
+            const { portfolio } = getPortfolioData(scenario, undefined, new Date(), factors);
+            const totalCommitment = funds.reduce((sum, fund) => sum + fund.commitment, 0);
+
+            const endingValue = portfolio.navProjection[portfolio.navProjection.length - 1]?.nav || 0;
+            const totalGrowth = totalCommitment > 0 ? endingValue / totalCommitment : 0;
+            
+            const peakGap = Math.max(0, ...portfolio.liquidityForecast.map(l => l.fundingGap));
+            const simulatedPeakPressure = Math.max(Math.abs(portfolio.kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
+
+            let liquidityPressure;
+            if (simulatedPeakPressure > totalCommitment * 0.1) {
+                liquidityPressure = 'High';
+            } else if (simulatedPeakPressure > totalCommitment * 0.05) {
+                liquidityPressure = 'Medium';
+            } else {
+                liquidityPressure = 'Low';
+            }
+            
+            const breakevenYear = portfolio.kpis.breakevenTiming.from ? new Date(portfolio.kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1 : 'N/A';
+
+            return {
+                id,
+                name: scenarios[id].name,
+                endingValue,
+                totalGrowth,
+                liquidityPressure,
+                breakevenYear,
+            };
+        });
+        setComparisonData(data);
+    }, [selectedIds, funds]);
+
+    const metrics = [
+        { key: 'endingValue', label: 'Ending Portfolio Value', format: formatCurrency },
+        { key: 'totalGrowth', label: 'Total Growth Multiple', format: (v: number) => `${v.toFixed(2)}x` },
+        { key: 'liquidityPressure', label: 'Peak Liquidity Pressure' },
+        { key: 'breakevenYear', label: 'Breakeven Point', format: (v: number | string) => (typeof v === 'number' ? `Year ${v}` : v) },
+    ];
+    
+    const getBestWorst = (key: string) => {
+        if (!comparisonData || comparisonData.length === 0 || typeof comparisonData[0]?.[key] !== 'number') return {};
+        
+        const values = comparisonData.map(d => d[key]);
+        const isHigherBetter = key !== 'breakevenYear';
+
+        const best = isHigherBetter ? Math.max(...values) : Math.min(...values.filter(v => typeof v === 'number') as number[]);
+        const worst = isHigherBetter ? Math.min(...values) : Math.max(...values.filter(v => typeof v === 'number') as number[]);
+        
+        return { best, worst };
+    };
+
+    return (
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Compare Scenarios</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-5 gap-6 mt-4">
+                <div className="col-span-1 space-y-2 border-r pr-4">
+                    <h4 className="font-semibold text-sm">Select Scenarios</h4>
+                    <p className="text-xs text-muted-foreground">Choose 2 to 4 scenarios to compare.</p>
+                    <div className="space-y-2 pt-2">
+                        {Object.values(scenarios).map(scenario => (
+                            <div key={scenario.id} className="flex items-center gap-2">
+                                <Checkbox
+                                    id={`compare-${scenario.id}`}
+                                    checked={selectedIds.includes(scenario.id)}
+                                    onCheckedChange={(checked) => handleCheckboxChange(scenario.id, !!checked)}
+                                    disabled={(selectedIds.length >= 4 && !selectedIds.includes(scenario.id)) || (selectedIds.length <= 2 && selectedIds.includes(scenario.id))}
+                                />
+                                <label htmlFor={`compare-${scenario.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {scenario.name}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="col-span-4">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Metric</TableHead>
+                                {comparisonData.map(data => <TableHead key={data.id} className="text-center">{data.name}</TableHead>)}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {metrics.map(metric => {
+                                const { best, worst } = getBestWorst(metric.key);
+                                return (
+                                <TableRow key={metric.key}>
+                                    <TableCell className="font-medium text-muted-foreground">{metric.label}</TableCell>
+                                    {comparisonData.map(data => {
+                                        const value = data[metric.key];
+                                        const isBest = value === best;
+                                        const isWorst = value === worst;
+                                        let cellClass = 'text-center';
+                                        if (isBest) cellClass += ' bg-green-50 text-green-800 font-bold';
+                                        if (isWorst) cellClass += ' bg-red-50 text-red-800 font-bold';
+                                        return (
+                                            <TableCell key={data.id} className={cellClass}>
+                                                {metric.format ? metric.format(value) : value}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            )})}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        </DialogContent>
+    );
+};
+
 
 export default function ScenarioSimulationPage() {
     const [selectedScenarioId, setSelectedScenarioId] = useState<ScenarioId>('base');
@@ -566,16 +706,12 @@ export default function ScenarioSimulationPage() {
                 </Select>
             </div>
              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" disabled>Compare Scenarios</Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Coming Soon</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
+                <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Compare Scenarios</Button>
+                    </DialogTrigger>
+                    <ScenarioComparisonDialog funds={funds} />
+                </Dialog>
             </div>
         </CardContent>
       </Card>
