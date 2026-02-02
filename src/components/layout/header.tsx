@@ -28,7 +28,7 @@ import { usePortfolioContext } from './app-layout';
 import { useState, useEffect } from 'react';
 
 const navItems = [
-  { href: '/portfolio-growth', label: 'Portfolio Growth', icon: TrendingUp },
+  { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
   { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
 ];
 
