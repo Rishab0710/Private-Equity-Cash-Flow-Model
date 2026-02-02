@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -260,7 +261,6 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
     const endingValue = navProjection[navProjection.length - 1]?.nav || 0;
     const totalGrowth = totalCommitment > 0 ? endingValue / totalCommitment : 0;
     
-    // Make sure there is always a visible funding gap in stress scenarios for the demo
     const peakGap = Math.max(0, ...liquidityForecast.map(l => l.fundingGap));
     const simulatedPeakPressure = Math.max(Math.abs(kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
 
@@ -650,7 +650,6 @@ export default function ScenarioSimulationPage() {
 
     useEffect(() => {
         setIsLoading(true);
-        // Use a timeout to simulate network latency for a better loading state experience
         const timer = setTimeout(() => {
             if (selectedScenarioId) {
                 const { scenario, factors } = scenarioFactorsMapping[selectedScenarioId];
@@ -710,11 +709,8 @@ export default function ScenarioSimulationPage() {
 
       {selectedScenario && (
         <Card>
-            <CardHeader>
-                <CardTitle className="text-base font-semibold">Implications & Assumptions</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+             <CardContent className="pt-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <Card className="p-3 bg-muted/30">
                         <h4 className="text-sm font-semibold mb-1">Growth Implication</h4>
                         <p className="text-xs text-muted-foreground">{selectedScenario.implications.growth}</p>
@@ -752,6 +748,3 @@ export default function ScenarioSimulationPage() {
   );
 }
 
-  
-
-    
