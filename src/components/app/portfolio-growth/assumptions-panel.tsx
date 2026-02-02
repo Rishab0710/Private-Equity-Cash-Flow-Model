@@ -51,6 +51,16 @@ export function AssumptionsPanel({
         })
         .sort((a, b) => b.value - a.value);
 
+    const handleCurrencyChange = (setter: (value: number) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const numericValue = parseFloat(e.target.value.replace(/[^0-9.-]+/g, ''));
+        if (!isNaN(numericValue)) {
+            setter(numericValue);
+        } else if (e.target.value === '' || e.target.value === '$') {
+            setter(0);
+        }
+    };
+
+
     return (
         <div className="space-y-6">
             <div className="divide-y divide-border rounded-lg border p-2">
@@ -69,15 +79,25 @@ export function AssumptionsPanel({
                 <div className="flex justify-between items-center py-1.5">
                     <Label htmlFor="annual-contribution" className="text-xs font-normal">Annual Contribution</Label>
                     <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
-                        <Input id="annual-contribution" type="number" value={annualContribution} onChange={e => setAnnualContribution(Number(e.target.value))} className="h-7 w-36 pl-7 text-xs text-left" />
+                        <Input 
+                            id="annual-contribution" 
+                            type="text" 
+                            value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(annualContribution)} 
+                            onChange={handleCurrencyChange(setAnnualContribution)}
+                            className="h-7 w-36 pl-3 text-xs text-left"
+                        />
                     </div>
                 </div>
                  <div className="flex justify-between items-center py-1.5">
                     <Label htmlFor="annual-withdrawal" className="text-xs font-normal">Annual Withdrawal</Label>
                     <div className="relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground text-xs">$</span>
-                        <Input id="annual-withdrawal" type="number" value={annualWithdrawal} onChange={e => setAnnualWithdrawal(Number(e.target.value))} className="h-7 w-36 pl-7 text-xs text-left" />
+                         <Input 
+                            id="annual-withdrawal" 
+                            type="text" 
+                            value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(annualWithdrawal)} 
+                            onChange={handleCurrencyChange(setAnnualWithdrawal)}
+                            className="h-7 w-36 pl-3 text-xs text-left"
+                        />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5">

@@ -163,8 +163,8 @@ export default function PortfolioGrowthPage() {
                 newStartingBalance = selectedFund?.latestNav ?? 0;
             }
             setStartingBalance(newStartingBalance);
-            setAnnualContribution(newStartingBalance * 0.05);
-            setAnnualWithdrawal(newStartingBalance * 0.03);
+            setAnnualContribution(Math.round(newStartingBalance * 0.05));
+            setAnnualWithdrawal(Math.round(newStartingBalance * 0.03));
         }
     }, [fundId, funds]);
 
@@ -321,6 +321,7 @@ export default function PortfolioGrowthPage() {
     
 
     
+
 
 
 
