@@ -177,66 +177,92 @@ const MetricRow = ({
         stdev: string;
         allocation: { label: string; value: string; percentage: string }[];
     }
-}) => (
-    <div className={cn(
-        "grid items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md",
-        likelihood ? "grid-cols-[1fr_1.2fr_1.2fr_auto]" : "grid-cols-[1fr_1fr_auto]"
-    )}>
-        <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
-        
-        <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
+}) => {
+    const totalValue = details?.allocation.reduce((sum, item) => {
+        const numeric = parseFloat(item.value.replace(/[^0-9.-]+/g,""));
+        return sum + (isNaN(numeric) ? 0 : numeric);
+    }, 0) || 0;
 
-        {likelihood && (
-            <p className="text-[10px] text-black font-medium text-center">{likelihood}</p>
-        )}
+    const totalPercentage = details?.allocation.reduce((sum, item) => {
+        const numeric = parseFloat(item.percentage);
+        return sum + (isNaN(numeric) ? 0 : numeric);
+    }, 0) || 0;
 
-        <div className="flex justify-end">
-            {details && (
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-5 w-5 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group-hover:scale-110 shadow-sm"
-                        >
-                            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                        <DialogHeader>
-                            <DialogTitle className="text-highlight uppercase text-sm font-bold tracking-tight">
-                                {details.title} - Model Assumptions
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 pt-2">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 bg-muted/50 rounded-lg border">
-                                    <p className="text-[10px] font-bold text-black/60 uppercase">Expected Return</p>
-                                    <p className="text-lg font-bold text-black">{details.rate}</p>
-                                </div>
-                                <div className="p-3 bg-muted/50 rounded-lg border">
-                                    <p className="text-[10px] font-bold text-black/60 uppercase">Vol (StDev)</p>
-                                    <p className="text-lg font-bold text-black">{details.stdev}</p>
-                                </div>
-                            </div>
-                            <div className="rounded-lg border overflow-hidden">
-                                <div className="bg-muted/30 px-3 py-2 text-[10px] font-bold text-black uppercase border-b tracking-widest">Asset Allocation Details</div>
-                                <div className="divide-y divide-border text-[11px] bg-white">
-                                    {details.allocation.map((item, i) => (
-                                        <div key={i} className="flex justify-between p-2.5">
-                                            <span className="font-medium text-black/70">{item.label}</span>
-                                            <span className="font-bold text-black">{item.value} <span className="text-black/50 ml-1 font-medium">({item.percentage})</span></span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+    return (
+        <div className={cn(
+            "grid items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md",
+            likelihood ? "grid-cols-[1fr_1.2fr_1.2fr_auto]" : "grid-cols-[1fr_1fr_auto]"
+        )}>
+            <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
+            
+            <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
+
+            {likelihood && (
+                <p className="text-[10px] text-black font-medium text-center">{likelihood}</p>
             )}
+
+            <div className="flex justify-end">
+                {details && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-5 w-5 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group-hover:scale-110 shadow-sm"
+                            >
+                                <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                            <DialogHeader>
+                                <DialogTitle className="text-highlight uppercase text-sm font-bold tracking-tight">
+                                    {details.title} - Model Assumptions
+                                </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-2">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 bg-muted/50 rounded-lg border">
+                                        <p className="text-[10px] font-bold text-black/60 uppercase">Expected Return</p>
+                                        <p className="text-lg font-bold text-black">{details.rate}</p>
+                                    </div>
+                                    <div className="p-3 bg-muted/50 rounded-lg border">
+                                        <p className="text-[10px] font-bold text-black/60 uppercase">Vol (StDev)</p>
+                                        <p className="text-lg font-bold text-black">{details.stdev}</p>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg border overflow-hidden">
+                                    <div className="bg-muted/30 px-3 py-2 text-[10px] font-bold text-black uppercase border-b tracking-widest">Asset Allocation Details</div>
+                                    
+                                    <div className="grid grid-cols-[1.5fr_1fr_1fr] px-3 py-2 bg-muted/20 border-b">
+                                        <span className="text-[9px] font-bold text-black/60 uppercase">Asset Class</span>
+                                        <span className="text-[9px] font-bold text-black/60 uppercase text-right">Value</span>
+                                        <span className="text-[9px] font-bold text-black/60 uppercase text-right">Target %</span>
+                                    </div>
+
+                                    <div className="divide-y divide-border text-[11px] bg-white">
+                                        {details.allocation.map((item, i) => (
+                                            <div key={i} className="grid grid-cols-[1.5fr_1fr_1fr] p-2.5">
+                                                <span className="font-medium text-black/70">{item.label}</span>
+                                                <span className="font-bold text-black text-right">{item.value}</span>
+                                                <span className="font-medium text-black/50 text-right">{item.percentage}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="grid grid-cols-[1.5fr_1fr_1fr] px-3 py-2 bg-muted/10 border-t font-bold text-[11px]">
+                                        <span className="text-black uppercase">Total</span>
+                                        <span className="text-black text-right">{formatCurrency(totalValue)}</span>
+                                        <span className="text-black text-right">{totalPercentage.toFixed(2)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default function PortfolioGrowthPage() {
     const { fundId, setFundId, funds, portfolioData } = usePortfolioContext();
