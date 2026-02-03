@@ -99,7 +99,7 @@ export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
     const [isCompareDrawerOpen, setCompareDrawerOpen] = useState(false);
 
     const handleCompare = () => {
-        if (selectedSets.length >= 2) {
+        if (selectedSets.length >= 2 && selectedSets.length <= 3) {
             setCompareDrawerOpen(true);
         }
     }
@@ -113,7 +113,15 @@ export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
 
     const handleCheckboxChange = (setId: number, checked: boolean | 'indeterminate') => {
         if (checked) {
-            setSelectedSets(prev => [...prev, setId]);
+            if (selectedSets.length < 3) {
+                setSelectedSets(prev => [...prev, setId]);
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Limit Reached",
+                    description: "You can only compare a maximum of 3 sets at once.",
+                });
+            }
         } else {
             setSelectedSets(prev => prev.filter(id => id !== setId));
         }
@@ -131,14 +139,14 @@ export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
                     <div>
                         <DialogTitle className="text-lg text-highlight font-bold uppercase tracking-tight">Saved Assumption Sets</DialogTitle>
                         <DialogDescription className="text-xs text-black font-medium mt-1">
-                            Browse and manage your portfolio assumption models.
+                            Browse and manage your portfolio assumption models. (Select up to 3 for comparison)
                         </DialogDescription>
                     </div>
                     <Button 
                         size="sm" 
                         className="h-8 text-[11px] px-4 bg-primary text-white font-bold" 
                         onClick={handleCompare} 
-                        disabled={selectedSets.length < 2}
+                        disabled={selectedSets.length < 2 || selectedSets.length > 3}
                     >
                         <Layers className="h-3.5 w-3.5 mr-2" />
                         Compare Selected ({selectedSets.length})
@@ -168,6 +176,7 @@ export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
                                             <Checkbox 
                                                 onCheckedChange={(checked) => handleCheckboxChange(set.id, checked)}
                                                 checked={selectedSets.includes(set.id)}
+                                                disabled={!selectedSets.includes(set.id) && selectedSets.length >= 3}
                                                 className="h-3.5 w-3.5 border-black/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                             />
                                         </TableCell>
