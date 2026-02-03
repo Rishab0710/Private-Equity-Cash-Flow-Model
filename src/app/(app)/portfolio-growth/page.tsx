@@ -148,10 +148,10 @@ const MetricRow = ({
         allocation: { label: string; value: string; percentage: string }[];
     }
 }) => (
-    <div className="grid grid-cols-[1fr_1fr_auto] items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md">
-        <p className="text-[11px] font-medium text-black uppercase tracking-tight">{label}</p>
+    <div className="grid grid-cols-[1fr_1fr_auto] items-center py-1 px-3 group hover:bg-muted/30 transition-colors rounded-md">
+        <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
         
-        <p className={cn("text-xs font-medium text-right pr-4", valueClassName)}>{value}</p>
+        <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
 
         <div className="flex justify-center w-8">
             {details && (
@@ -160,9 +160,9 @@ const MetricRow = ({
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-6 w-6 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group-hover:scale-110 shadow-sm"
+                            className="h-5 w-5 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group-hover:scale-110 shadow-sm"
                         >
-                            <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+                            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
@@ -361,14 +361,14 @@ export default function PortfolioGrowthPage() {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-highlight uppercase tracking-widest">Portfolio Risk Profile</div>
+                                <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest">Portfolio Risk Profile</div>
                                 <div className="space-y-0.5 py-1">
                                     <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
                                     <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                                 </div>
                             </div>
                             <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-highlight uppercase tracking-widest">Potential Wealth Outlook</div>
+                                <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest">Potential Wealth Outlook</div>
                                 <div className="space-y-0.5 py-1">
                                     <MetricRow 
                                         label="Conservative" 
