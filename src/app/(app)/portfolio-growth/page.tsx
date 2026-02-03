@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 import { cn } from '@/lib/utils';
-import { Info } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -148,14 +148,19 @@ const MetricRow = ({
         allocation: { label: string; value: string; percentage: string }[];
     }
 }) => (
-    <div className="flex justify-between items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md">
-        <div className="flex items-center gap-2">
-            <p className="text-[11px] font-bold text-black uppercase tracking-tight">{label}</p>
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md">
+        <p className="text-[11px] font-bold text-black uppercase tracking-tight">{label}</p>
+        
+        <div className="flex justify-center w-10">
             {details && (
                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-4 w-4 opacity-40 hover:opacity-100 transition-opacity">
-                            <Info className="h-3.5 w-3.5 text-primary" />
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group-hover:scale-110 shadow-sm"
+                        >
+                            <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
@@ -191,7 +196,8 @@ const MetricRow = ({
                 </Dialog>
             )}
         </div>
-        <p className={cn("text-xs font-bold", valueClassName)}>{value}</p>
+
+        <p className={cn("text-xs font-bold text-right", valueClassName)}>{value}</p>
     </div>
 );
 
