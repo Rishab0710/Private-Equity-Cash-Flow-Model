@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
+import { funds } from '@/lib/data';
 import type { ComparisonSet } from '@/components/app/assumptions-studio/compare-drawer';
 
 const generateAssumptionData = (params: any) => {
@@ -168,6 +169,43 @@ export default function AssumptionsStudioPage() {
     }, [dpiTarget, rvpiTarget]);
 
     useEffect(() => {
+        if (fundId === 'all') {
+            setInvestmentPeriod(5);
+            setDeploymentPacing('balanced');
+            setJCurveDepth('moderate');
+            setDpiTarget(1.5);
+            setRvpiTarget(0.7);
+            setMoicTarget(2.1);
+        } else {
+            const fund = funds.find(f => f.id === fundId);
+            if (fund) {
+                if (fund.strategy === 'VC') {
+                    setInvestmentPeriod(4);
+                    setDeploymentPacing('front-loaded');
+                    setJCurveDepth('deep');
+                    setDpiTarget(0.8);
+                    setRvpiTarget(2.7);
+                    setMoicTarget(3.5);
+                } else if (fund.strategy === 'Infra') {
+                    setInvestmentPeriod(7);
+                    setDeploymentPacing('balanced');
+                    setJCurveDepth('shallow');
+                    setDpiTarget(1.1);
+                    setRvpiTarget(0.7);
+                    setMoicTarget(1.8);
+                } else {
+                    setInvestmentPeriod(fund.investmentPeriod || 5);
+                    setDeploymentPacing('balanced');
+                    setJCurveDepth('moderate');
+                    setDpiTarget(1.6);
+                    setRvpiTarget(0.6);
+                    setMoicTarget(2.2);
+                }
+            }
+        }
+    }, [fundId]);
+
+    useEffect(() => {
         const data = generateAssumptionData({
             investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
             distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
@@ -180,10 +218,11 @@ export default function AssumptionsStudioPage() {
     ]);
 
     const handleSaveSet = () => {
+        const fundName = fundId === 'all' ? 'Portfolio Composite' : (funds.find(f => f.id === fundId)?.name || 'Custom Fund');
         const newSet: ComparisonSet = {
             id: savedSets.length + 1,
-            name: `Simulation - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-            strategy: 'Custom Model',
+            name: `${fundName} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            strategy: fundId === 'all' ? 'Mixed' : (funds.find(f => f.id === fundId)?.strategy || 'Custom'),
             vintage: 2024,
             commitment: 100,
             updatedBy: 'QA1 Guest',
