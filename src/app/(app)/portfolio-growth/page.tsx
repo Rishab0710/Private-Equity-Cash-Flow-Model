@@ -135,11 +135,13 @@ const formatCurrency = (value: number) => {
 const MetricRow = ({ 
     label, 
     value, 
+    likelihood,
     valueClassName,
     details
 }: { 
     label: string, 
     value: string | number, 
+    likelihood?: string,
     valueClassName?: string,
     details?: {
         title: string;
@@ -148,10 +150,17 @@ const MetricRow = ({
         allocation: { label: string; value: string; percentage: string }[];
     }
 }) => (
-    <div className="grid grid-cols-[1fr_1.2fr_auto] items-center py-1 px-3 group hover:bg-muted/30 transition-colors rounded-md">
+    <div className={cn(
+        "grid items-center py-1 px-3 group hover:bg-muted/30 transition-colors rounded-md",
+        likelihood ? "grid-cols-[1.2fr_1.2fr_1fr_auto]" : "grid-cols-[1fr_1fr_auto]"
+    )}>
         <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
         
         <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
+
+        {likelihood && (
+            <p className="text-[10px] text-black/60 font-medium text-center">{likelihood}</p>
+        )}
 
         <div className="flex justify-center">
             {details && (
@@ -362,7 +371,7 @@ export default function PortfolioGrowthPage() {
                     />
                 </div>
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.2fr] gap-6">
                         <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
                             <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Portfolio Risk Profile</div>
                             <div className="space-y-0.5 py-1">
@@ -376,6 +385,7 @@ export default function PortfolioGrowthPage() {
                                 <MetricRow 
                                     label="Conservative" 
                                     value={formatCurrency(potentialWealth.conservative)} 
+                                    likelihood={likelihoods.conservative}
                                     valueClassName="text-chart-3" 
                                     details={{
                                         title: "Conservative Outlook",
@@ -387,6 +397,7 @@ export default function PortfolioGrowthPage() {
                                 <MetricRow 
                                     label="Moderate" 
                                     value={formatCurrency(potentialWealth.moderate)} 
+                                    likelihood={likelihoods.moderate}
                                     valueClassName="text-chart-1" 
                                     details={{
                                         title: "Moderate Outlook",
@@ -398,6 +409,7 @@ export default function PortfolioGrowthPage() {
                                 <MetricRow 
                                     label="Aggressive" 
                                     value={formatCurrency(potentialWealth.aggressive)} 
+                                    likelihood={likelihoods.aggressive}
                                     valueClassName="text-chart-2" 
                                     details={{
                                         title: "Aggressive Outlook",
