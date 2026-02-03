@@ -40,7 +40,7 @@ const SummaryMetric = ({
     return (
         <div className="flex flex-col items-center justify-center p-3 text-center bg-muted/50 rounded-lg h-full border border-black/5">
             <p className="text-[10px] font-bold text-black uppercase tracking-wider mb-1">{label}</p>
-            <p className={cn("text-base font-black leading-none", valueColor)}>{value}</p>
+            <p className={cn("text-base font-bold leading-none", valueColor)}>{value}</p>
             {subValue && <p className="text-[10px] font-medium text-black mt-1 opacity-70">{subValue}</p>}
         </div>
     );
@@ -85,6 +85,9 @@ export function SummaryOutputs({ data }: { data: any | null }) {
         return 'negative';
     };
 
+    const totalCommitment = data.totalCapitalCalled + data.remainingUnfunded;
+    const unfundedPercentage = totalCommitment > 0 ? ((data.remainingUnfunded / totalCommitment) * 100).toFixed(1) : "0.0";
+
     return (
         <Card className="bg-white border-black/10">
             <CardContent className="pt-4">
@@ -92,7 +95,7 @@ export function SummaryOutputs({ data }: { data: any | null }) {
                     <SummaryMetric 
                         label="Total Called" 
                         value={formatCurrency(data.totalCapitalCalled)} 
-                        subValue="Simulated Deployment" 
+                        subValue={`${unfundedPercentage}% Unfunded`} 
                     />
                     <SummaryMetric 
                         label="Total Dists" 
