@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { AssumptionSets } from "@/components/app/assumptions-studio/assumption-sets";
@@ -88,7 +87,6 @@ const generateAssumptionData = (params: any) => {
             maxNavYear = year;
         }
 
-        // IRR Simulation for multi-series chart
         let irr = 0;
         if (year > 0) {
             const bottomYear = 2;
@@ -100,7 +98,6 @@ const generateAssumptionData = (params: any) => {
             }
         }
         
-        // Simulated benchmark deviations
         const irrBenchmark1 = year === 0 ? 0 : irr * 0.85 + (Math.sin(year) * 2);
         const irrBenchmark2 = year === 0 ? 0 : irr * 1.15 - (Math.cos(year) * 3);
         const irrBenchmark3 = year === 0 ? 0 : irr * 0.7 - 5;
@@ -191,6 +188,7 @@ export default function AssumptionsStudioPage() {
             </div>
             <div className="flex items-center gap-2">
                 <Button variant="default" className="h-7 px-3 text-[10px] bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
+                <AssumptionSets />
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>
@@ -234,8 +232,6 @@ export default function AssumptionsStudioPage() {
             tvpiTarget={tvpiTarget} 
         />
       </div>
-
-      <AssumptionSets />
     </div>
   );
 }
