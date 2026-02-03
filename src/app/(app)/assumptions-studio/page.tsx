@@ -5,13 +5,13 @@ import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-t
 import { JCurvePreview } from "@/components/app/assumptions-studio/j-curve-preview";
 import { JCurveShapeControls } from "@/components/app/assumptions-studio/j-curve-shape-controls";
 import { MultiplesAssumptions } from "@/components/app/assumptions-studio/multiples-assumptions";
-import { NotesTagging } from "@/components/app/assumptions-studio/notes-tagging";
+import { NarrativeInsights } from "@/components/app/assumptions-studio/narrative-insights";
+import { NextStepsRecommendations } from "@/components/app/assumptions-studio/recommendations";
 import { SummaryOutputs } from "@/components/app/assumptions-studio/summary-outputs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 
-// Mappings from qualitative inputs to quantitative model factors
 const generateAssumptionData = (params: any) => {
     const {
         investmentPeriod,
@@ -26,23 +26,14 @@ const generateAssumptionData = (params: any) => {
     } = params;
     
     const fundLife = 15;
-    const commitment = 100; // Normalized to 100 for percentage-based storytelling
+    const commitment = 100;
     
-    // 1. Deployment Logic
-    const pacingFactor = { 'front-loaded': 1.4, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
-    
-    // 2. Growth/Value Creation Logic
     const depthFactor = { 'shallow': 0.7, 'moderate': 1, 'deep': 1.4 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
-    
-    // 3. Distribution Logic
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
     const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
     
-    // Scale distribution speed based on both the manual control and the DPI target
     const dpiScaling = dpiTarget / 1.5;
     const distSpeedFactor = ({ 'slow': 0.7, 'normal': 1, 'fast': 1.4 }[distributionSpeed as keyof typeof distributionSpeed] || 1) * dpiScaling;
-    
-    // Scale overall returns based on TVPI target
     const returnScaling = tvpiTarget / 2.2;
 
     let jCurveData = [];
@@ -53,30 +44,21 @@ const generateAssumptionData = (params: any) => {
     let cumulativeNet = 0;
 
     for (let year = 0; year <= fundLife; year++) {
-        // --- Capital Calls ---
         let call = 0;
         if (year > 0 && year <= investmentPeriod && unfunded > 0) {
             const baseCall = commitment / investmentPeriod;
             const progress = (year - 1) / investmentPeriod;
-            const pacingAdjustment = deploymentPacing === 'front-loaded' 
-                ? (2 * (1 - progress)) 
-                : (deploymentPacing === 'back-loaded' ? (2 * progress) : 1);
-            
+            const pacingAdjustment = deploymentPacing === 'front-loaded' ? (2 * (1 - progress)) : (deploymentPacing === 'back-loaded' ? (2 * progress) : 1);
             call = Math.min(unfunded, baseCall * pacingAdjustment);
         }
         unfunded -= call;
         totalCalls += call;
 
-        // --- NAV Growth & J-Curve Effect ---
-        // J-curve depth affects early markdowns
         const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
-        
-        // Growth scales by returnScaling. Late stage growth influenced by RVPI target.
         const lateStageGrowthAdj = year > 10 ? (rvpiTarget / 0.7) : 1;
         const baseGrowth = (year > 2 && year < 10) ? (0.18 * returnScaling) : (0.05 * lateStageGrowthAdj);
         const growth = nav * baseGrowth + (jCurveEffect * call);
         
-        // --- Distributions ---
         let distribution = 0;
         const distributionStartYear = Math.max(3, 6 + distStartAdj + breakevenAdj);
         if (year >= distributionStartYear && nav > 0) {
@@ -109,24 +91,23 @@ const generateAssumptionData = (params: any) => {
 
     const endingNav = nav;
     const finalTvpi = totalCalls > 0 ? (totalDists + endingNav) / totalCalls : 0;
-    
     const breakevenPoint = jCurveData.find(d => d.cumulativeNet > 0);
-    const breakevenTiming = breakevenPoint ? `Year ${breakevenPoint.year.split(' ')[1]}` : `Year ${fundLife}+`;
+    const breakevenTiming = breakevenPoint ? `Year ${breakevenPoint.year.split(' ')[1]}` : `Year 15+`;
 
-    const summaryOutputs = {
-        totalCapitalCalled: totalCalls,
-        totalDistributions: totalDists,
-        endingNav: endingNav,
-        tvpi: finalTvpi,
-        breakevenTiming,
+    return { 
+        jCurveData, 
+        summaryOutputs: {
+            totalCapitalCalled: totalCalls,
+            totalDistributions: totalDists,
+            endingNav: endingNav,
+            tvpi: finalTvpi,
+            breakevenTiming,
+        }
     };
-    
-    return { jCurveData, summaryOutputs };
 };
 
 export default function AssumptionsStudioPage() {
     const [fundId, setFundId] = useState('all');
-    
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
     const [jCurveDepth, setJCurveDepth] = useState('moderate');
@@ -142,27 +123,15 @@ export default function AssumptionsStudioPage() {
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
 
-    // Dynamic linkage: TVPI = DPI + RVPI
-    // This allows the user to see how component changes impact the total target
     useEffect(() => {
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
-        if (calculatedTvpi !== tvpiTarget) {
-            setTvpiTarget(calculatedTvpi);
-        }
+        if (calculatedTvpi !== tvpiTarget) setTvpiTarget(calculatedTvpi);
     }, [dpiTarget, rvpiTarget]);
 
     useEffect(() => {
         const data = generateAssumptionData({
-            investmentPeriod,
-            deploymentPacing,
-            jCurveDepth,
-            timeToBreakeven,
-            distributionStart,
-            distributionSpeed,
-            tvpiTarget,
-            moicTarget,
-            dpiTarget,
-            rvpiTarget
+            investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+            distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
@@ -174,17 +143,17 @@ export default function AssumptionsStudioPage() {
   return (
     <div className="space-y-6">
       <Card className="bg-white border-black/10">
-        <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
+        <CardContent className="pt-4 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase">
                     J-Curve & Multiples Assumptions
                 </h1>
-                <p className="text-xs text-black font-black">
+                <p className="text-xs text-black font-medium">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-black">Save Assumption Set</Button>
+                <Button size="sm" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>
@@ -206,7 +175,18 @@ export default function AssumptionsStudioPage() {
             dpiTarget={dpiTarget} setDpiTarget={setDpiTarget}
             rvpiTarget={rvpiTarget} setRvpiTarget={setRvpiTarget}
           />
-          <NotesTagging />
+          <div className="space-y-6">
+            <NarrativeInsights 
+                jCurveDepth={jCurveDepth} 
+                distributionSpeed={distributionSpeed} 
+                tvpiTarget={tvpiTarget} 
+            />
+            <NextStepsRecommendations 
+                jCurveDepth={jCurveDepth} 
+                distributionSpeed={distributionSpeed} 
+                tvpiTarget={tvpiTarget} 
+            />
+          </div>
         </div>
 
         <div className="lg:col-span-2 space-y-6">
