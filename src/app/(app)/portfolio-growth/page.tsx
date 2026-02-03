@@ -148,12 +148,12 @@ const MetricRow = ({
         allocation: { label: string; value: string; percentage: string }[];
     }
 }) => (
-    <div className="grid grid-cols-[1fr_1fr_auto] items-center py-1 px-3 group hover:bg-muted/30 transition-colors rounded-md">
+    <div className="grid grid-cols-[1fr_1.2fr_auto] items-center py-1 px-3 group hover:bg-muted/30 transition-colors rounded-md">
         <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
         
         <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
 
-        <div className="flex justify-center w-8">
+        <div className="flex justify-center">
             {details && (
                 <Dialog>
                     <DialogTrigger asChild>
@@ -217,6 +217,12 @@ export default function PortfolioGrowthPage() {
         meanRateOfReturn: 8.50,
         standardDeviation: 14.50,
     });
+
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (funds && funds.length > 0) {
@@ -290,30 +296,28 @@ export default function PortfolioGrowthPage() {
     }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, fundId, funds]);
 
 
-    if (!chartData || !potentialWealth || !likelihoods || !portfolioData) {
+    if (!mounted || !chartData || !potentialWealth || !likelihoods || !portfolioData) {
         return (
             <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <Skeleton className="h-7 w-80 max-w-full" />
                     <Skeleton className="h-9 w-[200px]" />
                 </div>
-                <Card className="border-black/10">
-                    <CardContent className="pt-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-1 space-y-4">
-                                <Skeleton className="h-48 w-full" />
-                                <Skeleton className="h-64 w-full" />
-                            </div>
-                            <div className="lg:col-span-2 space-y-4">
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Skeleton className="h-24 w-full" />
-                                    <Skeleton className="h-24 w-full" />
-                                </div>
-                                <Skeleton className="h-[350px] w-full" />
-                            </div>
+                <div className="pt-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-1 space-y-4">
+                            <Skeleton className="h-48 w-full" />
+                            <Skeleton className="h-64 w-full" />
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className="lg:col-span-2 space-y-4">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                            <Skeleton className="h-[350px] w-full" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -341,76 +345,74 @@ export default function PortfolioGrowthPage() {
                 onFundChange={setFundId}
             />
         </div>
-       <Card className="border-black/10">
-            <CardContent className="pt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-1">
-                        <AssumptionsPanel 
-                            assumptions={staticAssumptions} 
-                            startingBalance={startingBalance}
-                            annualContribution={annualContribution}
-                            setAnnualContribution={setAnnualContribution}
-                            annualWithdrawal={annualWithdrawal}
-                            setAnnualWithdrawal={setAnnualWithdrawal}
-                            annualIncrease={annualIncrease}
-                            setAnnualIncrease={setAnnualIncrease}
-                            investmentPeriod={investmentPeriod}
-                            setInvestmentPeriod={setInvestmentPeriod}
-                        />
-                    </div>
-                    <div className="lg:col-span-2 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest">Portfolio Risk Profile</div>
-                                <div className="space-y-0.5 py-1">
-                                    <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
-                                    <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
-                                </div>
-                            </div>
-                            <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest">Potential Wealth Outlook</div>
-                                <div className="space-y-0.5 py-1">
-                                    <MetricRow 
-                                        label="Conservative" 
-                                        value={formatCurrency(potentialWealth.conservative)} 
-                                        valueClassName="text-chart-3" 
-                                        details={{
-                                            title: "Conservative Outlook",
-                                            rate: `${(portfolioMetrics.meanRateOfReturn - 3.5).toFixed(2)}%`,
-                                            stdev: `${(portfolioMetrics.standardDeviation * 0.35).toFixed(2)}%`,
-                                            allocation: getAllocationDetails()
-                                        }}
-                                    />
-                                    <MetricRow 
-                                        label="Moderate" 
-                                        value={formatCurrency(potentialWealth.moderate)} 
-                                        valueClassName="text-chart-1" 
-                                        details={{
-                                            title: "Moderate Outlook",
-                                            rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
-                                            stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
-                                            allocation: getAllocationDetails()
-                                        }}
-                                    />
-                                    <MetricRow 
-                                        label="Aggressive" 
-                                        value={formatCurrency(potentialWealth.aggressive)} 
-                                        valueClassName="text-chart-2" 
-                                        details={{
-                                            title: "Aggressive Outlook",
-                                            rate: `${(portfolioMetrics.meanRateOfReturn + 2.5).toFixed(2)}%`,
-                                            stdev: `${(portfolioMetrics.standardDeviation * 1.4).toFixed(2)}%`,
-                                            allocation: getAllocationDetails()
-                                        }}
-                                    />
-                                </div>
+       <div className="pt-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-1">
+                    <AssumptionsPanel 
+                        assumptions={staticAssumptions} 
+                        startingBalance={startingBalance}
+                        annualContribution={annualContribution}
+                        setAnnualContribution={setAnnualContribution}
+                        annualWithdrawal={annualWithdrawal}
+                        setAnnualWithdrawal={setAnnualWithdrawal}
+                        annualIncrease={annualIncrease}
+                        setAnnualIncrease={setAnnualIncrease}
+                        investmentPeriod={investmentPeriod}
+                        setInvestmentPeriod={setInvestmentPeriod}
+                    />
+                </div>
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
+                            <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Portfolio Risk Profile</div>
+                            <div className="space-y-0.5 py-1">
+                                <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
+                                <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                             </div>
                         </div>
-                        <GrowthChart data={chartData} likelihoods={likelihoods} />
+                        <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
+                            <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Potential Wealth Outlook</div>
+                            <div className="space-y-0.5 py-1">
+                                <MetricRow 
+                                    label="Conservative" 
+                                    value={formatCurrency(potentialWealth.conservative)} 
+                                    valueClassName="text-chart-3" 
+                                    details={{
+                                        title: "Conservative Outlook",
+                                        rate: `${(portfolioMetrics.meanRateOfReturn - 3.5).toFixed(2)}%`,
+                                        stdev: `${(portfolioMetrics.standardDeviation * 0.35).toFixed(2)}%`,
+                                        allocation: getAllocationDetails()
+                                    }}
+                                />
+                                <MetricRow 
+                                    label="Moderate" 
+                                    value={formatCurrency(potentialWealth.moderate)} 
+                                    valueClassName="text-chart-1" 
+                                    details={{
+                                        title: "Moderate Outlook",
+                                        rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
+                                        stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
+                                        allocation: getAllocationDetails()
+                                    }}
+                                />
+                                <MetricRow 
+                                    label="Aggressive" 
+                                    value={formatCurrency(potentialWealth.aggressive)} 
+                                    valueClassName="text-chart-2" 
+                                    details={{
+                                        title: "Aggressive Outlook",
+                                        rate: `${(portfolioMetrics.meanRateOfReturn + 2.5).toFixed(2)}%`,
+                                        stdev: `${(portfolioMetrics.standardDeviation * 1.4).toFixed(2)}%`,
+                                        allocation: getAllocationDetails()
+                                    }}
+                                />
+                            </div>
+                        </div>
                     </div>
+                    <GrowthChart data={chartData} likelihoods={likelihoods} />
                 </div>
-            </CardContent>
-       </Card>
+            </div>
+       </div>
     </div>
   );
 }

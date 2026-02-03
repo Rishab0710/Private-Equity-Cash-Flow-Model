@@ -49,7 +49,7 @@ const CustomLegend = (props: any) => {
 
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
-      <div className="h-[400px] w-full pt-4">
+      <div className="h-[400px] w-full pt-4 border border-black/10 rounded-lg p-4 bg-white shadow-sm">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <LineChart
                 data={data}
