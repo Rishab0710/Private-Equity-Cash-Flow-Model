@@ -274,8 +274,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         const liqDataPoint = liquidityForecast.find(ld => ld.date === cf.date);
         return { 
             date: cf.date,
-            contribution: cf.capitalCall, 
-            withdrawal: -cf.distribution, 
+            contribution: -cf.capitalCall, 
+            withdrawal: cf.distribution, 
             nav: navDataPoint?.nav,
             liquidityBalance: liqDataPoint?.liquidityBalance,
         };
@@ -323,8 +323,8 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
                         />
                         <Legend formatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label || value} />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
-                        <Bar yAxisId="left" dataKey="contribution" name="contribution" fill="var(--color-contribution)" stackId="stack" radius={[2, 2, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="withdrawal" name="withdrawal" fill="var(--color-withdrawal)" stackId="stack" />
+                        <Bar yAxisId="left" dataKey="withdrawal" name="withdrawal" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="contribution" name="contribution" fill="var(--color-contribution)" stackId="stack" radius={[0, 0, 2, 2]} />
                         <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
                         <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
                     </ComposedChart>
