@@ -15,17 +15,85 @@ import {
 } from "@/components/ui/dialog";
 import { MoreHorizontal, PlayCircle, Layers } from "lucide-react";
 import { useState } from "react";
-import { CompareDrawer } from "./compare-drawer";
+import { CompareDrawer, type ComparisonSet } from "./compare-drawer";
 import { useToast } from "@/hooks/use-toast";
 
-export const initialSets = [
-    { id: 1, fund: 'Growth Equity Fund V', strategy: 'Growth PE', vintage: 2021, commitment: 100, updatedBy: 'Sarah J.', updated: '2 days ago', status: 'Active' },
-    { id: 2, fund: 'Venture Partners II', strategy: 'Venture Capital', vintage: 2022, commitment: 50, updatedBy: 'Mark T.', updated: '1 month ago', status: 'Draft' },
-    { id: 3, fund: 'Global Infrastructure Fund', strategy: 'Infrastructure', vintage: 2020, commitment: 250, updatedBy: 'Elena R.', updated: '3 weeks ago', status: 'Draft' },
-    { id: 4, fund: 'Buyout Leaders IV', strategy: 'Buyout PE', vintage: 2019, commitment: 150, updatedBy: 'John D.', updated: '1 day ago', status: 'Active' },
+export const initialSets: ComparisonSet[] = [
+    { 
+        id: 1, 
+        name: 'Growth Equity Fund V', 
+        strategy: 'Growth PE', 
+        vintage: 2021, 
+        commitment: 100, 
+        updatedBy: 'Sarah J.', 
+        updated: '2 days ago', 
+        status: 'Active', 
+        source: 'House Template',
+        data: {
+            shape: { depth: 'Moderate', breakeven: 'Year 5', distStart: 'Year 4' },
+            multiples: { tvpi: '2.56x', dpi: '1.20x', rvpi: '1.36x' },
+            risk: { volatility: 'Moderate (14%)', gapRisk: 'Low' },
+            rationale: 'Models mid-cycle growth deployment with steady capital appreciation.',
+            notes: 'Optimized for North American growth equity market conditions. Includes secondary sale buffer.'
+        }
+    },
+    { 
+        id: 2, 
+        name: 'Venture Partners II', 
+        strategy: 'Venture Capital', 
+        vintage: 2022, 
+        commitment: 50, 
+        updatedBy: 'Mark T.', 
+        updated: '1 month ago', 
+        status: 'Draft', 
+        source: 'Custom',
+        data: {
+            shape: { depth: 'Deep', breakeven: 'Year 8', distStart: 'Year 6' },
+            multiples: { tvpi: '3.50x', dpi: '0.40x', rvpi: '3.10x' },
+            risk: { volatility: 'High (24%)', gapRisk: 'Medium' },
+            rationale: 'Models aggressive binary outcome profiles typical of early-stage software.',
+            notes: 'Assumes high reliance on terminal value with minimal early distribution.'
+        }
+    },
+    { 
+        id: 3, 
+        name: 'Global Infra III', 
+        strategy: 'Infrastructure', 
+        vintage: 2020, 
+        commitment: 250, 
+        updatedBy: 'Elena R.', 
+        updated: '3 weeks ago', 
+        status: 'Draft', 
+        source: 'Manager',
+        data: {
+            shape: { depth: 'Shallow', breakeven: 'Year 3', distStart: 'Year 2' },
+            multiples: { tvpi: '1.85x', dpi: '0.90x', rvpi: '0.95x' },
+            risk: { volatility: 'Low (8%)', gapRisk: 'Low' },
+            rationale: 'Focuses on yield-driven realizations from operational core assets.',
+            notes: 'Reflects regulated asset cash flow stability with early yield distributions.'
+        }
+    },
+    { 
+        id: 4, 
+        name: 'Buyout Leaders IV', 
+        strategy: 'Buyout PE', 
+        vintage: 2019, 
+        commitment: 150, 
+        updatedBy: 'John D.', 
+        updated: '1 day ago', 
+        status: 'Active', 
+        source: 'House Template',
+        data: {
+            shape: { depth: 'Moderate', breakeven: 'Year 4', distStart: 'Year 4' },
+            multiples: { tvpi: '2.10x', dpi: '1.80x', rvpi: '0.30x' },
+            risk: { volatility: 'Moderate (12%)', gapRisk: 'Low' },
+            rationale: 'Balanced profile focused on operational value creation and leverage.',
+            notes: 'Late-stage fund with significant realization activity expected in Q3/Q4.'
+        }
+    },
 ];
 
-export function AssumptionSets({ sets }: { sets: typeof initialSets }) {
+export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
     const { toast } = useToast();
     const [selectedSets, setSelectedSets] = useState<number[]>([]);
     const [isCompareDrawerOpen, setCompareDrawerOpen] = useState(false);
@@ -54,7 +122,7 @@ export function AssumptionSets({ sets }: { sets: typeof initialSets }) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" className="h-7 px-3 text-[10px] border-primary text-primary hover:bg-primary/10 font-medium">
+                <Button variant="outline" className="h-7 px-3 text-[10px] border-primary text-primary hover:bg-primary/10 font-bold uppercase">
                     View Assumption Sets
                 </Button>
             </DialogTrigger>
@@ -103,7 +171,7 @@ export function AssumptionSets({ sets }: { sets: typeof initialSets }) {
                                                 className="h-3.5 w-3.5 border-black/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                             />
                                         </TableCell>
-                                        <TableCell className="font-bold text-black text-[11px] py-1">{set.fund}</TableCell>
+                                        <TableCell className="font-bold text-black text-[11px] py-1">{set.name}</TableCell>
                                         <TableCell className="text-black font-medium text-[11px] py-1">{set.strategy}</TableCell>
                                         <TableCell className="text-black font-medium text-[11px] py-1">{set.vintage}</TableCell>
                                         <TableCell className="text-black font-bold text-[11px] py-1">${set.commitment}M</TableCell>
@@ -123,7 +191,7 @@ export function AssumptionSets({ sets }: { sets: typeof initialSets }) {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="w-36">
-                                                    <DropdownMenuItem onClick={() => handleLoadSet(set.fund)} className="text-[11px] font-bold text-black cursor-pointer">
+                                                    <DropdownMenuItem onClick={() => handleLoadSet(set.name)} className="text-[11px] font-bold text-black cursor-pointer">
                                                         <PlayCircle className="h-3.5 w-3.5 mr-2 text-primary" /> Load Set
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem className="text-[11px] font-medium text-black cursor-pointer">Duplicate</DropdownMenuItem>
@@ -138,7 +206,7 @@ export function AssumptionSets({ sets }: { sets: typeof initialSets }) {
                         </Table>
                     </div>
                 </div>
-                <CompareDrawer isOpen={isCompareDrawerOpen} onOpenChange={setCompareDrawerOpen} sets={sets.filter(s => selectedSets.includes(s.id)).map(s => ({ ...s, name: s.fund, source: 'Saved' }))} />
+                <CompareDrawer isOpen={isCompareDrawerOpen} onOpenChange={setCompareDrawerOpen} sets={sets.filter(s => selectedSets.includes(s.id))} />
             </DialogContent>
         </Dialog>
     );

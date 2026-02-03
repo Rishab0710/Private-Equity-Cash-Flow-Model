@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
+import type { ComparisonSet } from '@/components/app/assumptions-studio/compare-drawer';
 
 const generateAssumptionData = (params: any) => {
     const {
@@ -159,7 +160,7 @@ export default function AssumptionsStudioPage() {
 
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
-    const [savedSets, setSavedSets] = useState<any[]>(initialSets);
+    const [savedSets, setSavedSets] = useState<ComparisonSet[]>(initialSets);
 
     useEffect(() => {
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
@@ -179,15 +180,23 @@ export default function AssumptionsStudioPage() {
     ]);
 
     const handleSaveSet = () => {
-        const newSet = {
+        const newSet: ComparisonSet = {
             id: savedSets.length + 1,
-            fund: `Simulation - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            name: `Simulation - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
             strategy: 'Custom Model',
             vintage: 2024,
             commitment: 100,
             updatedBy: 'QA1 Guest',
             updated: 'Just now',
-            status: 'Draft'
+            status: 'Draft',
+            source: 'Custom',
+            data: {
+                shape: { depth: jCurveDepth.charAt(0).toUpperCase() + jCurveDepth.slice(1), breakeven: 'Simulated', distStart: distributionStart.charAt(0).toUpperCase() + distributionStart.slice(1) },
+                multiples: { tvpi: `${tvpiTarget.toFixed(2)}x`, dpi: `${dpiTarget.toFixed(2)}x`, rvpi: `${rvpiTarget.toFixed(2)}x` },
+                risk: { volatility: 'Simulated', gapRisk: 'Medium' },
+                rationale: 'Custom user-defined simulation parameters for fund lifecycle modeling.',
+                notes: 'Generated via Assumptions Studio real-time editor.'
+            }
         };
         setSavedSets([newSet, ...savedSets]);
         toast({
@@ -204,7 +213,7 @@ export default function AssumptionsStudioPage() {
                 <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase whitespace-nowrap">
                     J-Curve & Multiples Assumptions
                 </h1>
-                <p className="text-[10px] text-black font-medium hidden sm:block">
+                <p className="text-[10px] text-black font-medium italic hidden sm:block">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
@@ -212,7 +221,7 @@ export default function AssumptionsStudioPage() {
                 <Button 
                     onClick={handleSaveSet}
                     variant="default" 
-                    className="h-7 px-3 text-[10px] bg-primary hover:bg-primary/90 text-white font-medium"
+                    className="h-7 px-3 text-[10px] bg-primary hover:bg-primary/90 text-white font-bold uppercase"
                 >
                     <Save className="h-3 w-3 mr-1.5" />
                     Save Assumption Set
