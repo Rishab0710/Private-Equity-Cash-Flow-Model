@@ -4,6 +4,7 @@ import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'r
 import {
   ChartContainer,
   ChartTooltipContent,
+  type ChartConfig,
 } from '@/components/ui/chart';
 
 type Props = {
@@ -19,29 +20,28 @@ const chartConfig = {
   conservative: { label: 'Conservative', color: 'hsl(var(--chart-3))' },
   moderate: { label: 'Moderate', color: 'hsl(var(--chart-1))' },
   aggressive: { label: 'Aggressive', color: 'hsl(var(--chart-2))' },
-};
+} satisfies ChartConfig;
 
 const CustomLegend = (props: any) => {
   const { payload, likelihoods } = props;
-  const orderedPayloadNames = ['Conservative', 'Moderate', 'Aggressive'];
-  const orderedPayload = orderedPayloadNames
-    .map(name => payload.find((p: any) => p.value === name))
-    .filter(Boolean);
+  if (!payload) return null;
 
   return (
-    <div className="flex flex-row justify-center items-center gap-8 mt-2">
-      {orderedPayload.map((entry: any) => {
-        const label = entry.value as string;
-        const likelihoodText = likelihoods ? likelihoods[label.toLowerCase() as keyof typeof likelihoods] : '';
+    <div className="flex flex-row flex-wrap justify-center items-center gap-x-8 gap-y-2 mt-6">
+      {payload.map((entry: any) => {
+        const key = String(entry.dataKey || entry.value).toLowerCase();
+        const config = chartConfig[key as keyof typeof chartConfig];
+        const likelihoodText = likelihoods ? likelihoods[key as keyof typeof likelihoods] : '';
+        
         return (
-          <div key={entry.value} className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-            <div>
-              <p className="text-xs font-medium">{label}</p>
-              {likelihoodText && <p className="text-xs text-black">{likelihoodText}</p>}
+          <div key={key} className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-black uppercase tracking-tight">{config?.label || entry.value}</span>
+              {likelihoodText && <span className="text-[10px] text-black font-medium opacity-60 italic">{likelihoodText}</span>}
             </div>
           </div>
-        )
+        );
       })}
     </div>
   );
@@ -49,33 +49,32 @@ const CustomLegend = (props: any) => {
 
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
-      <div className="h-[350px] w-full rounded-lg border p-1">
+      <div className="h-[400px] w-full pt-4">
           <ChartContainer config={chartConfig} className="h-full w-full">
             <LineChart
                 data={data}
                 margin={{
                 top: 20,
                 right: 30,
-                left: 50,
-                bottom: 5,
+                left: 10,
+                bottom: 20,
                 }}
             >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
                 <XAxis 
                     dataKey="year" 
                     tickLine={false} 
                     axisLine={false} 
                     tickMargin={10} 
-                    interval={5}
+                    fontSize={11}
                     tick={{ fill: 'black' }}
                 />
                 <YAxis
                     axisLine={false}
                     tickLine={false}
+                    fontSize={11}
                     tickFormatter={(value) => `$${value}M`}
-                    label={{ value: 'Potential Wealth Estimates ($ in Millions)', angle: -90, position: 'insideLeft', offset: -40, style: { textAnchor: 'middle', fill: 'black' } }}
-                    tickMargin={5}
-                    domain={['dataMin', 'dataMax']}
+                    tickMargin={10}
                     tick={{ fill: 'black' }}
                 />
                 <Tooltip
@@ -83,25 +82,50 @@ export function GrowthChart({ data, likelihoods }: Props) {
                         <ChartTooltipContent
                             indicator="dot"
                             formatter={(value, name) => {
-                                const config = chartConfig[name as keyof typeof chartConfig];
+                                const key = String(name).toLowerCase() as keyof typeof chartConfig;
+                                const config = chartConfig[key];
                                 if (!config) return null;
                                 return (
-                                    <div className="flex w-full items-center justify-between gap-4">
-                                        <div className="flex flex-shrink-0 items-center gap-2">
-                                            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: config.color }} />
-                                            <span className="text-xs font-semibold">{config.label}</span>
+                                    <div className="flex w-full items-center justify-between gap-6 min-w-[160px]">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: config.color }} />
+                                            <span className="font-semibold text-black">{config.label}</span>
                                         </div>
-                                        <span className="font-bold text-black ml-4">${Number(value).toFixed(1)}M</span>
+                                        <span className="font-bold text-black ml-auto">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M</span>
                                     </div>
                                 );
                             }}
                         />
                     }
                 />
-                <Legend content={<CustomLegend likelihoods={likelihoods} />} verticalAlign="bottom" height={60} />
-                <Line type="monotone" dataKey="conservative" name="Conservative" stroke="var(--color-conservative)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="moderate" name="Moderate" stroke="var(--color-moderate)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="aggressive" name="Aggressive" stroke="var(--color-aggressive)" strokeWidth={2} dot={false} />
+                <Legend content={<CustomLegend likelihoods={likelihoods} />} />
+                <Line 
+                    type="monotone" 
+                    dataKey="conservative" 
+                    name="conservative" 
+                    stroke="var(--color-conservative)" 
+                    strokeWidth={2.5} 
+                    dot={false} 
+                    activeDot={{ r: 4 }}
+                />
+                <Line 
+                    type="monotone" 
+                    dataKey="moderate" 
+                    name="moderate" 
+                    stroke="var(--color-moderate)" 
+                    strokeWidth={2.5} 
+                    dot={false} 
+                    activeDot={{ r: 4 }}
+                />
+                <Line 
+                    type="monotone" 
+                    dataKey="aggressive" 
+                    name="aggressive" 
+                    stroke="var(--color-aggressive)" 
+                    strokeWidth={2.5} 
+                    dot={false} 
+                    activeDot={{ r: 4 }}
+                />
             </LineChart>
           </ChartContainer>
       </div>

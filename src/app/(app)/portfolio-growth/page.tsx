@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AssumptionsPanel } from '@/components/app/portfolio-growth/assumptions-panel';
 import { GrowthChart } from '@/components/app/portfolio-growth/growth-chart';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
@@ -124,9 +124,9 @@ const formatCurrency = (value: number) => {
 }
 
 const MetricRow = ({ label, value, valueClassName }: { label: string, value: string | number, valueClassName?: string }) => (
-    <div className="flex justify-between items-center py-1 px-3">
-        <p className="text-xs text-black">{label}</p>
-        <p className={cn("text-xs font-semibold", valueClassName)}>{value}</p>
+    <div className="flex justify-between items-center py-1.5 px-3">
+        <p className="text-[11px] font-bold text-black uppercase tracking-tight">{label}</p>
+        <p className={cn("text-xs font-bold", valueClassName)}>{value}</p>
     </div>
 );
 
@@ -157,8 +157,6 @@ export default function PortfolioGrowthPage() {
                 newStartingBalance = selectedFund?.latestNav ?? 0;
             }
             setStartingBalance(newStartingBalance);
-            setAnnualContribution(0);
-            setAnnualWithdrawal(0);
         }
     }, [fundId, funds]);
 
@@ -228,7 +226,7 @@ export default function PortfolioGrowthPage() {
                     <Skeleton className="h-7 w-80 max-w-full" />
                     <Skeleton className="h-9 w-[200px]" />
                 </div>
-                <Card>
+                <Card className="border-black/10">
                     <CardContent className="pt-6">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-4">
@@ -252,15 +250,15 @@ export default function PortfolioGrowthPage() {
   return (
     <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold tracking-tight text-highlight">
-                Potential Growth of Your Fund's Wealth
+            <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase">
+                Potential Growth of Portfolio Wealth
             </h1>
             <FundSelector
                 selectedFundId={fundId}
                 onFundChange={setFundId}
             />
         </div>
-       <Card>
+       <Card className="border-black/10">
             <CardContent className="pt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1">
@@ -279,19 +277,19 @@ export default function PortfolioGrowthPage() {
                     </div>
                     <div className="lg:col-span-2 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="divide-y divide-border rounded-lg border">
-                                <div className="py-1 px-3 font-semibold text-xs text-black">Portfolio</div>
-                                <div className="space-y-1 py-1">
+                            <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
+                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-black uppercase tracking-widest">Portfolio Risk Profile</div>
+                                <div className="space-y-0.5 py-1">
                                     <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
                                     <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                                 </div>
                             </div>
-                            <div className="divide-y divide-border rounded-lg border">
-                                <div className="py-1 px-3 font-semibold text-xs text-black">Potential Wealth</div>
-                                <div className="space-y-1 py-1">
-                                    <MetricRow label="Conservative Outlook" value={formatCurrency(potentialWealth.conservative)} valueClassName="text-chart-3" />
-                                    <MetricRow label="Moderate Outlook" value={formatCurrency(potentialWealth.moderate)} valueClassName="text-chart-1" />
-                                    <MetricRow label="Aggressive Outlook" value={formatCurrency(potentialWealth.aggressive)} valueClassName="text-chart-2" />
+                            <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
+                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-black uppercase tracking-widest">Potential Wealth (Terminal)</div>
+                                <div className="space-y-0.5 py-1">
+                                    <MetricRow label="Conservative" value={formatCurrency(potentialWealth.conservative)} valueClassName="text-chart-3" />
+                                    <MetricRow label="Moderate" value={formatCurrency(potentialWealth.moderate)} valueClassName="text-chart-1" />
+                                    <MetricRow label="Aggressive" value={formatCurrency(potentialWealth.aggressive)} valueClassName="text-chart-2" />
                                 </div>
                             </div>
                         </div>
