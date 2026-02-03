@@ -6,8 +6,8 @@ import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const chartConfig = {
-  irr: { label: "Private Equity Composite", color: "#144629" },
+const baseChartConfig = {
+  irr: { label: "Performance Profile", color: "#144629" },
   irrBenchmark1: { label: "BlackRock Vesey Street III, LP", color: "#e4b060" },
   irrBenchmark2: { label: "BlackRock Vesey Street IV, LP", color: "#6d69a8" },
   irrBenchmark3: { label: "Columbia Partners", color: "#3b82f6" },
@@ -15,7 +15,7 @@ const chartConfig = {
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
-export function JCurvePreview({ data }: { data: any[] }) {
+export function JCurvePreview({ data, fundName }: { data: any[], fundName: string }) {
     if (!data || data.length === 0) {
         return (
             <Card className="border-black/10">
@@ -26,6 +26,12 @@ export function JCurvePreview({ data }: { data: any[] }) {
             </Card>
         )
     }
+
+    const chartConfig = {
+        ...baseChartConfig,
+        irr: { ...baseChartConfig.irr, label: fundName || "Fund Performance" }
+    };
+
     return (
         <Card className="border-black/10">
             <CardHeader className="py-3 flex flex-row items-center justify-between">
@@ -41,21 +47,38 @@ export function JCurvePreview({ data }: { data: any[] }) {
                             <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
                             <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} fontSize={10} tick={{fill: 'black'}} />
                             <YAxis tickFormatter={formatPercent} tickLine={false} axisLine={false} fontSize={10} domain={[-40, 30]} tick={{fill: 'black'}} />
-                            <Tooltip content={<ChartTooltipContent indicator="dot" formatter={(value) => `${(value as number).toFixed(2)}%`} />} />
+                            <Tooltip 
+                                content={<ChartTooltipContent 
+                                    indicator="dot" 
+                                    labelFormatter={(label) => `Projection: ${label}`}
+                                    formatter={(value, name) => {
+                                        const config = chartConfig[name as keyof typeof chartConfig];
+                                        return (
+                                            <div className="flex w-full items-center justify-between gap-4">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: config?.color }} />
+                                                    <span className="text-[10px] text-black font-semibold">{config?.label || name}</span>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-black">{(value as number).toFixed(2)}%</span>
+                                            </div>
+                                        )
+                                    }} 
+                                />} 
+                            />
                             <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                             <ReferenceLine y={0} stroke="black" strokeWidth={1} />
                             <Line 
                                 type="monotone" 
                                 dataKey="irr" 
-                                name="Private Equity Composite" 
+                                name="irr" 
                                 stroke="#144629" 
                                 strokeWidth={2.5} 
                                 dot={{ r: 4, fill: "#144629", strokeWidth: 1 }} 
                                 activeDot={{ r: 6 }}
                             />
-                            <Line type="monotone" dataKey="irrBenchmark1" name="BlackRock Vesey Street III, LP" stroke="#e4b060" strokeWidth={1.5} dot={false} />
-                            <Line type="monotone" dataKey="irrBenchmark2" name="BlackRock Vesey Street IV, LP" stroke="#6d69a8" strokeWidth={1.5} dot={false} />
-                            <Line type="monotone" dataKey="irrBenchmark3" name="Columbia Partners" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
+                            <Line type="monotone" dataKey="irrBenchmark1" name="irrBenchmark1" stroke="#e4b060" strokeWidth={1.5} dot={false} />
+                            <Line type="monotone" dataKey="irrBenchmark2" name="irrBenchmark2" stroke="#6d69a8" strokeWidth={1.5} dot={false} />
+                            <Line type="monotone" dataKey="irrBenchmark3" name="irrBenchmark3" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
                         </LineChart>
                     </ChartContainer>
                 </div>

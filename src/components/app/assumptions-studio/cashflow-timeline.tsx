@@ -62,10 +62,23 @@ export function CashflowTimeline({ data }: { data: any[] }) {
                         />
                         <Tooltip 
                             cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
-                            content={<ChartTooltipContent indicator="dot" formatter={(value, name) => {
-                                const val = typeof value === 'number' ? value : 0;
-                                return `$${val.toFixed(1)}M`;
-                            }} />} 
+                            content={<ChartTooltipContent 
+                                indicator="dot" 
+                                labelFormatter={(label) => `Timeline: ${label}`}
+                                formatter={(value, name) => {
+                                    const val = typeof value === 'number' ? value : 0;
+                                    const config = timelineConfig[name as keyof typeof timelineConfig];
+                                    return (
+                                        <div className="flex w-full items-center justify-between gap-4">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: config?.color }} />
+                                                <span className="text-[10px] text-black font-semibold">{config?.label || name}</span>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-black">${Math.abs(val).toFixed(1)}M</span>
+                                        </div>
+                                    );
+                                }} 
+                            />} 
                         />
                         <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                         <ReferenceLine y={0} stroke="black" strokeWidth={1} />
@@ -76,20 +89,20 @@ export function CashflowTimeline({ data }: { data: any[] }) {
                             fill="url(#colorNet)" 
                             stroke="hsl(var(--primary))" 
                             strokeWidth={2}
-                            name="Cumulative Net Cash Flow"
+                            name="cumulativeNet"
                         />
                         
                         <Bar 
                             dataKey="distributions" 
                             fill="var(--color-distributions)" 
-                            name="Distributions"
+                            name="distributions"
                             stackId="a" 
                             radius={[2, 2, 0, 0]}
                         />
                         <Bar 
                             dataKey="calls" 
                             fill="var(--color-calls)" 
-                            name="Capital Calls"
+                            name="calls"
                             stackId="a" 
                         />
 
@@ -99,7 +112,7 @@ export function CashflowTimeline({ data }: { data: any[] }) {
                             stroke="var(--color-nav)" 
                             strokeWidth={3} 
                             dot={false}
-                            name="NAV Evolution"
+                            name="nav"
                         />
                     </ComposedChart>
                 </ChartContainer>

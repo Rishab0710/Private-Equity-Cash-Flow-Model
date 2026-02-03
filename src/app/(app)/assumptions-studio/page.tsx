@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
@@ -169,47 +170,38 @@ export default function AssumptionsStudioPage() {
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
     const [savedSets, setSavedSets] = useState<ComparisonSet[]>(initialSets);
 
+    const selectedFundName = funds.find(f => f.id === fundId)?.name || "Selected Fund";
+
     useEffect(() => {
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
         if (calculatedTvpi !== tvpiTarget) setTvpiTarget(calculatedTvpi);
     }, [dpiTarget, rvpiTarget]);
 
     useEffect(() => {
-        if (fundId === 'all') {
-            const totalComm = funds.reduce((acc, f) => acc + f.commitment, 0) / 1000000;
-            setCommitment(totalComm);
-            setInvestmentPeriod(5);
-            setDeploymentPacing('balanced');
-            setJCurveDepth('moderate');
-            setDpiTarget(1.5);
-            setRvpiTarget(0.7);
-            setMoicTarget(2.1);
-        } else {
-            const fund = funds.find(f => f.id === fundId);
-            if (fund) {
-                setCommitment(fund.commitment / 1000000);
-                if (fund.strategy === 'VC') {
-                    setInvestmentPeriod(4);
-                    setDeploymentPacing('front-loaded');
-                    setJCurveDepth('deep');
-                    setDpiTarget(0.8);
-                    setRvpiTarget(2.7);
-                    setMoicTarget(3.5);
-                } else if (fund.strategy === 'Infra') {
-                    setInvestmentPeriod(7);
-                    setDeploymentPacing('balanced');
-                    setJCurveDepth('shallow');
-                    setDpiTarget(1.1);
-                    setRvpiTarget(0.7);
-                    setMoicTarget(1.8);
-                } else {
-                    setInvestmentPeriod(fund.investmentPeriod || 5);
-                    setDeploymentPacing('balanced');
-                    setJCurveDepth('moderate');
-                    setDpiTarget(1.6);
-                    setRvpiTarget(0.6);
-                    setMoicTarget(2.2);
-                }
+        const fund = funds.find(f => f.id === fundId);
+        if (fund) {
+            setCommitment(fund.commitment / 1000000);
+            if (fund.strategy === 'VC') {
+                setInvestmentPeriod(4);
+                setDeploymentPacing('front-loaded');
+                setJCurveDepth('deep');
+                setDpiTarget(0.8);
+                setRvpiTarget(2.7);
+                setMoicTarget(3.5);
+            } else if (fund.strategy === 'Infra') {
+                setInvestmentPeriod(7);
+                setDeploymentPacing('balanced');
+                setJCurveDepth('shallow');
+                setDpiTarget(1.1);
+                setRvpiTarget(0.7);
+                setMoicTarget(1.8);
+            } else {
+                setInvestmentPeriod(fund.investmentPeriod || 5);
+                setDeploymentPacing('balanced');
+                setJCurveDepth('moderate');
+                setDpiTarget(1.6);
+                setRvpiTarget(0.6);
+                setMoicTarget(2.2);
             }
         }
     }, [fundId]);
@@ -227,11 +219,10 @@ export default function AssumptionsStudioPage() {
     ]);
 
     const handleSaveSet = () => {
-        const fundName = fundId === 'all' ? 'Portfolio Composite' : (funds.find(f => f.id === fundId)?.name || 'Custom Fund');
         const newSet: ComparisonSet = {
             id: savedSets.length + 1,
-            name: `${fundName} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-            strategy: fundId === 'all' ? 'Mixed' : (funds.find(f => f.id === fundId)?.strategy || 'Custom'),
+            name: `${selectedFundName} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            strategy: funds.find(f => f.id === fundId)?.strategy || 'Custom',
             vintage: 2024,
             commitment: Math.round(commitment),
             updatedBy: 'QA1 Guest',
@@ -301,7 +292,7 @@ export default function AssumptionsStudioPage() {
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-            <JCurvePreview data={jCurveData} />
+            <JCurvePreview data={jCurveData} fundName={selectedFundName} />
             <CashflowTimeline data={jCurveData} />
         </div>
       </div>
