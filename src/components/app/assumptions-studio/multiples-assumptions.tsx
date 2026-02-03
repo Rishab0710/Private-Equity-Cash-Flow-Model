@@ -64,7 +64,7 @@ export function MultiplesAssumptions({
                 {/* TVPI Section */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold text-black">TVPI (Total Value to Paid-In)</Label>
+                        <Label className="text-[11px] font-semibold text-black">TVPI (Total Value to Paid-In)</Label>
                         <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black bg-secondary/50 font-medium">Template</Badge>
                     </div>
                     <InputHeader />
@@ -85,7 +85,7 @@ export function MultiplesAssumptions({
                 {/* MOIC Section */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold text-black">MOIC (Multiple on Invested Capital)</Label>
+                        <Label className="text-[11px] font-semibold text-black">MOIC (Multiple on Invested Capital)</Label>
                         <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black bg-secondary/50 font-medium">Custom</Badge>
                     </div>
                     <InputHeader />

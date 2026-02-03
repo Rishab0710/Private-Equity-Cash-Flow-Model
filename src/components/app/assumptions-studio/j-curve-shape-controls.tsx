@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 
 const ControlRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="grid grid-cols-3 items-center gap-4">
-        <Label className="text-xs font-semibold text-black">{label}</Label>
+        <Label className="text-[11px] font-semibold text-black">{label}</Label>
         <div className="col-span-2">{children}</div>
     </div>
 );
