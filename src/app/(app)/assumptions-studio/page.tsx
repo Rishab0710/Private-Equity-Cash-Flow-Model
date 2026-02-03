@@ -43,7 +43,8 @@ const generateAssumptionData = (params: any) => {
     let totalCalls = 0;
     let totalDists = 0;
     let cumulativeNet = 0;
-    let maxNav = 0;
+    let maxNavValue = 0;
+    let maxNavYear = 0;
 
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
@@ -80,7 +81,11 @@ const generateAssumptionData = (params: any) => {
         
         const net = distribution - call;
         cumulativeNet += net;
-        if (nav > maxNav) maxNav = nav;
+        
+        if (nav > maxNavValue) {
+            maxNavValue = nav;
+            maxNavYear = year;
+        }
 
         jCurveData.push({
             year: `Yr ${year}`,
@@ -94,8 +99,11 @@ const generateAssumptionData = (params: any) => {
 
     const endingNav = nav;
     const finalTvpi = totalCalls > 0 ? (totalDists + endingNav) / totalCalls : 0;
-    const breakevenPoint = jCurveData.find(d => d.cumulativeNet > 0);
-    const breakevenTiming = breakevenPoint ? `Year ${breakevenPoint.year.split(' ')[1]}` : `Year 15+`;
+    const finalDpi = totalCalls > 0 ? totalDists / totalCalls : 0;
+    const finalRvpi = totalCalls > 0 ? endingNav / totalCalls : 0;
+
+    // Simplified IRR heuristic for simulation
+    const itdIrr = Math.max(0, (finalTvpi - 1) / (fundLife / 2)); 
 
     return { 
         jCurveData, 
@@ -104,10 +112,12 @@ const generateAssumptionData = (params: any) => {
             totalDistributions: totalDists,
             endingNav: endingNav,
             tvpi: finalTvpi,
-            breakevenTiming,
-            peakNav: maxNav,
-            remainingUnfunded: unfunded,
-            liquidityCoverage: totalCalls > 0 ? (totalDists / totalCalls) * 100 : 0
+            moic: moicTarget,
+            dpi: finalDpi,
+            rvpi: finalRvpi,
+            itdIrr: itdIrr,
+            peakNav: { value: maxNavValue, year: maxNavYear },
+            remainingUnfunded: unfunded
         }
     };
 };
@@ -159,13 +169,13 @@ export default function AssumptionsStudioPage() {
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="default" size="sm" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
+                <Button variant="default" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>
       </Card>
       
-      <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} moicTarget={moicTarget} />
+      <SummaryOutputs data={summaryOutputs} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
