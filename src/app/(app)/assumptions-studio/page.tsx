@@ -25,7 +25,6 @@ const generateAssumptionData = (params: any) => {
     
     const fundLife = 15;
     const commitment = 100; // Normalized to 100 for percentage-based storytelling
-    const tailLength = 'medium'; // Defaulted since control was removed
     
     // 1. Deployment Logic
     const pacingFactor = { 'front-loaded': 1.4, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
@@ -37,7 +36,6 @@ const generateAssumptionData = (params: any) => {
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
     const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
     const distSpeedFactor = { 'slow': 0.7, 'normal': 1, 'fast': 1.4 }[distributionSpeed as keyof typeof distributionSpeed] || 1;
-    const tailFactor = { 'short': 1.4, 'medium': 1, 'long': 0.7 }[tailLength as keyof typeof tailLength] || 1; 
     
     const returnScaling = tvpiTarget / 2.2;
 
@@ -53,7 +51,6 @@ const generateAssumptionData = (params: any) => {
         let call = 0;
         if (year > 0 && year <= investmentPeriod && unfunded > 0) {
             const baseCall = commitment / investmentPeriod;
-            // Adjustment for pacing: front-loaded peaks early, back-loaded peaks late
             const progress = (year - 1) / investmentPeriod;
             const pacingAdjustment = deploymentPacing === 'front-loaded' 
                 ? (2 * (1 - progress)) 
@@ -65,7 +62,6 @@ const generateAssumptionData = (params: any) => {
         totalCalls += call;
 
         // --- NAV Growth & J-Curve Effect ---
-        // J-curve depth affects early management fees and initial markdowns
         const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
         const baseGrowth = (year > 2 && year < 10) ? (0.18 * returnScaling) : 0.05;
         const growth = nav * baseGrowth + (jCurveEffect * call);
@@ -74,7 +70,7 @@ const generateAssumptionData = (params: any) => {
         let distribution = 0;
         const distributionStartYear = Math.max(3, 6 + distStartAdj + breakevenAdj);
         if (year >= distributionStartYear && nav > 0) {
-            const exitEfficiency = distSpeedFactor * (1 - ( (year - distributionStartYear) / (fundLife - distributionStartYear) ) * (1 - tailFactor));
+            const exitEfficiency = distSpeedFactor;
             const baseDistRate = 0.20 * exitEfficiency;
             distribution = nav * baseDistRate;
         }
@@ -121,7 +117,6 @@ const generateAssumptionData = (params: any) => {
 export default function AssumptionsStudioPage() {
     const [fundId, setFundId] = useState('all');
     
-    // J-Curve Shape Controls State
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
     const [jCurveDepth, setJCurveDepth] = useState('moderate');
@@ -129,14 +124,11 @@ export default function AssumptionsStudioPage() {
     const [distributionStart, setDistributionStart] = useState('typical');
     const [distributionSpeed, setDistributionSpeed] = useState('normal');
     
-    // Multiples Assumptions State
     const [tvpiTarget, setTvpiTarget] = useState(2.2);
-    const [isDpiEnabled, setIsDpiEnabled] = useState(true);
+    const [moicTarget, setMoicTarget] = useState(2.1);
     const [dpiTarget, setDpiTarget] = useState(1.5);
-    const [isRvpiEnabled, setIsRvpiEnabled] = useState(true);
     const [rvpiTarget, setRvpiTarget] = useState(0.7);
 
-    // Generated Data State
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
 
@@ -188,9 +180,8 @@ export default function AssumptionsStudioPage() {
           />
           <MultiplesAssumptions 
             tvpiTarget={tvpiTarget} setTvpiTarget={setTvpiTarget}
-            isDpiEnabled={isDpiEnabled} setIsDpiEnabled={setIsDpiEnabled}
+            moicTarget={moicTarget} setMoicTarget={setMoicTarget}
             dpiTarget={dpiTarget} setDpiTarget={setDpiTarget}
-            isRvpiEnabled={isRvpiEnabled} setIsRvpiEnabled={setIsRvpiEnabled}
             rvpiTarget={rvpiTarget} setRvpiTarget={setRvpiTarget}
           />
           <NotesTagging />
@@ -199,7 +190,7 @@ export default function AssumptionsStudioPage() {
         <div className="lg:col-span-2 space-y-6">
             <JCurvePreview data={jCurveData} />
             <CashflowTimeline data={jCurveData} />
-            <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} />
+            <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} moicTarget={moicTarget} />
         </div>
       </div>
       <AssumptionSets />

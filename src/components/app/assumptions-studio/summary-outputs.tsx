@@ -14,7 +14,7 @@ const formatMultiple = (value: number) => {
 }
 
 const SummaryMetric = ({ label, value, subValue }: { label: string; value: string; subValue?: string }) => (
-    <div className="flex flex-col items-center justify-center p-3 text-center bg-muted/50 rounded-lg">
+    <div className="flex flex-col items-center justify-center p-3 text-center bg-muted/50 rounded-lg h-full">
         <p className="text-xs font-bold text-black">{label}</p>
         <p className="text-lg font-black text-black">{value}</p>
         {subValue && <p className="text-xs font-bold text-black">{subValue}</p>}
@@ -29,13 +29,13 @@ const SummarySkeleton = () => (
     </div>
 )
 
-export function SummaryOutputs({ data, tvpiTarget }: { data: any | null, tvpiTarget: number }) {
+export function SummaryOutputs({ data, tvpiTarget, moicTarget }: { data: any | null, tvpiTarget: number, moicTarget: number }) {
     if (!data) {
         return (
              <Card>
                 <CardContent className="pt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                       {Array.from({length: 5}).map((_, i) => <SummarySkeleton key={i} />)}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                       {Array.from({length: 6}).map((_, i) => <SummarySkeleton key={i} />)}
                     </div>
                 </CardContent>
             </Card>
@@ -44,12 +44,13 @@ export function SummaryOutputs({ data, tvpiTarget }: { data: any | null, tvpiTar
     return (
         <Card>
             <CardContent className="pt-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <SummaryMetric label="Total Capital Called" value={formatCurrency(data.totalCapitalCalled)} subValue={`${Math.round(data.totalCapitalCalled)}% of commitment`} />
-                    <SummaryMetric label="Total Distributions" value={formatCurrency(data.totalDistributions)} />
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <SummaryMetric label="Total Called" value={formatCurrency(data.totalCapitalCalled)} subValue={`${Math.round(data.totalCapitalCalled)}% of commitment`} />
+                    <SummaryMetric label="Total Dists" value={formatCurrency(data.totalDistributions)} />
                     <SummaryMetric label="Ending NAV" value={formatCurrency(data.endingNav)} />
                     <SummaryMetric label="TVPI" value={formatMultiple(data.tvpi)} subValue={`Target: ${formatMultiple(tvpiTarget)}`} />
-                    <SummaryMetric label="Breakeven Timing" value={data.breakevenTiming} />
+                    <SummaryMetric label="MOIC" value={formatMultiple(moicTarget)} subValue="Target Multiple" />
+                    <SummaryMetric label="Breakeven" value={data.breakevenTiming} />
                 </div>
             </CardContent>
         </Card>
