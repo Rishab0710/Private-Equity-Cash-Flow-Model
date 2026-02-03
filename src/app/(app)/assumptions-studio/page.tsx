@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
@@ -19,6 +18,7 @@ import type { ComparisonSet } from '@/components/app/assumptions-studio/compare-
 
 const generateAssumptionData = (params: any) => {
     const {
+        fundLife,
         commitment,
         investmentPeriod,
         deploymentPacing,
@@ -31,8 +31,6 @@ const generateAssumptionData = (params: any) => {
         dpiTarget,
         rvpiTarget
     } = params;
-    
-    const fundLife = 15;
     
     // Dynamic target called percentage logic (83-89% range)
     const pacingAdj = deploymentPacing === 'front-loaded' ? 0.02 : (deploymentPacing === 'back-loaded' ? -0.02 : 0);
@@ -69,7 +67,7 @@ const generateAssumptionData = (params: any) => {
 
         const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
         const lateStageGrowthAdj = year > 10 ? (rvpiTarget / 0.7) : 1;
-        const baseGrowth = (year > 2 && year < 10) ? (0.18 * returnScaling) : (0.05 * lateStageGrowthAdj);
+        const baseGrowth = (year > 2 && year < fundLife - 3) ? (0.18 * returnScaling) : (0.05 * lateStageGrowthAdj);
         const growth = nav * baseGrowth + (jCurveEffect * call);
         
         let distribution = 0;
@@ -153,6 +151,7 @@ const generateAssumptionData = (params: any) => {
 export default function AssumptionsStudioPage() {
     const { toast } = useToast();
     const [fundId, setFundId] = useState('1');
+    const [fundLife, setFundLife] = useState(10);
     const [commitment, setCommitment] = useState(100);
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
@@ -183,22 +182,23 @@ export default function AssumptionsStudioPage() {
         const fund = funds.find(f => f.id === fundId);
         if (fund) {
             setCommitment(fund.commitment / 1000000);
+            setFundLife(fund.fundLife || 10);
+            const period = fund.investmentPeriod || 5;
+            setInvestmentPeriod(period);
+
             if (fund.strategy === 'VC') {
-                setInvestmentPeriod(4);
                 setDeploymentPacing('front-loaded');
                 setJCurveDepth('deep');
                 setDpiTarget(0.8);
                 setRvpiTarget(2.7);
                 setMoicTarget(3.5);
             } else if (fund.strategy === 'Infra') {
-                setInvestmentPeriod(7);
                 setDeploymentPacing('balanced');
                 setJCurveDepth('shallow');
                 setDpiTarget(1.1);
                 setRvpiTarget(0.7);
                 setMoicTarget(1.8);
             } else {
-                setInvestmentPeriod(fund.investmentPeriod || 5);
                 setDeploymentPacing('balanced');
                 setJCurveDepth('moderate');
                 setDpiTarget(1.6);
@@ -227,13 +227,13 @@ export default function AssumptionsStudioPage() {
     // Core Data Generation Effect
     useEffect(() => {
         const data = generateAssumptionData({
-            commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+            fundLife, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
             distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
-        commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+        fundLife, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
         distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
     ]);
 
@@ -295,7 +295,7 @@ export default function AssumptionsStudioPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 space-y-6">
           <JCurveShapeControls
-            investmentPeriod={investmentPeriod} setInvestmentPeriod={setInvestmentPeriod}
+            fundLife={fundLife} setFundLife={setFundLife}
             deploymentPacing={deploymentPacing} setDeploymentPacing={setDeploymentPacing}
             jCurveDepth={jCurveDepth} setJCurveDepth={setJCurveDepth}
             timeToBreakeven={timeToBreakeven} setTimeToBreakeven={setTimeToBreakeven}

@@ -13,8 +13,8 @@ const ControlRow = ({ label, children }: { label: string; children: React.ReactN
 );
 
 type JCurveShapeControlsProps = {
-  investmentPeriod: number;
-  setInvestmentPeriod: (value: number) => void;
+  fundLife: number;
+  setFundLife: (value: number) => void;
   deploymentPacing: string;
   setDeploymentPacing: (value: string) => void;
   jCurveDepth: string;
@@ -28,8 +28,8 @@ type JCurveShapeControlsProps = {
 };
 
 export function JCurveShapeControls({
-  investmentPeriod,
-  setInvestmentPeriod,
+  fundLife,
+  setFundLife,
   deploymentPacing,
   setDeploymentPacing,
   jCurveDepth,
@@ -50,10 +50,12 @@ export function JCurveShapeControls({
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-0">
-                <ControlRow label="Investment Period">
+                <ControlRow label="Fund Life">
                     <div className="flex items-center gap-2">
-                        <Slider value={[investmentPeriod]} onValueChange={([v]) => setInvestmentPeriod(v)} min={2} max={10} step={1} />
-                        <span className="text-[10px] font-bold w-12 text-center text-black">{investmentPeriod} yrs</span>
+                        <Slider value={[fundLife]} onValueChange={([v]) => {
+                            setFundLife(v);
+                        }} min={5} max={15} step={1} />
+                        <span className="text-[10px] font-bold w-12 text-center text-black">{fundLife} yrs</span>
                     </div>
                 </ControlRow>
                 <ControlRow label="Deployment Pacing">
