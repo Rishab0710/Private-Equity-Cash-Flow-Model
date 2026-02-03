@@ -127,7 +127,7 @@ export function SummaryOutputs({ data }: { data: any | null }) {
                         value={formatCurrency(data.totalCapitalCalled)} 
                         subValue={`${unfundedPercentage}% Unfunded`}
                         icon={CircleDollarSign}
-                        colorLogic="none"
+                        colorLogic="info"
                     />
                     <SummaryMetric 
                         label="Total Dists" 
