@@ -23,7 +23,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { usePortfolioContext } from './app-layout';
 import { useState, useEffect } from 'react';
 
 const navItems = [
