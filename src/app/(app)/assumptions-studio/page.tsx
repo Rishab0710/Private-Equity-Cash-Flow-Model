@@ -164,7 +164,7 @@ export default function AssumptionsStudioPage() {
                 <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase whitespace-nowrap">
                     J-Curve & Multiples Assumptions
                 </h1>
-                <p className="text-[10px] text-black/60 font-medium italic hidden sm:block">
+                <p className="text-[10px] text-black font-medium italic hidden sm:block">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
