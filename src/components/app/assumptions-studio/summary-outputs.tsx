@@ -46,28 +46,28 @@ const SummaryMetric = ({
     icon: React.ElementType;
 }) => {
     const theme = {
-        'positive': 'bg-green-50/50 border-green-100 text-green-700 icon-green-600',
-        'neutral': 'bg-orange-50/50 border-orange-100 text-orange-700 icon-orange-600',
-        'negative': 'bg-red-50/50 border-red-100 text-red-700 icon-red-600',
-        'info': 'bg-blue-50/50 border-blue-100 text-blue-700 icon-blue-600',
+        'positive': 'bg-green-50/50 border-green-200 text-green-600 icon-green-600',
+        'neutral': 'bg-orange-50/50 border-orange-200 text-orange-600 icon-orange-600',
+        'negative': 'bg-red-50/50 border-red-200 text-red-600 icon-red-600',
+        'info': 'bg-blue-50/50 border-blue-200 text-blue-600 icon-blue-600',
         'none': 'bg-muted/30 border-black/5 text-black icon-black/60'
     }[colorLogic || 'none'];
 
     return (
         <div className={cn(
-            "flex flex-col items-center justify-between p-3 text-center rounded-xl h-full border transition-all hover:shadow-md",
+            "flex flex-col items-center justify-between p-3 text-center rounded-xl h-full border transition-all hover:shadow-lg hover:scale-[1.02]",
             theme.split(' icon-')[0]
         )}>
             <div className="flex flex-col items-center gap-1.5">
                 <Icon className={cn("h-4 w-4", theme.split(' icon-')[1])} />
-                <p className="text-[9px] font-bold text-black/60 uppercase tracking-widest leading-none">{label}</p>
+                <p className="text-[9px] font-bold text-black uppercase tracking-widest leading-none opacity-80">{label}</p>
             </div>
             <div className="mt-2">
-                <p className={cn("text-base font-bold leading-none tabular-nums", theme.split(' icon-')[0].split(' ').pop())}>
+                <p className={cn("text-lg font-bold leading-none tabular-nums", theme.split(' icon-')[0].split(' ').pop())}>
                     {value}
                 </p>
                 {subValue && (
-                    <p className="text-[9px] font-semibold text-black/40 mt-1 uppercase tracking-tighter">
+                    <p className="text-[9px] font-bold text-black/60 mt-1 uppercase tracking-tighter">
                         {subValue}
                     </p>
                 )}
