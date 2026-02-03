@@ -20,12 +20,12 @@ const generateAssumptionData = (params: any) => {
         timeToBreakeven,
         distributionStart,
         distributionSpeed,
-        tailLength,
         tvpiTarget,
     } = params;
     
     const fundLife = 15;
     const commitment = 100; // Normalized to 100 for percentage-based storytelling
+    const tailLength = 'medium'; // Defaulted since control was removed
     
     // 1. Deployment Logic
     const pacingFactor = { 'front-loaded': 1.4, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
@@ -128,7 +128,6 @@ export default function AssumptionsStudioPage() {
     const [timeToBreakeven, setTimeToBreakeven] = useState('mid');
     const [distributionStart, setDistributionStart] = useState('typical');
     const [distributionSpeed, setDistributionSpeed] = useState('normal');
-    const [tailLength, setTailLength] = useState('medium');
     
     // Multiples Assumptions State
     const [tvpiTarget, setTvpiTarget] = useState(2.2);
@@ -149,14 +148,13 @@ export default function AssumptionsStudioPage() {
             timeToBreakeven,
             distributionStart,
             distributionSpeed,
-            tailLength,
             tvpiTarget,
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
         investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
-        distributionStart, distributionSpeed, tailLength, tvpiTarget
+        distributionStart, distributionSpeed, tvpiTarget
     ]);
 
   return (
@@ -187,7 +185,6 @@ export default function AssumptionsStudioPage() {
             timeToBreakeven={timeToBreakeven} setTimeToBreakeven={setTimeToBreakeven}
             distributionStart={distributionStart} setDistributionStart={setDistributionStart}
             distributionSpeed={distributionSpeed} setDistributionSpeed={setDistributionSpeed}
-            tailLength={tailLength} setTailLength={setTailLength}
           />
           <MultiplesAssumptions 
             tvpiTarget={tvpiTarget} setTvpiTarget={setTvpiTarget}
