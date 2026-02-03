@@ -33,10 +33,10 @@ export function MultiplesAssumptions({
     const [displayRvpi, setDisplayRvpi] = useState(rvpiTarget.toString());
 
     // Sync local display values with parent state
-    useEffect(() => setDisplayTvpi(tvpiTarget.toString()), [tvpiTarget]);
-    useEffect(() => setDisplayMoic(moicTarget.toString()), [moicTarget]);
-    useEffect(() => setDisplayDpi(dpiTarget.toString()), [dpiTarget]);
-    useEffect(() => setDisplayRvpi(rvpiTarget.toString()), [rvpiTarget]);
+    useEffect(() => setDisplayTvpi(tvpiTarget.toFixed(2)), [tvpiTarget]);
+    useEffect(() => setDisplayMoic(moicTarget.toFixed(2)), [moicTarget]);
+    useEffect(() => setDisplayDpi(dpiTarget.toFixed(2)), [dpiTarget]);
+    useEffect(() => setDisplayRvpi(rvpiTarget.toFixed(2)), [rvpiTarget]);
 
     const handleNumericChange = (val: string, setter: (n: number) => void, displaySetter: (s: string) => void) => {
         const cleaned = val.replace(/[^0-9.]/g, '');
@@ -113,11 +113,11 @@ export function MultiplesAssumptions({
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">DPI (Realized)</Label>
                             <div className="grid grid-cols-1 gap-1">
-                                <div className="relative w-20 mx-auto">
+                                <div className="relative w-24 mx-auto">
                                     <Input 
                                         value={displayDpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setDpiTarget, setDisplayDpi)}
-                                        className="h-7 text-[11px] text-black font-semibold text-center border-black/20 pr-4"
+                                        className="h-7 text-[11px] text-black font-semibold text-center border-black/20 pr-5"
                                     />
                                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black">x</span>
                                 </div>
@@ -129,11 +129,11 @@ export function MultiplesAssumptions({
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">RVPI (Remaining)</Label>
                             <div className="grid grid-cols-1 gap-1">
-                                <div className="relative w-20 mx-auto">
+                                <div className="relative w-24 mx-auto">
                                     <Input 
                                         value={displayRvpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setRvpiTarget, setDisplayRvpi)}
-                                        className="h-7 text-[11px] text-black font-semibold text-center border-black/20 pr-4"
+                                        className="h-7 text-[11px] text-black font-semibold text-center border-black/20 pr-5"
                                     />
                                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black">x</span>
                                 </div>

@@ -183,7 +183,7 @@ export default function AssumptionsStudioPage() {
     useEffect(() => {
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
         if (Math.abs(calculatedTvpi - tvpiTarget) > 0.01) setTvpiTarget(calculatedTvpi);
-    }, [dpiTarget, rvpiTarget, tvpiTarget]);
+    }, [dpiTarget, rvpiTarget]);
 
     // Effect: Load Fund Defaults
     useEffect(() => {
