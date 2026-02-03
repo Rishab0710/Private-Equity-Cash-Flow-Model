@@ -45,17 +45,17 @@ export function MultiplesAssumptions({
 
     const InputHeader = () => (
         <div className="grid grid-cols-3 gap-2 mb-1 px-1">
-            <span className="text-[9px] font-black text-black text-center uppercase tracking-wider">Min</span>
-            <span className="text-[9px] font-black text-highlight text-center uppercase tracking-wider">Target</span>
-            <span className="text-[9px] font-black text-black text-center uppercase tracking-wider">Max</span>
+            <span className="text-[9px] font-medium text-black text-center uppercase tracking-wider">Min</span>
+            <span className="text-[9px] font-semibold text-highlight text-center uppercase tracking-wider">Target</span>
+            <span className="text-[9px] font-medium text-black text-center uppercase tracking-wider">Max</span>
         </div>
     );
 
     return (
-        <Card>
+        <Card className="border-black/10">
             <CardHeader className="py-3">
                 <CardTitle className="text-sm font-semibold text-highlight">Fund Multiples Assumptions</CardTitle>
-                <CardDescription className="text-[10px] text-black font-black leading-tight">
+                <CardDescription className="text-[10px] text-black font-medium leading-tight">
                     Multiples represent outcome targets used to shape expected distributions and remaining value.
                 </CardDescription>
             </CardHeader>
@@ -64,78 +64,78 @@ export function MultiplesAssumptions({
                 {/* TVPI Section */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <Label className="text-xs font-black text-black">TVPI (Total Value to Paid-In)</Label>
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black bg-secondary">Template</Badge>
+                        <Label className="text-xs font-semibold text-black">TVPI (Total Value to Paid-In)</Label>
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black bg-secondary/50 font-medium">Template</Badge>
                     </div>
                     <InputHeader />
                     <div className="grid grid-cols-3 gap-2">
-                        <Input placeholder="Min" value={`${(tvpiTarget * 0.85).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-black bg-muted/50 border-none text-center" />
+                        <Input placeholder="Min" value={`${(tvpiTarget * 0.85).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-medium bg-muted/50 border-none text-center" />
                         <div className="relative">
                             <Input 
                                 value={displayTvpi}
                                 onChange={(e) => handleNumericChange(e.target.value, setTvpiTarget, setDisplayTvpi)}
-                                className="h-7 text-[11px] font-black text-center border-highlight text-black focus:ring-1 focus:ring-highlight pr-4" 
+                                className="h-7 text-[11px] font-semibold text-center border-highlight text-black focus:ring-1 focus:ring-highlight pr-4" 
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-black">x</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black">x</span>
                         </div>
-                        <Input placeholder="Max" value={`${(tvpiTarget * 1.25).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-black bg-muted/50 border-none text-center" />
+                        <Input placeholder="Max" value={`${(tvpiTarget * 1.25).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-medium bg-muted/50 border-none text-center" />
                     </div>
                 </div>
 
                 {/* MOIC Section */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <Label className="text-xs font-black text-black">MOIC (Multiple on Invested Capital)</Label>
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black bg-secondary">Custom</Badge>
+                        <Label className="text-xs font-semibold text-black">MOIC (Multiple on Invested Capital)</Label>
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black bg-secondary/50 font-medium">Custom</Badge>
                     </div>
                     <InputHeader />
                     <div className="grid grid-cols-3 gap-2">
-                        <Input placeholder="Min" value={`${(moicTarget * 0.85).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-black bg-muted/50 border-none text-center" />
+                        <Input placeholder="Min" value={`${(moicTarget * 0.85).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-medium bg-muted/50 border-none text-center" />
                         <div className="relative">
                             <Input 
                                 value={displayMoic}
                                 onChange={(e) => handleNumericChange(e.target.value, setMoicTarget, setDisplayMoic)}
-                                className="h-7 text-[11px] font-black text-center border-highlight text-black focus:ring-1 focus:ring-highlight pr-4" 
+                                className="h-7 text-[11px] font-semibold text-center border-highlight text-black focus:ring-1 focus:ring-highlight pr-4" 
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-black">x</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black">x</span>
                         </div>
-                        <Input placeholder="Max" value={`${(moicTarget * 1.25).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-black bg-muted/50 border-none text-center" />
+                        <Input placeholder="Max" value={`${(moicTarget * 1.25).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-medium bg-muted/50 border-none text-center" />
                     </div>
                 </div>
 
                 <div className="pt-2 border-t border-dashed border-black/20">
-                    <p className="text-[10px] font-black text-black mb-3 uppercase tracking-widest">Component Forecasts</p>
+                    <p className="text-[10px] font-semibold text-black mb-3 uppercase tracking-widest">Component Forecasts</p>
                     
                     <div className="grid grid-cols-2 gap-4">
                         {/* DPI Section */}
                         <div className="space-y-2">
-                            <Label className="text-[11px] font-black text-black">DPI (Realized)</Label>
+                            <Label className="text-[11px] font-semibold text-black">DPI (Realized)</Label>
                             <div className="grid grid-cols-1 gap-1">
                                 <div className="relative">
                                     <Input 
                                         value={displayDpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setDpiTarget, setDisplayDpi)}
-                                        className="h-7 text-[11px] text-black font-black text-center border-black/20 pr-4"
+                                        className="h-7 text-[11px] text-black font-semibold text-center border-black/20 pr-4"
                                     />
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-black">x</span>
+                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black">x</span>
                                 </div>
-                                <span className="text-[9px] text-center text-black font-black">Cash Distributed</span>
+                                <span className="text-[9px] text-center text-black font-medium">Cash Distributed</span>
                             </div>
                         </div>
 
                         {/* RVPI Section */}
                         <div className="space-y-2">
-                            <Label className="text-[11px] font-black text-black">RVPI (Remaining)</Label>
+                            <Label className="text-[11px] font-semibold text-black">RVPI (Remaining)</Label>
                             <div className="grid grid-cols-1 gap-1">
                                 <div className="relative">
                                     <Input 
                                         value={displayRvpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setRvpiTarget, setDisplayRvpi)}
-                                        className="h-7 text-[11px] text-black font-black text-center border-black/20 pr-4"
+                                        className="h-7 text-[11px] text-black font-semibold text-center border-black/20 pr-4"
                                     />
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-black">x</span>
+                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium text-black">x</span>
                                 </div>
-                                <span className="text-[9px] text-center text-black font-black">Unrealized Value</span>
+                                <span className="text-[9px] text-center text-black font-medium">Unrealized Value</span>
                             </div>
                         </div>
                     </div>
