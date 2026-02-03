@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ const timelineConfig = {
 export function CashflowTimeline({ data, className }: { data: any[], className?: string }) {
     if (!data || data.length === 0) {
         return (
-            <Card className={cn("border-black/10", className)}>
+            <Card className={cn("border-black/10 h-full", className)}>
                 <CardHeader className="py-3">
                     <CardTitle className="text-base font-semibold text-highlight">Projected Cash Flow & NAV Dynamics</CardTitle>
                 </CardHeader>

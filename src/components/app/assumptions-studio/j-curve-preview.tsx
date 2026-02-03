@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,7 @@ const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 export function JCurvePreview({ data, fundName, className }: { data: any[], fundName: string, className?: string }) {
     if (!data || data.length === 0) {
         return (
-            <Card className={cn("border-black/10", className)}>
+            <Card className={cn("border-black/10 h-full", className)}>
                 <CardHeader className="py-3">
                     <CardTitle className="text-base font-semibold text-highlight">J-Curve Performance Profile</CardTitle>
                 </CardHeader>

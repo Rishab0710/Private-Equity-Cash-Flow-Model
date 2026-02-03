@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -55,7 +56,7 @@ export function MultiplesAssumptions({
     );
 
     return (
-        <Card className={cn("border-black/10", className)}>
+        <Card className={cn("border-black/10 h-full", className)}>
             <CardHeader className="py-3">
                 <CardTitle className="text-sm font-semibold text-highlight">Fund Multiples Assumptions</CardTitle>
                 <CardDescription className="text-[10px] text-black font-medium leading-tight">
@@ -112,7 +113,7 @@ export function MultiplesAssumptions({
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">DPI (Realized)</Label>
                             <div className="grid grid-cols-1 gap-1">
-                                <div className="relative">
+                                <div className="relative w-20 mx-auto">
                                     <Input 
                                         value={displayDpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setDpiTarget, setDisplayDpi)}
@@ -128,7 +129,7 @@ export function MultiplesAssumptions({
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">RVPI (Remaining)</Label>
                             <div className="grid grid-cols-1 gap-1">
-                                <div className="relative">
+                                <div className="relative w-20 mx-auto">
                                     <Input 
                                         value={displayRvpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setRvpiTarget, setDisplayRvpi)}

@@ -1,5 +1,6 @@
+
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
 import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-timeline";
 import { JCurvePreview } from "@/components/app/assumptions-studio/j-curve-preview";
@@ -20,7 +21,6 @@ const generateAssumptionData = (params: any) => {
     const {
         fundLife,
         commitment,
-        investmentPeriod,
         deploymentPacing,
         jCurveDepth,
         timeToBreakeven,
@@ -54,6 +54,8 @@ const generateAssumptionData = (params: any) => {
     let maxNavValue = 0;
     let maxNavYear = 0;
 
+    const investmentPeriod = Math.ceil(fundLife * 0.5);
+
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
         if (year > 0 && year <= investmentPeriod && unfunded > 0) {
@@ -66,7 +68,7 @@ const generateAssumptionData = (params: any) => {
         totalCalls += call;
 
         const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
-        const lateStageGrowthAdj = year > 10 ? (rvpiTarget / 0.7) : 1;
+        const lateStageGrowthAdj = year > (fundLife - 3) ? (rvpiTarget / 0.7) : 1;
         const baseGrowth = (year > 2 && year < fundLife - 3) ? (0.18 * returnScaling) : (0.05 * lateStageGrowthAdj);
         const growth = nav * baseGrowth + (jCurveEffect * call);
         
@@ -97,12 +99,19 @@ const generateAssumptionData = (params: any) => {
 
         let irr = 0;
         if (year > 0) {
-            const bottomYear = 2;
+            const pacingFactor = deploymentPacing === 'front-loaded' ? 1.2 : (deploymentPacing === 'back-loaded' ? 0.8 : 1);
+            const bottomYear = 2 + (deploymentPacing === 'back-loaded' ? 1 : 0);
+            const breakevenYear = Math.max(bottomYear + 1, 5 + breakevenAdj + distStartAdj);
+            
             if (year <= bottomYear) {
-                irr = -25 * (year / bottomYear) * depthFactor;
+                irr = -25 * (year / bottomYear) * depthFactor * pacingFactor;
+            } else if (year <= breakevenYear) {
+                const progress = (year - bottomYear) / (breakevenYear - bottomYear);
+                irr = (-25 * depthFactor * pacingFactor) * (1 - progress);
             } else {
-                const recovery = (year - bottomYear) / (fundLife - bottomYear);
-                irr = (-25 * depthFactor) + ( (25 * depthFactor + (18 * returnScaling)) * Math.pow(recovery, 0.6) );
+                const recovery = (year - breakevenYear) / (fundLife - breakevenYear);
+                const peakIrr = 18 * returnScaling + (distributionSpeed === 'fast' ? 5 : (distributionSpeed === 'slow' ? -3 : 0));
+                irr = peakIrr * Math.pow(recovery, 0.6);
             }
         }
         
@@ -153,7 +162,6 @@ export default function AssumptionsStudioPage() {
     const [fundId, setFundId] = useState('1');
     const [fundLife, setFundLife] = useState(10);
     const [commitment, setCommitment] = useState(100);
-    const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
     const [jCurveDepth, setJCurveDepth] = useState('moderate');
     const [timeToBreakeven, setTimeToBreakeven] = useState('mid');
@@ -183,8 +191,6 @@ export default function AssumptionsStudioPage() {
         if (fund) {
             setCommitment(fund.commitment / 1000000);
             setFundLife(fund.fundLife || 10);
-            const period = fund.investmentPeriod || 5;
-            setInvestmentPeriod(period);
 
             if (fund.strategy === 'VC') {
                 setDeploymentPacing('front-loaded');
@@ -210,7 +216,6 @@ export default function AssumptionsStudioPage() {
 
     // Bidirectional Logic: Update Multiples based on J-Curve Controls
     useEffect(() => {
-        // If user changes J-Curve controls, suggest realistic targets
         if (jCurveDepth === 'deep') {
             setRvpiTarget(prev => Math.max(prev, 2.0));
         } else if (jCurveDepth === 'shallow') {
@@ -227,13 +232,13 @@ export default function AssumptionsStudioPage() {
     // Core Data Generation Effect
     useEffect(() => {
         const data = generateAssumptionData({
-            fundLife, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+            fundLife, commitment, deploymentPacing, jCurveDepth, timeToBreakeven, 
             distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
-        fundLife, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+        fundLife, commitment, deploymentPacing, jCurveDepth, timeToBreakeven, 
         distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
     ]);
 
@@ -294,7 +299,7 @@ export default function AssumptionsStudioPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
           <JCurveShapeControls
-            className="lg:col-span-1 h-full"
+            className="lg:col-span-1"
             fundLife={fundLife} setFundLife={setFundLife}
             deploymentPacing={deploymentPacing} setDeploymentPacing={setDeploymentPacing}
             jCurveDepth={jCurveDepth} setJCurveDepth={setJCurveDepth}
@@ -303,20 +308,20 @@ export default function AssumptionsStudioPage() {
             distributionSpeed={distributionSpeed} setDistributionSpeed={setDistributionSpeed}
           />
           <JCurvePreview 
-            className="lg:col-span-3 h-full"
+            className="lg:col-span-3"
             data={jCurveData} 
             fundName={selectedFundName} 
           />
 
           <MultiplesAssumptions 
-            className="lg:col-span-1 h-full"
+            className="lg:col-span-1"
             tvpiTarget={tvpiTarget} setTvpiTarget={setTvpiTarget}
             moicTarget={moicTarget} setMoicTarget={setMoicTarget}
             dpiTarget={dpiTarget} setDpiTarget={setDpiTarget}
             rvpiTarget={rvpiTarget} setRvpiTarget={setRvpiTarget}
           />
           <CashflowTimeline 
-            className="lg:col-span-3 h-full"
+            className="lg:col-span-3"
             data={jCurveData} 
           />
       </div>

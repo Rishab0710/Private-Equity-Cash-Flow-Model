@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +46,7 @@ export function JCurveShapeControls({
   className,
 }: JCurveShapeControlsProps) {
     return (
-        <Card className={cn("border-black/10", className)}>
+        <Card className={cn("border-black/10 h-full", className)}>
             <CardHeader className="py-3">
                 <CardTitle className="text-sm font-semibold text-highlight">J-Curve Shape Controls</CardTitle>
                 <CardDescription className="text-[10px] text-black font-medium leading-tight">
