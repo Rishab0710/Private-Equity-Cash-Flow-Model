@@ -38,7 +38,7 @@ const CustomLegend = (props: any) => {
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
             <div className="flex flex-col">
               <span className="text-[10px] font-bold text-black uppercase tracking-tight">{config?.label || entry.value}</span>
-              {likelihoodText && <span className="text-[9px] text-black font-medium opacity-60 italic">{likelihoodText}</span>}
+              {likelihoodText && <span className="text-[9px] text-black font-medium">{likelihoodText}</span>}
             </div>
           </div>
         );
