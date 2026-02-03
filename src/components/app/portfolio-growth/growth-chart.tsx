@@ -19,12 +19,11 @@ const chartConfig = {
   conservative: { label: 'Conservative', color: 'hsl(var(--chart-3))' },
   moderate: { label: 'Moderate', color: 'hsl(var(--chart-1))' },
   aggressive: { label: 'Aggressive', color: 'hsl(var(--chart-2))' },
-  cumulativeNetCashFlow: { label: 'Net Cash Flow', color: 'hsl(var(--chart-4))' },
 };
 
 const CustomLegend = (props: any) => {
   const { payload, likelihoods } = props;
-  const orderedPayloadNames = ['Conservative', 'Moderate', 'Aggressive', 'Net Cash Flow'];
+  const orderedPayloadNames = ['Conservative', 'Moderate', 'Aggressive'];
   const orderedPayload = orderedPayloadNames
     .map(name => payload.find((p: any) => p.value === name))
     .filter(Boolean);
@@ -82,17 +81,28 @@ export function GrowthChart({ data, likelihoods }: Props) {
                 />
                 <Tooltip
                     content={
-                    <ChartTooltipContent
-                        formatter={(value, name) => [`$${Number(value).toFixed(2)}M`, name]}
-                        indicator="dot"
-                    />
+                        <ChartTooltipContent
+                            indicator="dot"
+                            formatter={(value, name) => {
+                                const config = chartConfig[name as keyof typeof chartConfig];
+                                if (!config) return null;
+                                return (
+                                    <div className="flex w-full items-center justify-between gap-4">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: config.color }} />
+                                            <span className="text-[10px] text-black font-semibold">{config.label}</span>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-black">${Number(value).toFixed(1)}M</span>
+                                    </div>
+                                );
+                            }}
+                        />
                     }
                 />
                 <Legend content={<CustomLegend likelihoods={likelihoods} />} verticalAlign="bottom" height={60} />
                 <Line type="monotone" dataKey="conservative" name="Conservative" stroke="var(--color-conservative)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="moderate" name="Moderate" stroke="var(--color-moderate)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="aggressive" name="Aggressive" stroke="var(--color-aggressive)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="cumulativeNetCashFlow" name="Net Cash Flow" stroke="var(--color-cumulativeNetCashFlow)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
             </LineChart>
           </ChartContainer>
       </div>

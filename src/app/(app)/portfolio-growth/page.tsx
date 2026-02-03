@@ -140,8 +140,8 @@ export default function PortfolioGrowthPage() {
     const { fundId, setFundId, funds, portfolioData } = usePortfolioContext();
     
     const [startingBalance, setStartingBalance] = useState(5000000);
-    const [annualContribution, setAnnualContribution] = useState(250000);
-    const [annualWithdrawal, setAnnualWithdrawal] = useState(150000);
+    const [annualContribution, setAnnualContribution] = useState(0);
+    const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
     const [annualIncrease, setAnnualIncrease] = useState(0);
     const [investmentPeriod, setInvestmentPeriod] = useState(20);
 
@@ -163,8 +163,9 @@ export default function PortfolioGrowthPage() {
                 newStartingBalance = selectedFund?.latestNav ?? 0;
             }
             setStartingBalance(newStartingBalance);
-            setAnnualContribution(Math.round(newStartingBalance * 0.05));
-            setAnnualWithdrawal(Math.round(newStartingBalance * 0.03));
+            // Defaulting to blank (0) as per request
+            setAnnualContribution(0);
+            setAnnualWithdrawal(0);
         }
     }, [fundId, funds]);
 
@@ -317,16 +318,3 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
-
-    
-
-    
-
-
-
-
-
-
-
-
-

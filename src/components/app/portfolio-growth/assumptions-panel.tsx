@@ -41,7 +41,10 @@ export function AssumptionsPanel({
     setInvestmentPeriod
  }: AssumptionsPanelProps) {
 
-    const formatValue = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
+    const formatValue = (val: number) => {
+        if (val === 0) return "";
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
+    };
 
     const [contributionDisplay, setContributionDisplay] = useState(formatValue(annualContribution));
     const [withdrawalDisplay, setWithdrawalDisplay] = useState(formatValue(annualWithdrawal));
@@ -63,7 +66,7 @@ export function AssumptionsPanel({
          if (!isNaN(numericValue)) {
             setter(numericValue);
          } else {
-            setter(originalValue);
+            setter(0);
          }
     }
 
@@ -101,6 +104,7 @@ export function AssumptionsPanel({
                         <Input 
                             id="annual-contribution" 
                             type="text" 
+                            placeholder="$0"
                             value={contributionDisplay}
                             onChange={handleDisplayChange(setContributionDisplay)}
                             onBlur={() => parseAndSet(contributionDisplay, setAnnualContribution, annualContribution)}
@@ -114,6 +118,7 @@ export function AssumptionsPanel({
                          <Input 
                             id="annual-withdrawal" 
                             type="text" 
+                            placeholder="$0"
                             value={withdrawalDisplay}
                             onChange={handleDisplayChange(setWithdrawalDisplay)}
                             onBlur={() => parseAndSet(withdrawalDisplay, setAnnualWithdrawal, annualWithdrawal)}
