@@ -18,6 +18,8 @@ import type { ComparisonSet } from '@/components/app/assumptions-studio/compare-
 
 const generateAssumptionData = (params: any) => {
     const {
+        fundId,
+        commitment,
         investmentPeriod,
         deploymentPacing,
         jCurveDepth,
@@ -31,7 +33,10 @@ const generateAssumptionData = (params: any) => {
     } = params;
     
     const fundLife = 15;
-    const commitment = 100;
+    
+    // Requirement: Keep Total called between 80-90%
+    const targetCallPercentage = fundId === 'all' ? 0.84 : 0.88;
+    const totalToCall = commitment * targetCallPercentage;
     
     const depthFactor = { 'shallow': 0.7, 'moderate': 1, 'deep': 1.4 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
@@ -42,7 +47,7 @@ const generateAssumptionData = (params: any) => {
     const returnScaling = tvpiTarget / 2.2;
 
     let jCurveData = [];
-    let unfunded = commitment;
+    let unfunded = totalToCall;
     let nav = 0;
     let totalCalls = 0;
     let totalDists = 0;
@@ -53,7 +58,7 @@ const generateAssumptionData = (params: any) => {
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
         if (year > 0 && year <= investmentPeriod && unfunded > 0) {
-            const baseCall = commitment / investmentPeriod;
+            const baseCall = totalToCall / investmentPeriod;
             const progress = (year - 1) / investmentPeriod;
             const pacingAdjustment = deploymentPacing === 'front-loaded' ? (2 * (1 - progress)) : (deploymentPacing === 'back-loaded' ? (2 * progress) : 1);
             call = Math.min(unfunded, baseCall * pacingAdjustment);
@@ -139,7 +144,7 @@ const generateAssumptionData = (params: any) => {
             rvpi: finalRvpi,
             itdIrr: itdIrr,
             peakNav: { value: maxNavValue, year: maxNavYear },
-            remainingUnfunded: unfunded
+            remainingUnfunded: commitment - totalCalls
         }
     };
 };
@@ -147,6 +152,7 @@ const generateAssumptionData = (params: any) => {
 export default function AssumptionsStudioPage() {
     const { toast } = useToast();
     const [fundId, setFundId] = useState('all');
+    const [commitment, setCommitment] = useState(685); // Sum of commitments in lib/data.ts
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
     const [jCurveDepth, setJCurveDepth] = useState('moderate');
@@ -170,6 +176,8 @@ export default function AssumptionsStudioPage() {
 
     useEffect(() => {
         if (fundId === 'all') {
+            const totalComm = funds.reduce((acc, f) => acc + f.commitment, 0) / 1000000;
+            setCommitment(totalComm);
             setInvestmentPeriod(5);
             setDeploymentPacing('balanced');
             setJCurveDepth('moderate');
@@ -179,6 +187,7 @@ export default function AssumptionsStudioPage() {
         } else {
             const fund = funds.find(f => f.id === fundId);
             if (fund) {
+                setCommitment(fund.commitment / 1000000);
                 if (fund.strategy === 'VC') {
                     setInvestmentPeriod(4);
                     setDeploymentPacing('front-loaded');
@@ -207,13 +216,13 @@ export default function AssumptionsStudioPage() {
 
     useEffect(() => {
         const data = generateAssumptionData({
-            investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+            fundId, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
             distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
-        investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+        fundId, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
         distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
     ]);
 
@@ -224,7 +233,7 @@ export default function AssumptionsStudioPage() {
             name: `${fundName} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
             strategy: fundId === 'all' ? 'Mixed' : (funds.find(f => f.id === fundId)?.strategy || 'Custom'),
             vintage: 2024,
-            commitment: 100,
+            commitment: Math.round(commitment),
             updatedBy: 'QA1 Guest',
             updated: 'Just now',
             status: 'Draft',
