@@ -5,6 +5,7 @@ import {
     Rocket, TrendingUp, Landmark, ClipboardList, ShieldCheck, Search, Briefcase, 
     Gauge, BrainCircuit, FileBarChart, Building, Filter, Target, FileWarning, ListTodo, Ban
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type RecommendationPoint = {
   icon: React.ElementType;
@@ -22,9 +23,10 @@ type Props = {
     jCurveDepth: string;
     distributionSpeed: string;
     tvpiTarget: number;
+    className?: string;
 };
 
-export function NextStepsRecommendations({ jCurveDepth, distributionSpeed, tvpiTarget }: Props) {
+export function NextStepsRecommendations({ jCurveDepth, distributionSpeed, tvpiTarget, className }: Props) {
     let recommendation: Recommendation = { 
         title: "Stay the Course & Monitor", 
         summary: "Your assumptions align with baseline expectations. Maintain discipline and monitor performance against these long-term goals.",
@@ -68,7 +70,7 @@ export function NextStepsRecommendations({ jCurveDepth, distributionSpeed, tvpiT
     }
 
     return (
-        <Card className="border-black/10">
+        <Card className={cn("border-black/10 h-full", className)}>
              <CardHeader className="py-3">
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold text-highlight">
                     <Rocket className="h-4 w-4" />

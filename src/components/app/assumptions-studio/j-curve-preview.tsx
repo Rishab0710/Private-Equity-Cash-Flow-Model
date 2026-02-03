@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const baseChartConfig = {
   irr: { label: "Performance Profile", color: "#144629" },
@@ -14,10 +15,10 @@ const baseChartConfig = {
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
-export function JCurvePreview({ data, fundName }: { data: any[], fundName: string }) {
+export function JCurvePreview({ data, fundName, className }: { data: any[], fundName: string, className?: string }) {
     if (!data || data.length === 0) {
         return (
-            <Card className="border-black/10">
+            <Card className={cn("border-black/10", className)}>
                 <CardHeader className="py-3">
                     <CardTitle className="text-base font-semibold text-highlight">J-Curve Performance Profile</CardTitle>
                 </CardHeader>
@@ -32,13 +33,13 @@ export function JCurvePreview({ data, fundName }: { data: any[], fundName: strin
     };
 
     return (
-        <Card className="border-black/10">
-            <CardHeader className="py-3 flex flex-row items-center justify-between">
+        <Card className={cn("border-black/10 h-full flex flex-col", className)}>
+            <CardHeader className="py-3 flex flex-row items-center justify-between shrink-0">
                 <CardTitle className="text-base font-semibold text-highlight">J-Curve Performance Profile (IRR)</CardTitle>
             </CardHeader>
-            <CardContent>
-                <div className="h-[300px]">
-                    <ChartContainer config={chartConfig} className="w-full h-full">
+            <CardContent className="flex-1 min-h-0">
+                <div className="h-full w-full">
+                    <ChartContainer config={chartConfig} className="aspect-auto h-full w-full">
                         <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
                             <XAxis 

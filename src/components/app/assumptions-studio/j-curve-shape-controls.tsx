@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 const ControlRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="grid grid-cols-3 items-center gap-4">
@@ -25,6 +26,7 @@ type JCurveShapeControlsProps = {
   setDistributionStart: (value: string) => void;
   distributionSpeed: string;
   setDistributionSpeed: (value:string) => void;
+  className?: string;
 };
 
 export function JCurveShapeControls({
@@ -40,9 +42,10 @@ export function JCurveShapeControls({
   setDistributionStart,
   distributionSpeed,
   setDistributionSpeed,
+  className,
 }: JCurveShapeControlsProps) {
     return (
-        <Card>
+        <Card className={cn("border-black/10", className)}>
             <CardHeader className="py-3">
                 <CardTitle className="text-sm font-semibold text-highlight">J-Curve Shape Controls</CardTitle>
                 <CardDescription className="text-[10px] text-black font-medium leading-tight">

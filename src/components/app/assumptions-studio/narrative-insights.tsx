@@ -5,6 +5,7 @@ import {
     Activity, Landmark, BarChart, TrendingUp, TrendingDown, Clock, ChevronsUp, 
     CircleDollarSign, Hourglass, BrainCircuit, ShieldAlert, Waves, Shield
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type InsightPoint = {
   icon: React.ElementType;
@@ -22,9 +23,10 @@ type Props = {
     jCurveDepth: string;
     distributionSpeed: string;
     tvpiTarget: number;
+    className?: string;
 };
 
-export function NarrativeInsights({ jCurveDepth, distributionSpeed, tvpiTarget }: Props) {
+export function NarrativeInsights({ jCurveDepth, distributionSpeed, tvpiTarget, className }: Props) {
     // Dynamic logic to pick the narrative based on assumptions
     let insight: Narrative = { 
         title: "Stay the Course", 
@@ -69,7 +71,7 @@ export function NarrativeInsights({ jCurveDepth, distributionSpeed, tvpiTarget }
     }
 
     return (
-        <Card className="border-black/10">
+        <Card className={cn("border-black/10 h-full", className)}>
              <CardHeader className="py-3">
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold text-highlight">
                     <BarChart className="h-4 w-4" />

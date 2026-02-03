@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 type MultiplesAssumptionsProps = {
   tvpiTarget: number;
@@ -14,13 +15,15 @@ type MultiplesAssumptionsProps = {
   setDpiTarget: (value: number) => void;
   rvpiTarget: number;
   setRvpiTarget: (value: number) => void;
+  className?: string;
 };
 
 export function MultiplesAssumptions({
     tvpiTarget, setTvpiTarget,
     moicTarget, setMoicTarget,
     dpiTarget, setDpiTarget,
-    rvpiTarget, setRvpiTarget
+    rvpiTarget, setRvpiTarget,
+    className
 }: MultiplesAssumptionsProps) {
     
     const [displayTvpi, setDisplayTvpi] = useState(tvpiTarget.toString());
@@ -52,7 +55,7 @@ export function MultiplesAssumptions({
     );
 
     return (
-        <Card className="border-black/10">
+        <Card className={cn("border-black/10", className)}>
             <CardHeader className="py-3">
                 <CardTitle className="text-sm font-semibold text-highlight">Fund Multiples Assumptions</CardTitle>
                 <CardDescription className="text-[10px] text-black font-medium leading-tight">

@@ -292,9 +292,9 @@ export default function AssumptionsStudioPage() {
       
       <SummaryOutputs data={summaryOutputs} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
           <JCurveShapeControls
+            className="lg:col-span-1 h-full"
             fundLife={fundLife} setFundLife={setFundLife}
             deploymentPacing={deploymentPacing} setDeploymentPacing={setDeploymentPacing}
             jCurveDepth={jCurveDepth} setJCurveDepth={setJCurveDepth}
@@ -302,21 +302,26 @@ export default function AssumptionsStudioPage() {
             distributionStart={distributionStart} setDistributionStart={setDistributionStart}
             distributionSpeed={distributionSpeed} setDistributionSpeed={setDistributionSpeed}
           />
+          <JCurvePreview 
+            className="lg:col-span-3 h-full"
+            data={jCurveData} 
+            fundName={selectedFundName} 
+          />
+
           <MultiplesAssumptions 
+            className="lg:col-span-1 h-full"
             tvpiTarget={tvpiTarget} setTvpiTarget={setTvpiTarget}
             moicTarget={moicTarget} setMoicTarget={setMoicTarget}
             dpiTarget={dpiTarget} setDpiTarget={setDpiTarget}
             rvpiTarget={rvpiTarget} setRvpiTarget={setRvpiTarget}
           />
-        </div>
-
-        <div className="lg:col-span-3 space-y-6">
-            <JCurvePreview data={jCurveData} fundName={selectedFundName} />
-            <CashflowTimeline data={jCurveData} />
-        </div>
+          <CashflowTimeline 
+            className="lg:col-span-3 h-full"
+            data={jCurveData} 
+          />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <NarrativeInsights 
             jCurveDepth={jCurveDepth} 
             distributionSpeed={distributionSpeed} 
