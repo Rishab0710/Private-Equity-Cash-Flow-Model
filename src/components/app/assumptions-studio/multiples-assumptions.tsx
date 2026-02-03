@@ -28,6 +28,7 @@ export function MultiplesAssumptions({
     const [displayDpi, setDisplayDpi] = useState(dpiTarget.toString());
     const [displayRvpi, setDisplayRvpi] = useState(rvpiTarget.toString());
 
+    // Sync local display values with parent state
     useEffect(() => setDisplayTvpi(tvpiTarget.toString()), [tvpiTarget]);
     useEffect(() => setDisplayMoic(moicTarget.toString()), [moicTarget]);
     useEffect(() => setDisplayDpi(dpiTarget.toString()), [dpiTarget]);

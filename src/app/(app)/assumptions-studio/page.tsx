@@ -21,6 +21,8 @@ const generateAssumptionData = (params: any) => {
         distributionStart,
         distributionSpeed,
         tvpiTarget,
+        dpiTarget,
+        rvpiTarget
     } = params;
     
     const fundLife = 15;
@@ -35,8 +37,12 @@ const generateAssumptionData = (params: any) => {
     // 3. Distribution Logic
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
     const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
-    const distSpeedFactor = { 'slow': 0.7, 'normal': 1, 'fast': 1.4 }[distributionSpeed as keyof typeof distributionSpeed] || 1;
     
+    // Scale distribution speed based on both the manual control and the DPI target
+    const dpiScaling = dpiTarget / 1.5;
+    const distSpeedFactor = ({ 'slow': 0.7, 'normal': 1, 'fast': 1.4 }[distributionSpeed as keyof typeof distributionSpeed] || 1) * dpiScaling;
+    
+    // Scale overall returns based on TVPI target
     const returnScaling = tvpiTarget / 2.2;
 
     let jCurveData = [];
@@ -62,8 +68,12 @@ const generateAssumptionData = (params: any) => {
         totalCalls += call;
 
         // --- NAV Growth & J-Curve Effect ---
+        // J-curve depth affects early markdowns
         const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
-        const baseGrowth = (year > 2 && year < 10) ? (0.18 * returnScaling) : 0.05;
+        
+        // Growth scales by returnScaling. Late stage growth influenced by RVPI target.
+        const lateStageGrowthAdj = year > 10 ? (rvpiTarget / 0.7) : 1;
+        const baseGrowth = (year > 2 && year < 10) ? (0.18 * returnScaling) : (0.05 * lateStageGrowthAdj);
         const growth = nav * baseGrowth + (jCurveEffect * call);
         
         // --- Distributions ---
@@ -131,6 +141,15 @@ export default function AssumptionsStudioPage() {
 
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
+
+    // Dynamic linkage: TVPI = DPI + RVPI
+    // This allows the user to see how component changes impact the total target
+    useEffect(() => {
+        const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
+        if (calculatedTvpi !== tvpiTarget) {
+            setTvpiTarget(calculatedTvpi);
+        }
+    }, [dpiTarget, rvpiTarget]);
 
     useEffect(() => {
         const data = generateAssumptionData({
