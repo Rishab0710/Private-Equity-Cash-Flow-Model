@@ -27,16 +27,27 @@ export function MultiplesAssumptions({
     className
 }: MultiplesAssumptionsProps) {
     
-    const [displayTvpi, setDisplayTvpi] = useState(tvpiTarget.toString());
-    const [displayMoic, setDisplayMoic] = useState(moicTarget.toString());
-    const [displayDpi, setDisplayDpi] = useState(dpiTarget.toString());
-    const [displayRvpi, setDisplayRvpi] = useState(rvpiTarget.toString());
+    const [displayTvpi, setDisplayTvpi] = useState(tvpiTarget.toFixed(2));
+    const [displayMoic, setDisplayMoic] = useState(moicTarget.toFixed(2));
+    const [displayDpi, setDisplayDpi] = useState(dpiTarget.toFixed(2));
+    const [displayRvpi, setDisplayRvpi] = useState(rvpiTarget.toFixed(2));
 
-    // Sync local display values with parent state
-    useEffect(() => setDisplayTvpi(tvpiTarget.toFixed(2)), [tvpiTarget]);
-    useEffect(() => setDisplayMoic(moicTarget.toFixed(2)), [moicTarget]);
-    useEffect(() => setDisplayDpi(dpiTarget.toFixed(2)), [dpiTarget]);
-    useEffect(() => setDisplayRvpi(rvpiTarget.toFixed(2)), [rvpiTarget]);
+    // Sync local display values with parent state when it changes from outside
+    useEffect(() => {
+        if (parseFloat(displayTvpi) !== tvpiTarget) setDisplayTvpi(tvpiTarget.toFixed(2));
+    }, [tvpiTarget]);
+
+    useEffect(() => {
+        if (parseFloat(displayMoic) !== moicTarget) setDisplayMoic(moicTarget.toFixed(2));
+    }, [moicTarget]);
+
+    useEffect(() => {
+        if (parseFloat(displayDpi) !== dpiTarget) setDisplayDpi(dpiTarget.toFixed(2));
+    }, [dpiTarget]);
+
+    useEffect(() => {
+        if (parseFloat(displayRvpi) !== rvpiTarget) setDisplayRvpi(rvpiTarget.toFixed(2));
+    }, [rvpiTarget]);
 
     const handleNumericChange = (val: string, setter: (n: number) => void, displaySetter: (s: string) => void) => {
         const cleaned = val.replace(/[^0-9.]/g, '');
@@ -113,7 +124,7 @@ export function MultiplesAssumptions({
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">DPI (Realized)</Label>
                             <div className="grid grid-cols-1 gap-1">
-                                <div className="relative w-24 mx-auto">
+                                <div className="relative w-full mx-auto">
                                     <Input 
                                         value={displayDpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setDpiTarget, setDisplayDpi)}
@@ -129,7 +140,7 @@ export function MultiplesAssumptions({
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">RVPI (Remaining)</Label>
                             <div className="grid grid-cols-1 gap-1">
-                                <div className="relative w-24 mx-auto">
+                                <div className="relative w-full mx-auto">
                                     <Input 
                                         value={displayRvpi}
                                         onChange={(e) => handleNumericChange(e.target.value, setRvpiTarget, setDisplayRvpi)}

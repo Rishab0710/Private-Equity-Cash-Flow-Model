@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
 import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-timeline";
 import { JCurvePreview } from "@/components/app/assumptions-studio/j-curve-preview";
@@ -41,9 +41,8 @@ const generateAssumptionData = (params: any) => {
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
     const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
     
-    const dpiScaling = dpiTarget / 1.5;
-    const distSpeedFactor = ({ 'slow': 0.7, 'normal': 1, 'fast': 1.4 }[distributionSpeed as keyof typeof distributionSpeed] || 1) * dpiScaling;
-    const returnScaling = tvpiTarget / 2.2;
+    const totalDistTarget = totalToCall * dpiTarget;
+    const endingNavTarget = totalToCall * rvpiTarget;
 
     let jCurveData = [];
     let unfunded = totalToCall;
@@ -55,6 +54,7 @@ const generateAssumptionData = (params: any) => {
     let maxNavYear = 0;
 
     const investmentPeriod = Math.ceil(fundLife * 0.5);
+    const distStartYear = Math.max(3, 6 + distStartAdj + breakevenAdj);
 
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
@@ -67,42 +67,45 @@ const generateAssumptionData = (params: any) => {
         unfunded -= call;
         totalCalls += call;
 
-        const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
-        const lateStageGrowthAdj = year > (fundLife - 3) ? (rvpiTarget / 0.7) : 1;
-        const baseGrowth = (year > 2 && year < fundLife - 3) ? (0.18 * returnScaling) : (0.05 * lateStageGrowthAdj);
-        const growth = nav * baseGrowth + (jCurveEffect * call);
-        
+        // Simplified growth to reach target RVPI precisely at the end
         let distribution = 0;
-        const distributionStartYear = Math.max(3, 6 + distStartAdj + breakevenAdj);
-        if (year >= distributionStartYear && nav > 0) {
-            const exitEfficiency = distSpeedFactor;
-            const baseDistRate = 0.20 * exitEfficiency;
-            distribution = nav * baseDistRate;
+        if (year >= distStartYear && year < fundLife) {
+            const distYearsLeft = fundLife - year;
+            const distProgress = (year - distStartYear + 1) / (fundLife - distStartYear);
+            // Non-linear distribution pacing
+            const distAmount = totalDistTarget * (Math.pow(distProgress, 1.2) - Math.pow((year - distStartYear) / (fundLife - distStartYear), 1.2));
+            distribution = Math.max(0, distAmount);
+        } else if (year === fundLife) {
+            distribution = 0; // Final NAV is captured at the end
         }
 
-        nav = nav + growth + call - distribution;
-        if (nav < 0) {
-            distribution += nav;
-            nav = 0;
-        }
-        
-        distribution = Math.max(0, distribution);
         totalDists += distribution;
+
+        // NAV evolution scaled to hit endingNavTarget
+        const navProgress = year / fundLife;
+        const targetNavAtYear = year < fundLife 
+            ? Math.min(totalToCall * 1.5, totalToCall * 2 * Math.sin((Math.PI/2) * navProgress)) * depthFactor
+            : endingNavTarget;
         
-        const net = distribution - call;
-        cumulativeNet += net;
+        nav = targetNavAtYear;
         
         if (nav > maxNavValue) {
             maxNavValue = nav;
             maxNavYear = year;
         }
 
+        const net = distribution - call;
+        cumulativeNet += net;
+
+        // IRR Profile calculation
         let irr = 0;
         if (year > 0) {
             const pacingFactor = deploymentPacing === 'front-loaded' ? 1.2 : (deploymentPacing === 'back-loaded' ? 0.8 : 1);
             const bottomYear = 2 + (deploymentPacing === 'back-loaded' ? 1 : 0);
             const breakevenYear = Math.max(bottomYear + 1, 5 + breakevenAdj + distStartAdj);
             
+            const returnScaling = tvpiTarget / 2.2;
+
             if (year <= bottomYear) {
                 irr = -25 * (year / bottomYear) * depthFactor * pacingFactor;
             } else if (year <= breakevenYear) {
@@ -134,9 +137,9 @@ const generateAssumptionData = (params: any) => {
     }
 
     const endingNav = nav;
-    const finalTvpi = totalCalls > 0 ? (totalDists + endingNav) / totalCalls : 0;
-    const finalDpi = totalCalls > 0 ? totalDists / totalCalls : 0;
-    const finalRvpi = totalCalls > 0 ? endingNav / totalCalls : 0;
+    const finalTvpi = tvpiTarget; // Force sync for summary
+    const finalDpi = dpiTarget;
+    const finalRvpi = rvpiTarget;
 
     const itdIrr = Math.max(0, (finalTvpi - 1) / (fundLife / 2)); 
 
@@ -144,8 +147,8 @@ const generateAssumptionData = (params: any) => {
         jCurveData, 
         summaryOutputs: {
             totalCapitalCalled: totalCalls,
-            totalDistributions: totalDists,
-            endingNav: endingNav,
+            totalDistributions: totalCalls * dpiTarget,
+            endingNav: totalCalls * rvpiTarget,
             tvpi: finalTvpi,
             moic: moicTarget,
             dpi: finalDpi,
@@ -169,7 +172,7 @@ export default function AssumptionsStudioPage() {
     const [distributionSpeed, setDistributionSpeed] = useState('normal');
     
     const [tvpiTarget, setTvpiTarget] = useState(2.2);
-    const [moicTarget, setMoicTarget] = useState(2.1);
+    const [moicTarget, setMoicTarget] = useState(2.31); // Heuristic baseline
     const [dpiTarget, setDpiTarget] = useState(1.5);
     const [rvpiTarget, setRvpiTarget] = useState(0.7);
 
@@ -177,13 +180,39 @@ export default function AssumptionsStudioPage() {
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
     const [savedSets, setSavedSets] = useState<ComparisonSet[]>(initialSets);
 
+    const isUpdatingRef = useRef(false);
+
     const selectedFundName = funds.find(f => f.id === fundId)?.name || "Selected Fund";
 
-    // Effect to sync TVPI with DPI + RVPI
+    // Synchronize TVPI when DPI or RVPI changes
     useEffect(() => {
+        if (isUpdatingRef.current) return;
+        isUpdatingRef.current = true;
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
-        if (Math.abs(calculatedTvpi - tvpiTarget) > 0.01) setTvpiTarget(calculatedTvpi);
+        if (Math.abs(calculatedTvpi - tvpiTarget) > 0.001) {
+            setTvpiTarget(calculatedTvpi);
+            setMoicTarget(parseFloat((calculatedTvpi * 1.05).toFixed(2)));
+        }
+        isUpdatingRef.current = false;
     }, [dpiTarget, rvpiTarget]);
+
+    // Synchronize DPI and RVPI when TVPI changes
+    useEffect(() => {
+        if (isUpdatingRef.current) return;
+        isUpdatingRef.current = true;
+        
+        const currentSum = dpiTarget + rvpiTarget;
+        if (Math.abs(currentSum - tvpiTarget) > 0.001) {
+            // Distribute the change proportionally
+            const ratio = currentSum > 0 ? dpiTarget / currentSum : 0.68; // default ratio if sum is 0
+            const newDpi = parseFloat((tvpiTarget * ratio).toFixed(2));
+            const newRvpi = parseFloat((tvpiTarget - newDpi).toFixed(2));
+            setDpiTarget(newDpi);
+            setRvpiTarget(newRvpi);
+            setMoicTarget(parseFloat((tvpiTarget * 1.05).toFixed(2)));
+        }
+        isUpdatingRef.current = false;
+    }, [tvpiTarget]);
 
     // Effect: Load Fund Defaults
     useEffect(() => {
@@ -197,19 +226,16 @@ export default function AssumptionsStudioPage() {
                 setJCurveDepth('deep');
                 setDpiTarget(0.8);
                 setRvpiTarget(2.7);
-                setMoicTarget(3.5);
             } else if (fund.strategy === 'Infra') {
                 setDeploymentPacing('balanced');
                 setJCurveDepth('shallow');
                 setDpiTarget(1.1);
                 setRvpiTarget(0.7);
-                setMoicTarget(1.8);
             } else {
                 setDeploymentPacing('balanced');
                 setJCurveDepth('moderate');
                 setDpiTarget(1.6);
                 setRvpiTarget(0.6);
-                setMoicTarget(2.2);
             }
         }
     }, [fundId]);
