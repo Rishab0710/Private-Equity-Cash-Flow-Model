@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { AssumptionSets } from "@/components/app/assumptions-studio/assumption-sets";
@@ -87,13 +88,34 @@ const generateAssumptionData = (params: any) => {
             maxNavYear = year;
         }
 
+        // IRR Simulation for multi-series chart
+        let irr = 0;
+        if (year > 0) {
+            const bottomYear = 2;
+            if (year <= bottomYear) {
+                irr = -25 * (year / bottomYear) * depthFactor;
+            } else {
+                const recovery = (year - bottomYear) / (fundLife - bottomYear);
+                irr = (-25 * depthFactor) + ( (25 * depthFactor + (18 * returnScaling)) * Math.pow(recovery, 0.6) );
+            }
+        }
+        
+        // Simulated benchmark deviations
+        const irrBenchmark1 = year === 0 ? 0 : irr * 0.85 + (Math.sin(year) * 2);
+        const irrBenchmark2 = year === 0 ? 0 : irr * 1.15 - (Math.cos(year) * 3);
+        const irrBenchmark3 = year === 0 ? 0 : irr * 0.7 - 5;
+
         jCurveData.push({
             year: `Yr ${year}`,
             calls: -call,
             distributions: distribution,
             net: net,
             nav: nav,
-            cumulativeNet: cumulativeNet
+            cumulativeNet: cumulativeNet,
+            irr: irr,
+            irrBenchmark1: irrBenchmark1,
+            irrBenchmark2: irrBenchmark2,
+            irrBenchmark3: irrBenchmark3
         });
     }
 
@@ -102,7 +124,6 @@ const generateAssumptionData = (params: any) => {
     const finalDpi = totalCalls > 0 ? totalDists / totalCalls : 0;
     const finalRvpi = totalCalls > 0 ? endingNav / totalCalls : 0;
 
-    // Simplified IRR heuristic for simulation
     const itdIrr = Math.max(0, (finalTvpi - 1) / (fundLife / 2)); 
 
     return { 
