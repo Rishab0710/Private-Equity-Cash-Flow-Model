@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
 import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-timeline";
 import { JCurvePreview } from "@/components/app/assumptions-studio/j-curve-preview";
@@ -19,7 +19,6 @@ import type { ComparisonSet } from '@/components/app/assumptions-studio/compare-
 
 const generateAssumptionData = (params: any) => {
     const {
-        fundId,
         commitment,
         investmentPeriod,
         deploymentPacing,
@@ -35,8 +34,9 @@ const generateAssumptionData = (params: any) => {
     
     const fundLife = 15;
     
-    // Requirement: Keep Total called between 80-90%
-    const targetCallPercentage = fundId === 'all' ? 0.84 : 0.88;
+    // Dynamic target called percentage logic (83-89% range)
+    const pacingAdj = deploymentPacing === 'front-loaded' ? 0.02 : (deploymentPacing === 'back-loaded' ? -0.02 : 0);
+    const targetCallPercentage = 0.86 + pacingAdj; 
     const totalToCall = commitment * targetCallPercentage;
     
     const depthFactor = { 'shallow': 0.7, 'moderate': 1, 'deep': 1.4 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
@@ -172,11 +172,13 @@ export default function AssumptionsStudioPage() {
 
     const selectedFundName = funds.find(f => f.id === fundId)?.name || "Selected Fund";
 
+    // Effect to sync TVPI with DPI + RVPI
     useEffect(() => {
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
-        if (calculatedTvpi !== tvpiTarget) setTvpiTarget(calculatedTvpi);
-    }, [dpiTarget, rvpiTarget]);
+        if (Math.abs(calculatedTvpi - tvpiTarget) > 0.01) setTvpiTarget(calculatedTvpi);
+    }, [dpiTarget, rvpiTarget, tvpiTarget]);
 
+    // Effect: Load Fund Defaults
     useEffect(() => {
         const fund = funds.find(f => f.id === fundId);
         if (fund) {
@@ -206,15 +208,32 @@ export default function AssumptionsStudioPage() {
         }
     }, [fundId]);
 
+    // Bidirectional Logic: Update Multiples based on J-Curve Controls
+    useEffect(() => {
+        // If user changes J-Curve controls, suggest realistic targets
+        if (jCurveDepth === 'deep') {
+            setRvpiTarget(prev => Math.max(prev, 2.0));
+        } else if (jCurveDepth === 'shallow') {
+            setRvpiTarget(prev => Math.min(prev, 0.8));
+        }
+
+        if (distributionSpeed === 'fast') {
+            setDpiTarget(prev => Math.max(prev, 1.8));
+        } else if (distributionSpeed === 'slow') {
+            setDpiTarget(prev => Math.min(prev, 0.9));
+        }
+    }, [jCurveDepth, distributionSpeed]);
+
+    // Core Data Generation Effect
     useEffect(() => {
         const data = generateAssumptionData({
-            fundId, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+            commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
             distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
-        fundId, commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
+        commitment, investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
         distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
     ]);
 
