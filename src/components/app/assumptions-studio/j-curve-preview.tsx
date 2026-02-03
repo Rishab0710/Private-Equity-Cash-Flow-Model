@@ -35,17 +35,28 @@ export function JCurvePreview({ data, fundName }: { data: any[], fundName: strin
         <Card className="border-black/10">
             <CardHeader className="py-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-base font-semibold text-highlight">J-Curve Performance Profile (IRR)</CardTitle>
-                <div className="text-[10px] text-black font-medium uppercase tracking-wider">
-                    Annualized Internal Rate of Return
-                </div>
             </CardHeader>
             <CardContent>
                 <div className="h-[300px]">
                     <ChartContainer config={chartConfig} className="w-full h-full">
                         <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
-                            <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} fontSize={10} tick={{fill: 'black'}} />
-                            <YAxis tickFormatter={formatPercent} tickLine={false} axisLine={false} fontSize={10} domain={[-40, 30]} tick={{fill: 'black'}} />
+                            <XAxis 
+                                dataKey="year" 
+                                tickLine={false} 
+                                axisLine={false} 
+                                tickMargin={8} 
+                                fontSize={10} 
+                                tick={{fill: 'black'}} 
+                            />
+                            <YAxis 
+                                tickFormatter={formatPercent} 
+                                tickLine={false} 
+                                axisLine={false} 
+                                fontSize={10} 
+                                domain={[-40, 30]} 
+                                tick={{fill: 'black'}} 
+                            />
                             <Tooltip 
                                 content={<ChartTooltipContent 
                                     indicator="dot" 
