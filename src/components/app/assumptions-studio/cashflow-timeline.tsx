@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const timelineConfig = {
   calls: { label: "Capital Calls", color: "hsl(var(--chart-5))" },
   distributions: { label: "Distributions", color: "hsl(var(--chart-3))" },
+  nav: { label: "NAV Evolution", color: "hsl(var(--chart-4))" },
   cumulativeNet: { label: "Cumulative Net Cash Flow", color: "hsl(var(--primary))" },
 };
 
@@ -17,10 +18,10 @@ export function CashflowTimeline({ data }: { data: any[] }) {
         return (
             <Card className="border-black/10">
                 <CardHeader className="py-3">
-                    <CardTitle className="text-base font-semibold text-highlight">Projected Cash Flow Dynamics</CardTitle>
+                    <CardTitle className="text-base font-semibold text-highlight">Projected Cash Flow & NAV Dynamics</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Skeleton className="h-[250px] w-full" />
+                    <Skeleton className="h-[320px] w-full" />
                 </CardContent>
             </Card>
         )
@@ -29,12 +30,12 @@ export function CashflowTimeline({ data }: { data: any[] }) {
     return (
         <Card className="border-black/10">
             <CardHeader className="py-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-base font-semibold text-highlight">Projected Cash Flow Dynamics</CardTitle>
+                <CardTitle className="text-base font-semibold text-highlight">Projected Cash Flow & NAV Dynamics</CardTitle>
                 <div className="text-[10px] text-black font-medium uppercase tracking-wider">
                     Annual Projections ($ in Millions)
                 </div>
             </CardHeader>
-            <CardContent className="h-[250px]">
+            <CardContent className="h-[320px]">
                 <ChartContainer config={timelineConfig} className="w-full h-full">
                     <ComposedChart data={data} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                         <defs>
@@ -61,7 +62,7 @@ export function CashflowTimeline({ data }: { data: any[] }) {
                         />
                         <Tooltip 
                             cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
-                            content={<ChartTooltipContent indicator="dot" formatter={(value) => {
+                            content={<ChartTooltipContent indicator="dot" formatter={(value, name) => {
                                 const val = typeof value === 'number' ? value : 0;
                                 return `$${val.toFixed(1)}M`;
                             }} />} 
@@ -90,6 +91,15 @@ export function CashflowTimeline({ data }: { data: any[] }) {
                             fill="var(--color-calls)" 
                             name="Capital Calls"
                             stackId="a" 
+                        />
+
+                        <Line 
+                            type="monotone" 
+                            dataKey="nav" 
+                            stroke="var(--color-nav)" 
+                            strokeWidth={3} 
+                            dot={false}
+                            name="NAV Evolution"
                         />
                     </ComposedChart>
                 </ChartContainer>
