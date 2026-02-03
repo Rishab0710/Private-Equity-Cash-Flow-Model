@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { AssumptionSets } from "@/components/app/assumptions-studio/assumption-sets";
+import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
 import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-timeline";
 import { JCurvePreview } from "@/components/app/assumptions-studio/j-curve-preview";
 import { JCurveShapeControls } from "@/components/app/assumptions-studio/j-curve-shape-controls";
@@ -11,6 +11,8 @@ import { SummaryOutputs } from "@/components/app/assumptions-studio/summary-outp
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
+import { useToast } from '@/hooks/use-toast';
+import { Save } from 'lucide-react';
 
 const generateAssumptionData = (params: any) => {
     const {
@@ -141,6 +143,7 @@ const generateAssumptionData = (params: any) => {
 };
 
 export default function AssumptionsStudioPage() {
+    const { toast } = useToast();
     const [fundId, setFundId] = useState('all');
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
@@ -156,6 +159,7 @@ export default function AssumptionsStudioPage() {
 
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
+    const [savedSets, setSavedSets] = useState<any[]>(initialSets);
 
     useEffect(() => {
         const calculatedTvpi = parseFloat((dpiTarget + rvpiTarget).toFixed(2));
@@ -174,6 +178,24 @@ export default function AssumptionsStudioPage() {
         distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
     ]);
 
+    const handleSaveSet = () => {
+        const newSet = {
+            id: savedSets.length + 1,
+            fund: `Simulation - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            strategy: 'Custom Model',
+            vintage: 2024,
+            commitment: 100,
+            updatedBy: 'QA1 Guest',
+            updated: 'Just now',
+            status: 'Draft'
+        };
+        setSavedSets([newSet, ...savedSets]);
+        toast({
+            title: "Assumptions Saved",
+            description: "The current model has been added to your Assumption Sets.",
+        });
+    };
+
   return (
     <div className="space-y-6">
       <Card className="bg-white border-black/10">
@@ -187,8 +209,15 @@ export default function AssumptionsStudioPage() {
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="default" className="h-7 px-3 text-[10px] bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
-                <AssumptionSets />
+                <Button 
+                    onClick={handleSaveSet}
+                    variant="default" 
+                    className="h-7 px-3 text-[10px] bg-primary hover:bg-primary/90 text-white font-medium"
+                >
+                    <Save className="h-3 w-3 mr-1.5" />
+                    Save Assumption Set
+                </Button>
+                <AssumptionSets sets={savedSets} />
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>

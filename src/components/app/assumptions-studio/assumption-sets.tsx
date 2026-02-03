@@ -18,18 +18,17 @@ import { useState } from "react";
 import { CompareDrawer } from "./compare-drawer";
 import { useToast } from "@/hooks/use-toast";
 
-const initialSets = [
+export const initialSets = [
     { id: 1, fund: 'Growth Equity Fund V', strategy: 'Growth PE', vintage: 2021, commitment: 100, updatedBy: 'Sarah J.', updated: '2 days ago', status: 'Active' },
     { id: 2, fund: 'Venture Partners II', strategy: 'Venture Capital', vintage: 2022, commitment: 50, updatedBy: 'Mark T.', updated: '1 month ago', status: 'Draft' },
     { id: 3, fund: 'Global Infrastructure Fund', strategy: 'Infrastructure', vintage: 2020, commitment: 250, updatedBy: 'Elena R.', updated: '3 weeks ago', status: 'Draft' },
     { id: 4, fund: 'Buyout Leaders IV', strategy: 'Buyout PE', vintage: 2019, commitment: 150, updatedBy: 'John D.', updated: '1 day ago', status: 'Active' },
 ];
 
-export function AssumptionSets() {
+export function AssumptionSets({ sets }: { sets: typeof initialSets }) {
     const { toast } = useToast();
     const [selectedSets, setSelectedSets] = useState<number[]>([]);
     const [isCompareDrawerOpen, setCompareDrawerOpen] = useState(false);
-    const [sets] = useState(initialSets);
 
     const handleCompare = () => {
         if (selectedSets.length >= 2) {
