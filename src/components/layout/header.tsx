@@ -7,13 +7,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Settings,
-  LifeBuoy,
   Menu,
   TrendingUp,
   User,
@@ -21,6 +17,8 @@ import {
   LogOut,
   BrainCircuit,
   ClipboardList,
+  Waves,
+  Activity,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -32,11 +30,12 @@ const navItems = [
   { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
   { href: '/assumptions-studio', label: 'Assumptions Studio', icon: ClipboardList },
   { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
+  { href: '/liquidity', label: 'Liquidity Planning', icon: Waves },
+  { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Activity },
 ];
 
 export function Header() {
   const pathname = usePathname();
-  const { fundId, setFundId, asOfDate, setAsOfDate } = usePortfolioContext();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -115,9 +114,9 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuItem className="text-accent">
+            <DropdownMenuItem className="text-accent cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
-              <span className="font-medium">Logout</span>
+              <span className="font-medium text-black">Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

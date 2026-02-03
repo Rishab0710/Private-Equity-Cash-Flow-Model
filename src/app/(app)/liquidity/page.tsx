@@ -9,6 +9,7 @@ import { LiquidityActionPlanner } from '@/components/app/liquidity/liquidity-act
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function LiquidityPage() {
   const { portfolioData, fundId, setFundId, capitalCallPacing, setCapitalCallPacing, distributionVelocity, setDistributionVelocity, funds } = usePortfolioContext();
@@ -21,30 +22,38 @@ export default function LiquidityPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-y-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-            <div className="flex items-center gap-4 flex-wrap">
+      <Card className="bg-white border-black/10">
+        <CardContent className="pt-4 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase">
+                    Liquidity Planning
+                </h1>
+                <p className="text-xs text-black font-medium">
+                    Analyze capital call schedules and identify potential funding gaps.
+                </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+                <div className="space-y-1 w-[150px]">
+                    <div className="flex justify-between items-center">
+                        <Label className="text-[10px] font-bold text-black uppercase">Call Pacing</Label>
+                        <span className="text-[10px] font-bold text-black">{(capitalCallPacing / 100).toFixed(1)}x</span>
+                    </div>
+                    <Slider value={[capitalCallPacing]} onValueChange={([v]) => setCapitalCallPacing(v)} min={50} max={150} step={5} />
+                </div>
+                <div className="space-y-1 w-[150px]">
+                    <div className="flex justify-between items-center">
+                        <Label className="text-[10px] font-bold text-black uppercase">Dist. Velocity</Label>
+                        <span className="text-[10px] font-bold text-black">{(distributionVelocity / 100).toFixed(1)}x</span>
+                    </div>
+                    <Slider value={[distributionVelocity]} onValueChange={([v]) => setDistributionVelocity(v)} min={50} max={150} step={5} />
+                </div>
                 <FundSelector
                   selectedFundId={fundId}
                   onFundChange={setFundId}
                 />
-                <div className="space-y-1 w-[200px]">
-                    <div className="flex justify-between items-center">
-                        <Label className="text-sm font-normal">Capital Call Pacing</Label>
-                        <span className="text-xs font-medium text-muted-foreground">{(capitalCallPacing / 100).toFixed(1)}x</span>
-                    </div>
-                    <Slider value={[capitalCallPacing]} onValueChange={([v]) => setCapitalCallPacing(v)} min={50} max={150} step={5} />
-                </div>
-                <div className="space-y-1 w-[200px]">
-                    <div className="flex justify-between items-center">
-                        <Label className="text-sm font-normal">Distribution Velocity</Label>
-                        <span className="text-xs font-medium text-muted-foreground">{(distributionVelocity / 100).toFixed(1)}x</span>
-                    </div>
-                    <Slider value={[distributionVelocity]} onValueChange={([v]) => setDistributionVelocity(v)} min={50} max={150} step={5} />
-                </div>
             </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
       
       <LiquidityKpiPanel kpis={kpis} />
 
