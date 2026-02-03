@@ -39,7 +39,6 @@ const generateChartData = (params: {
 
     let currentContribution = annualContribution;
     let currentWithdrawal = annualWithdrawal;
-    let cumulativeNetCashFlow = 0;
 
     const moderateRate = meanRateOfReturn / 100;
     const moderateStdev = standardDeviation / 100;
@@ -55,12 +54,10 @@ const generateChartData = (params: {
         conservative: Math.round(cons),
         moderate: Math.round(mod),
         aggressive: Math.round(agg),
-        cumulativeNetCashFlow: 0,
     });
 
     for (let i = 1; i <= investmentPeriod; i++) {
         const netAnnualFlow = (currentContribution - currentWithdrawal) / 1000000;
-        cumulativeNetCashFlow += netAnnualFlow;
         
         cons += netAnnualFlow;
         mod += netAnnualFlow;
@@ -81,7 +78,6 @@ const generateChartData = (params: {
             conservative: Math.round(cons),
             moderate: Math.round(mod),
             aggressive: Math.round(agg),
-            cumulativeNetCashFlow: Math.round(cumulativeNetCashFlow),
         });
 
         currentContribution *= increaseFactor;
@@ -123,7 +119,6 @@ const calculateLikelihoods = (params: {
     }
 };
 
-
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
@@ -134,7 +129,6 @@ const MetricRow = ({ label, value, valueClassName }: { label: string, value: str
         <p className={cn("text-xs font-semibold", valueClassName)}>{value}</p>
     </div>
 );
-
 
 export default function PortfolioGrowthPage() {
     const { fundId, setFundId, funds, portfolioData } = usePortfolioContext();
@@ -163,7 +157,6 @@ export default function PortfolioGrowthPage() {
                 newStartingBalance = selectedFund?.latestNav ?? 0;
             }
             setStartingBalance(newStartingBalance);
-            // Defaulting to blank (0) as per request
             setAnnualContribution(0);
             setAnnualWithdrawal(0);
         }
@@ -196,19 +189,11 @@ export default function PortfolioGrowthPage() {
         }
 
         const { baseReturn, baseStdev } = riskProfile;
-
-        // 1. Time horizon factor
-        const timeFactor = (investmentPeriod - 20) / 10; // Longer horizon = more risk appetite
-
-        // 2. Net cash flow factor (contribution vs withdrawal)
+        const timeFactor = (investmentPeriod - 20) / 10; 
         const netFlow = annualContribution - annualWithdrawal;
         const netFlowFactor = startingBalance > 0 ? (netFlow / startingBalance) : 0;
-
-        // 3. Annual increase factor
-        // This amplifies the net cash flow effect over time
         const increaseFactor = (annualIncrease / 100) * (netFlow > 0 ? 1 : -1);
 
-        // Combine factors to create adjustments
         const returnAdjustment = (timeFactor * 0.5) + (netFlowFactor * 2) + (increaseFactor * 1);
         const stdevAdjustment = (timeFactor * 1.0) + (netFlowFactor * 3) + (increaseFactor * 2);
         

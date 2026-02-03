@@ -47,7 +47,6 @@ const CustomLegend = (props: any) => {
   );
 };
 
-
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
       <div className="h-[350px] w-full rounded-lg border p-1">
@@ -88,11 +87,11 @@ export function GrowthChart({ data, likelihoods }: Props) {
                                 if (!config) return null;
                                 return (
                                     <div className="flex w-full items-center justify-between gap-4">
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: config.color }} />
-                                            <span className="text-[10px] text-black font-semibold">{config.label}</span>
+                                        <div className="flex flex-shrink-0 items-center gap-2">
+                                            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: config.color }} />
+                                            <span className="text-xs font-semibold">{config.label}</span>
                                         </div>
-                                        <span className="text-[10px] font-bold text-black">${Number(value).toFixed(1)}M</span>
+                                        <span className="font-bold text-black ml-4">${Number(value).toFixed(1)}M</span>
                                     </div>
                                 );
                             }}
