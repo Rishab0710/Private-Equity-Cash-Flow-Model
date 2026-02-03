@@ -17,8 +17,6 @@ import {
   LogOut,
   BrainCircuit,
   ClipboardList,
-  Waves,
-  Activity,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -26,11 +24,9 @@ import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
 const navItems = [
-  { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
   { href: '/assumptions-studio', label: 'Assumptions Studio', icon: ClipboardList },
+  { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
   { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
-  { href: '/liquidity', label: 'Liquidity Planning', icon: Waves },
-  { href: '/j-curve-editor', label: 'J-Curve Editor', icon: Activity },
 ];
 
 export function Header() {
@@ -44,7 +40,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-header px-3">
       <div className="flex items-center gap-6">
-        <Link href="/portfolio-growth" className="flex items-center gap-2">
+        <Link href="/assumptions-studio" className="flex items-center gap-2">
            <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
         </Link>
         <nav className="hidden items-center gap-1 font-medium md:flex lg:gap-2">
@@ -80,7 +76,7 @@ export function Header() {
           <SheetContent side="left" className="bg-card">
             <nav className="grid gap-4 p-4 text-base font-medium">
               <Link
-                href="/portfolio-growth"
+                href="/assumptions-studio"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
               >
                 <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
