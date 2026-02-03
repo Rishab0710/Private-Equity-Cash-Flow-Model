@@ -13,11 +13,16 @@ const formatMultiple = (value: number) => {
     return `${value.toFixed(2)}x`;
 }
 
+const formatPercent = (value: number) => {
+    if (typeof value !== 'number' || isNaN(value)) return '0%';
+    return `${value.toFixed(1)}%`;
+}
+
 const SummaryMetric = ({ label, value, subValue }: { label: string; value: string; subValue?: string }) => (
-    <div className="flex flex-col items-center justify-center p-3 text-center bg-muted/50 rounded-lg h-full">
-        <p className="text-xs font-bold text-black">{label}</p>
-        <p className="text-lg font-black text-black">{value}</p>
-        {subValue && <p className="text-xs font-bold text-black">{subValue}</p>}
+    <div className="flex flex-col items-center justify-center p-3 text-center bg-muted/50 rounded-lg h-full border border-black/5">
+        <p className="text-[10px] font-bold text-black uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-base font-black text-black leading-none">{value}</p>
+        {subValue && <p className="text-[10px] font-medium text-black mt-1 opacity-70">{subValue}</p>}
     </div>
 );
 
@@ -32,25 +37,28 @@ const SummarySkeleton = () => (
 export function SummaryOutputs({ data, tvpiTarget, moicTarget }: { data: any | null, tvpiTarget: number, moicTarget: number }) {
     if (!data) {
         return (
-             <Card>
+             <Card className="bg-white border-black/10">
                 <CardContent className="pt-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                       {Array.from({length: 6}).map((_, i) => <SummarySkeleton key={i} />)}
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
+                       {Array.from({length: 9}).map((_, i) => <SummarySkeleton key={i} />)}
                     </div>
                 </CardContent>
             </Card>
         )
     }
     return (
-        <Card>
+        <Card className="bg-white border-black/10">
             <CardContent className="pt-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
                     <SummaryMetric label="Total Called" value={formatCurrency(data.totalCapitalCalled)} subValue={`${Math.round(data.totalCapitalCalled)}% of commitment`} />
                     <SummaryMetric label="Total Dists" value={formatCurrency(data.totalDistributions)} />
                     <SummaryMetric label="Ending NAV" value={formatCurrency(data.endingNav)} />
+                    <SummaryMetric label="Peak NAV" value={formatCurrency(data.peakNav)} />
                     <SummaryMetric label="TVPI" value={formatMultiple(data.tvpi)} subValue={`Target: ${formatMultiple(tvpiTarget)}`} />
                     <SummaryMetric label="MOIC" value={formatMultiple(moicTarget)} subValue="Target Multiple" />
                     <SummaryMetric label="Breakeven" value={data.breakevenTiming} />
+                    <SummaryMetric label="Coverage" value={formatPercent(data.liquidityCoverage)} subValue="Dist / Call Ratio" />
+                    <SummaryMetric label="Unfunded" value={formatCurrency(data.remainingUnfunded)} />
                 </div>
             </CardContent>
         </Card>

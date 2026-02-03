@@ -21,6 +21,7 @@ const generateAssumptionData = (params: any) => {
         distributionStart,
         distributionSpeed,
         tvpiTarget,
+        moicTarget,
         dpiTarget,
         rvpiTarget
     } = params;
@@ -42,6 +43,7 @@ const generateAssumptionData = (params: any) => {
     let totalCalls = 0;
     let totalDists = 0;
     let cumulativeNet = 0;
+    let maxNav = 0;
 
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
@@ -78,6 +80,7 @@ const generateAssumptionData = (params: any) => {
         
         const net = distribution - call;
         cumulativeNet += net;
+        if (nav > maxNav) maxNav = nav;
 
         jCurveData.push({
             year: `Yr ${year}`,
@@ -102,6 +105,9 @@ const generateAssumptionData = (params: any) => {
             endingNav: endingNav,
             tvpi: finalTvpi,
             breakevenTiming,
+            peakNav: maxNav,
+            remainingUnfunded: unfunded,
+            liquidityCoverage: totalCalls > 0 ? (totalDists / totalCalls) * 100 : 0
         }
     };
 };
@@ -153,12 +159,14 @@ export default function AssumptionsStudioPage() {
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
+                <Button variant="default" size="sm" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-medium">Save Assumption Set</Button>
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>
       </Card>
       
+      <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} moicTarget={moicTarget} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
           <JCurveShapeControls
@@ -180,7 +188,6 @@ export default function AssumptionsStudioPage() {
         <div className="lg:col-span-2 space-y-6">
             <JCurvePreview data={jCurveData} />
             <CashflowTimeline data={jCurveData} />
-            <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} moicTarget={moicTarget} />
         </div>
       </div>
 
