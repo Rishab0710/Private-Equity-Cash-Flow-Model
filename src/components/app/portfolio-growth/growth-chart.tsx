@@ -27,7 +27,7 @@ const CustomLegend = (props: any) => {
   if (!payload) return null;
 
   return (
-    <div className="flex flex-row flex-wrap justify-center items-center gap-x-8 gap-y-2 mt-6">
+    <div className="flex flex-row flex-wrap justify-center items-center gap-x-8 gap-y-2 mt-4">
       {payload.map((entry: any) => {
         const key = String(entry.dataKey || entry.value).toLowerCase();
         const config = chartConfig[key as keyof typeof chartConfig];
@@ -37,8 +37,8 @@ const CustomLegend = (props: any) => {
           <div key={key} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-black uppercase tracking-tight">{config?.label || entry.value}</span>
-              {likelihoodText && <span className="text-[10px] text-black font-medium opacity-60 italic">{likelihoodText}</span>}
+              <span className="text-[10px] font-bold text-black uppercase tracking-tight">{config?.label || entry.value}</span>
+              {likelihoodText && <span className="text-[9px] text-black font-medium opacity-60 italic">{likelihoodText}</span>}
             </div>
           </div>
         );
@@ -49,15 +49,15 @@ const CustomLegend = (props: any) => {
 
 export function GrowthChart({ data, likelihoods }: Props) {
   return (
-      <div className="h-[400px] w-full pt-4 border border-black/10 rounded-lg p-4 bg-white shadow-sm">
-          <ChartContainer config={chartConfig} className="h-full w-full">
+      <div className="h-[330px] w-full pt-4 border border-black/10 rounded-lg p-4 bg-white shadow-sm flex flex-col">
+          <ChartContainer config={chartConfig} className="flex-1 w-full min-h-0">
             <LineChart
                 data={data}
                 margin={{
-                top: 20,
+                top: 5,
                 right: 30,
                 left: 10,
-                bottom: 20,
+                bottom: 5,
                 }}
             >
                 <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
