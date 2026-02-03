@@ -361,14 +361,14 @@ export default function PortfolioGrowthPage() {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-black uppercase tracking-widest">Portfolio Risk Profile</div>
+                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-highlight uppercase tracking-widest">Portfolio Risk Profile</div>
                                 <div className="space-y-0.5 py-1">
                                     <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
                                     <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                                 </div>
                             </div>
                             <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-black uppercase tracking-widest">Potential Wealth (Terminal)</div>
+                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-highlight uppercase tracking-widest">Potential Wealth (Terminal)</div>
                                 <div className="space-y-0.5 py-1">
                                     <MetricRow 
                                         label="Conservative" 
