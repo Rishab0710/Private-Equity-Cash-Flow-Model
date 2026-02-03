@@ -175,18 +175,6 @@ export default function AssumptionsStudioPage() {
             dpiTarget={dpiTarget} setDpiTarget={setDpiTarget}
             rvpiTarget={rvpiTarget} setRvpiTarget={setRvpiTarget}
           />
-          <div className="space-y-6">
-            <NarrativeInsights 
-                jCurveDepth={jCurveDepth} 
-                distributionSpeed={distributionSpeed} 
-                tvpiTarget={tvpiTarget} 
-            />
-            <NextStepsRecommendations 
-                jCurveDepth={jCurveDepth} 
-                distributionSpeed={distributionSpeed} 
-                tvpiTarget={tvpiTarget} 
-            />
-          </div>
         </div>
 
         <div className="lg:col-span-2 space-y-6">
@@ -195,6 +183,20 @@ export default function AssumptionsStudioPage() {
             <SummaryOutputs data={summaryOutputs} tvpiTarget={tvpiTarget} moicTarget={moicTarget} />
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <NarrativeInsights 
+            jCurveDepth={jCurveDepth} 
+            distributionSpeed={distributionSpeed} 
+            tvpiTarget={tvpiTarget} 
+        />
+        <NextStepsRecommendations 
+            jCurveDepth={jCurveDepth} 
+            distributionSpeed={distributionSpeed} 
+            tvpiTarget={tvpiTarget} 
+        />
+      </div>
+
       <AssumptionSets />
     </div>
   );
