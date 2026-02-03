@@ -104,8 +104,6 @@ export function MultiplesAssumptions({
                 </div>
 
                 <div className="pt-2 border-t border-dashed border-black/20">
-                    <p className="text-[10px] font-semibold text-black mb-3 uppercase tracking-widest">Component Forecasts</p>
-                    
                     <div className="grid grid-cols-2 gap-4">
                         {/* DPI Section */}
                         <div className="space-y-2">
