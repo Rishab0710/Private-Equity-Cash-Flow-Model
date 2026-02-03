@@ -37,20 +37,20 @@ export function MultiplesAssumptions({
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="text-base text-black">Fund Multiples Assumptions</CardTitle>
-                <CardDescription className="text-xs text-black font-medium">
+            <CardHeader className="py-3">
+                <CardTitle className="text-sm font-semibold text-highlight">Fund Multiples Assumptions</CardTitle>
+                <CardDescription className="text-[10px] text-black font-medium leading-tight">
                     Multiples represent outcome targets used to shape expected distributions and remaining value.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 pt-6">
+            <CardContent className="space-y-4 pt-0">
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <Label className="font-bold text-black">TVPI</Label>
-                        <Badge variant="secondary" className="text-black">Template</Badge>
+                        <Label className="text-xs font-bold text-black">TVPI</Label>
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 text-black">Template</Badge>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                        <Input placeholder="Min" value={`${(tvpiTarget * 0.9).toFixed(2)}x`} disabled className="text-black font-medium" />
+                        <Input placeholder="Min" value={`${(tvpiTarget * 0.9).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-medium" />
                         <Input 
                             value={`${displayTvpi}x`}
                             onChange={(e) => setDisplayTvpi(e.target.value.replace('x', ''))}
@@ -58,19 +58,19 @@ export function MultiplesAssumptions({
                                 const num = parseFloat(displayTvpi);
                                 setTvpiTarget(isNaN(num) ? tvpiTarget : num);
                             }}
-                            className="font-bold text-center border-primary text-black" 
+                            className="h-7 text-[11px] font-bold text-center border-primary text-black" 
                          />
-                        <Input placeholder="Max" value={`${(tvpiTarget * 1.1).toFixed(2)}x`} disabled className="text-black font-medium" />
+                        <Input placeholder="Max" value={`${(tvpiTarget * 1.1).toFixed(2)}x`} disabled className="h-7 text-[11px] text-black font-medium" />
                     </div>
                 </div>
 
                 <div className="space-y-2">
                      <div className="flex items-center space-x-2">
-                        <Switch id="dpi-enable" checked={isDpiEnabled} onCheckedChange={setIsDpiEnabled} />
-                        <Label htmlFor="dpi-enable" className="font-bold text-black">DPI</Label>
+                        <Switch id="dpi-enable" className="h-4 w-8" checked={isDpiEnabled} onCheckedChange={setIsDpiEnabled} />
+                        <Label htmlFor="dpi-enable" className="text-xs font-bold text-black">DPI</Label>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                        <Input placeholder="Min" disabled className="text-black" />
+                        <Input placeholder="Min" disabled className="h-7 text-[11px] text-black" />
                          <Input 
                             value={isDpiEnabled ? `${displayDpi}x` : ""}
                             onChange={(e) => setDisplayDpi(e.target.value.replace('x', ''))}
@@ -79,19 +79,19 @@ export function MultiplesAssumptions({
                                 setDpiTarget(isNaN(num) ? dpiTarget : num);
                             }}
                             disabled={!isDpiEnabled}
-                            className="text-black font-bold text-center"
+                            className="h-7 text-[11px] text-black font-bold text-center"
                         />
-                        <Input placeholder="Max" disabled className="text-black" />
+                        <Input placeholder="Max" disabled className="h-7 text-[11px] text-black" />
                     </div>
                 </div>
 
                 <div className="space-y-2">
                     <div className="flex items-center space-x-2">
-                        <Switch id="rvpi-enable" checked={isRvpiEnabled} onCheckedChange={setIsRvpiEnabled}/>
-                        <Label htmlFor="rvpi-enable" className="font-bold text-black">RVPI</Label>
+                        <Switch id="rvpi-enable" className="h-4 w-8" checked={isRvpiEnabled} onCheckedChange={setIsRvpiEnabled}/>
+                        <Label htmlFor="rvpi-enable" className="text-xs font-bold text-black">RVPI</Label>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                        <Input placeholder="Min" disabled className="text-black" />
+                        <Input placeholder="Min" disabled className="h-7 text-[11px] text-black" />
                         <Input 
                             value={isRvpiEnabled ? `${displayRvpi}x` : ""}
                             onChange={(e) => setDisplayRvpi(e.target.value.replace('x', ''))}
@@ -100,19 +100,19 @@ export function MultiplesAssumptions({
                                 setRvpiTarget(isNaN(num) ? rvpiTarget : num);
                             }}
                             disabled={!isRvpiEnabled}
-                            className="text-black font-bold text-center"
+                            className="h-7 text-[11px] text-black font-bold text-center"
                         />
-                        <Input placeholder="Max" disabled className="text-black" />
+                        <Input placeholder="Max" disabled className="h-7 text-[11px] text-black" />
                     </div>
                 </div>
 
-                <div className="flex items-start space-x-2 rounded-md border p-3 bg-muted/50">
-                    <Checkbox id="lock-assumptions" />
-                    <div className="grid gap-1.5 leading-none">
-                        <Label htmlFor="lock-assumptions" className="font-bold text-black">
+                <div className="flex items-start space-x-2 rounded-md border p-2 bg-muted/50">
+                    <Checkbox id="lock-assumptions" className="h-3 w-3 mt-0.5" />
+                    <div className="grid gap-0.5 leading-none">
+                        <Label htmlFor="lock-assumptions" className="text-[10px] font-bold text-black">
                             Lock to Manager Published Assumptions
                         </Label>
-                        <p className="text-xs text-black font-medium">
+                        <p className="text-[9px] text-black font-medium">
                             When locked, assumptions are read-only and will automatically update if the manager provides new data.
                         </p>
                     </div>
