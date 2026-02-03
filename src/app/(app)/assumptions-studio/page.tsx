@@ -165,14 +165,14 @@ export default function AssumptionsStudioPage() {
         <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 className="text-sm font-semibold tracking-tight text-highlight">
-                    J-Curve &amp; Multiples Assumptions
+                    J-Curve & Multiples Assumptions
                 </h1>
                 <p className="text-xs text-black font-medium">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button>Save Assumption Set</Button>
+                <Button size="sm" className="h-8 px-3 text-xs">Save Assumption Set</Button>
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>

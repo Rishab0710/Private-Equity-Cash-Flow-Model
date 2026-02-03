@@ -38,7 +38,7 @@ export function AssumptionSets() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Saved Assumption Sets</CardTitle>
-                <Button onClick={handleCompare} disabled={selectedSets.length < 2}>Compare ({selectedSets.length})</Button>
+                <Button size="sm" className="h-8 text-xs px-3" onClick={handleCompare} disabled={selectedSets.length < 2}>Compare ({selectedSets.length})</Button>
             </CardHeader>
             <CardContent>
                 <Table>
