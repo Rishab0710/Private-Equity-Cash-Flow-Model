@@ -15,9 +15,9 @@ const formatMultiple = (value: number) => {
 
 const SummaryMetric = ({ label, value, subValue }: { label: string; value: string; subValue?: string }) => (
     <div className="flex flex-col items-center justify-center p-3 text-center bg-muted/50 rounded-lg">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-lg font-bold">{value}</p>
-        {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
+        <p className="text-xs font-bold text-black">{label}</p>
+        <p className="text-lg font-black text-black">{value}</p>
+        {subValue && <p className="text-xs font-bold text-black">{subValue}</p>}
     </div>
 );
 

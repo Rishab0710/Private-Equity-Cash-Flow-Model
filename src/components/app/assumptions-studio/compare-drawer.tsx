@@ -36,32 +36,32 @@ const notes = "This is the base case scenario using the firm's standard buyout m
 const CompareCard = ({ set }: { set: Set }) => (
     <Card className="flex-1 min-w-[300px]">
         <CardHeader>
-            <CardTitle className="text-base">{set.name}</CardTitle>
+            <CardTitle className="text-base text-black font-bold">{set.name}</CardTitle>
             <div className="flex gap-2 text-xs pt-1">
-                <Badge variant="secondary">{set.strategy}</Badge>
-                <Badge variant={set.source === 'Custom' ? 'default' : 'secondary'}>{set.source}</Badge>
+                <Badge variant="secondary" className="text-black">{set.strategy}</Badge>
+                <Badge variant={set.source === 'Custom' ? 'default' : 'secondary'} className="text-black">{set.source}</Badge>
             </div>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
             <div>
-                <h4 className="font-semibold mb-2">J-Curve Shape</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
-                    <span>Depth:</span> <span className="font-medium text-foreground">{shapeLabels.depth}</span>
-                    <span>Breakeven:</span> <span className="font-medium text-foreground">{shapeLabels.breakeven}</span>
-                    <span>Distribution Start:</span> <span className="font-medium text-foreground">{shapeLabels.distStart}</span>
+                <h4 className="font-bold text-black mb-2">J-Curve Shape</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-black font-medium">
+                    <span>Depth:</span> <span className="font-bold">{shapeLabels.depth}</span>
+                    <span>Breakeven:</span> <span className="font-bold">{shapeLabels.breakeven}</span>
+                    <span>Distribution Start:</span> <span className="font-bold">{shapeLabels.distStart}</span>
                 </div>
             </div>
              <div>
-                <h4 className="font-semibold mb-2">Multiples</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
-                    <span>TVPI Target:</span> <span className="font-medium text-foreground">{multiples.tvpi}</span>
-                    <span>DPI:</span> <span className="font-medium text-foreground">{multiples.dpi}</span>
-                    <span>RVPI:</span> <span className="font-medium text-foreground">{multiples.rvpi}</span>
+                <h4 className="font-bold text-black mb-2">Multiples</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-black font-medium">
+                    <span>TVPI Target:</span> <span className="font-bold">{multiples.tvpi}</span>
+                    <span>DPI:</span> <span className="font-bold">{multiples.dpi}</span>
+                    <span>RVPI:</span> <span className="font-bold">{multiples.rvpi}</span>
                 </div>
             </div>
              <div>
-                <h4 className="font-semibold mb-2">Notes</h4>
-                <p className="text-muted-foreground italic text-xs line-clamp-3">{notes}</p>
+                <h4 className="font-bold text-black mb-2">Notes</h4>
+                <p className="text-black italic text-xs line-clamp-3 font-medium">{notes}</p>
             </div>
         </CardContent>
     </Card>
@@ -73,8 +73,8 @@ export function CompareDrawer({ isOpen, onOpenChange, sets }: { isOpen: boolean,
       <SheetContent className="w-full sm:max-w-[80vw] p-0">
         <div className="p-6 border-b">
             <SheetHeader>
-            <SheetTitle>Compare Assumption Sets</SheetTitle>
-            <SheetDescription>
+            <SheetTitle className="text-black font-bold">Compare Assumption Sets</SheetTitle>
+            <SheetDescription className="text-black font-medium">
                 Side-by-side comparison of selected assumption sets.
             </SheetDescription>
             </SheetHeader>

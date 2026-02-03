@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 
 const ControlRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="grid grid-cols-3 items-center gap-4">
-        <Label className="text-sm font-normal">{label}</Label>
+        <Label className="text-sm font-semibold text-black">{label}</Label>
         <div className="col-span-2">{children}</div>
     </div>
 );
@@ -48,8 +48,8 @@ export function JCurveShapeControls({
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="text-base">J-Curve Shape Controls</CardTitle>
-                <CardDescription className="text-xs">
+                <CardTitle className="text-base text-black">J-Curve Shape Controls</CardTitle>
+                <CardDescription className="text-xs text-black font-medium">
                     These settings control the shape of calls, NAV ramp, and distributions.
                 </CardDescription>
             </CardHeader>
@@ -57,12 +57,12 @@ export function JCurveShapeControls({
                 <ControlRow label="Investment Period">
                     <div className="flex items-center gap-2">
                         <Slider value={[investmentPeriod]} onValueChange={([v]) => setInvestmentPeriod(v)} min={2} max={10} step={1} />
-                        <span className="text-sm font-medium w-12 text-center">{investmentPeriod} yrs</span>
+                        <span className="text-sm font-bold w-12 text-center text-black">{investmentPeriod} yrs</span>
                     </div>
                 </ControlRow>
                 <ControlRow label="Deployment Pacing">
                     <Select value={deploymentPacing} onValueChange={setDeploymentPacing}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="text-black font-medium"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="front-loaded">Front-loaded</SelectItem>
                             <SelectItem value="balanced">Balanced</SelectItem>
@@ -72,7 +72,7 @@ export function JCurveShapeControls({
                 </ControlRow>
                 <ControlRow label="J-Curve Depth">
                     <Select value={jCurveDepth} onValueChange={setJCurveDepth}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="text-black font-medium"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="shallow">Shallow</SelectItem>
                             <SelectItem value="moderate">Moderate</SelectItem>
@@ -82,7 +82,7 @@ export function JCurveShapeControls({
                 </ControlRow>
                  <ControlRow label="Time to Breakeven">
                     <Select value={timeToBreakeven} onValueChange={setTimeToBreakeven}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="text-black font-medium"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="early">Early</SelectItem>
                             <SelectItem value="mid">Mid</SelectItem>
@@ -92,7 +92,7 @@ export function JCurveShapeControls({
                 </ControlRow>
                 <ControlRow label="Distribution Start">
                      <Select value={distributionStart} onValueChange={setDistributionStart}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="text-black font-medium"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="early">Early</SelectItem>
                             <SelectItem value="typical">Typical</SelectItem>
@@ -102,7 +102,7 @@ export function JCurveShapeControls({
                 </ControlRow>
                 <ControlRow label="Distribution Speed">
                     <Select value={distributionSpeed} onValueChange={setDistributionSpeed}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="text-black font-medium"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="slow">Slow</SelectItem>
                             <SelectItem value="normal">Normal</SelectItem>
@@ -112,7 +112,7 @@ export function JCurveShapeControls({
                 </ControlRow>
                 <ControlRow label="Tail Length">
                     <Select value={tailLength} onValueChange={setTailLength}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="text-black font-medium"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="short">Short</SelectItem>
                             <SelectItem value="medium">Medium</SelectItem>

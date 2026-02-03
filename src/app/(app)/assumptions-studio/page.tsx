@@ -25,16 +25,21 @@ const generateAssumptionData = (params: any) => {
     } = params;
     
     const fundLife = 15;
-    const commitment = 100;
+    const commitment = 100; // Normalized to 100 for percentage-based storytelling
     
-    const pacingFactor = { 'front-loaded': 1.5, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
-    const depthFactor = { 'shallow': 0.8, 'moderate': 1, 'deep': 1.2 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
+    // 1. Deployment Logic
+    const pacingFactor = { 'front-loaded': 1.4, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
+    
+    // 2. Growth/Value Creation Logic
+    const depthFactor = { 'shallow': 0.7, 'moderate': 1, 'deep': 1.4 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
+    
+    // 3. Distribution Logic
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
     const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
-    const distSpeedFactor = { 'slow': 0.8, 'normal': 1, 'fast': 1.2 }[distributionSpeed as keyof typeof distributionSpeed] || 1;
-    const tailFactor = { 'short': 1.2, 'medium': 1, 'long': 0.8 }[tailLength as keyof typeof tailLength] || 1; 
+    const distSpeedFactor = { 'slow': 0.7, 'normal': 1, 'fast': 1.4 }[distributionSpeed as keyof typeof distributionSpeed] || 1;
+    const tailFactor = { 'short': 1.4, 'medium': 1, 'long': 0.7 }[tailLength as keyof typeof tailLength] || 1; 
     
-    const returnFactor = (tvpiTarget / 2.2);
+    const returnScaling = tvpiTarget / 2.2;
 
     let jCurveData = [];
     let unfunded = commitment;
@@ -44,32 +49,42 @@ const generateAssumptionData = (params: any) => {
     let cumulativeNet = 0;
 
     for (let year = 0; year <= fundLife; year++) {
+        // --- Capital Calls ---
         let call = 0;
         if (year > 0 && year <= investmentPeriod && unfunded > 0) {
             const baseCall = commitment / investmentPeriod;
-            const pacingAdjustment = 1 + (pacingFactor - 1) * (1 - (year - 1) / investmentPeriod);
+            // Adjustment for pacing: front-loaded peaks early, back-loaded peaks late
+            const progress = (year - 1) / investmentPeriod;
+            const pacingAdjustment = deploymentPacing === 'front-loaded' 
+                ? (2 * (1 - progress)) 
+                : (deploymentPacing === 'back-loaded' ? (2 * progress) : 1);
+            
             call = Math.min(unfunded, baseCall * pacingAdjustment);
         }
         unfunded -= call;
         totalCalls += call;
 
-        const growthRate = ( (0.22 * returnFactor) - ( (Math.abs(year - 6)) * 0.02) ) / depthFactor;
-        const growth = nav * growthRate;
+        // --- NAV Growth & J-Curve Effect ---
+        // J-curve depth affects early management fees and initial markdowns
+        const jCurveEffect = year <= 2 ? (-0.05 * depthFactor) : 0;
+        const baseGrowth = (year > 2 && year < 10) ? (0.18 * returnScaling) : 0.05;
+        const growth = nav * baseGrowth + (jCurveEffect * call);
         
+        // --- Distributions ---
         let distribution = 0;
-        const distributionStartYear = investmentPeriod + distStartAdj + breakevenAdj;
+        const distributionStartYear = Math.max(3, 6 + distStartAdj + breakevenAdj);
         if (year >= distributionStartYear && nav > 0) {
-            const baseDistRate = 0.15 * distSpeedFactor;
-            const tailDecay = Math.pow(tailFactor, -(year - distributionStartYear));
-            distribution = nav * baseDistRate * tailDecay;
+            const exitEfficiency = distSpeedFactor * (1 - ( (year - distributionStartYear) / (fundLife - distributionStartYear) ) * (1 - tailFactor));
+            const baseDistRate = 0.20 * exitEfficiency;
+            distribution = nav * baseDistRate;
         }
 
-        nav += growth + call - distribution;
-
+        nav = nav + growth + call - distribution;
         if (nav < 0) {
             distribution += nav;
             nav = 0;
         }
+        
         distribution = Math.max(0, distribution);
         totalDists += distribution;
         
@@ -90,7 +105,7 @@ const generateAssumptionData = (params: any) => {
     const finalTvpi = totalCalls > 0 ? (totalDists + endingNav) / totalCalls : 0;
     
     const breakevenPoint = jCurveData.find(d => d.cumulativeNet > 0);
-    const breakevenTiming = breakevenPoint ? `Year ${parseInt(breakevenPoint.year.split(' ')[1])}` : `Year ${fundLife}+`;
+    const breakevenTiming = breakevenPoint ? `Year ${breakevenPoint.year.split(' ')[1]}` : `Year ${fundLife}+`;
 
     const summaryOutputs = {
         totalCapitalCalled: totalCalls,
@@ -136,18 +151,12 @@ export default function AssumptionsStudioPage() {
             distributionSpeed,
             tailLength,
             tvpiTarget,
-            dpiTarget,
-            rvpiTarget,
-            isDpiEnabled,
-            isRvpiEnabled,
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
-
     }, [
         investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
-        distributionStart, distributionSpeed, tailLength, tvpiTarget, 
-        isDpiEnabled, dpiTarget, isRvpiEnabled, rvpiTarget
+        distributionStart, distributionSpeed, tailLength, tvpiTarget
     ]);
 
   return (
@@ -158,7 +167,7 @@ export default function AssumptionsStudioPage() {
                 <h1 className="text-xl font-bold tracking-tight text-highlight">
                     J-Curve &amp; Multiples Assumptions
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-black font-medium">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
