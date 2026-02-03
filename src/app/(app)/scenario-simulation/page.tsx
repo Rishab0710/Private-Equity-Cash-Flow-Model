@@ -62,38 +62,33 @@ const calculateQuarterlyIRR = (cashflows: number[], tvpiForFallback: number): nu
     const maxIterations = 100;
     const tolerance = 1e-6;
 
-    // The function whose root we want to find (NPV)
     const calculateNPV = (rate: number) => cashflows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + rate, t), 0);
 
-    let lowRate = -0.9999; // Close to -100%
-    let highRate = 5.0; // 500% quarterly, should be high enough
+    let lowRate = -0.9999; 
+    let highRate = 5.0; 
 
-    // Initial check to see if a solution exists in the range
     let npvAtLow = calculateNPV(lowRate);
     let npvAtHigh = calculateNPV(highRate);
 
     if (npvAtLow * npvAtHigh > 0) {
-        // Bisection method requires the function to cross zero within the interval.
-        // If it doesn't, this indicates an unusual cash flow stream (e.g., all positive or all negative).
         const durationYears = cashflows.length / 4;
         if (tvpiForFallback <= 0 || durationYears <= 0) return 0;
-        const avgDuration = durationYears * 0.6; // Heuristic for average investment period
+        const avgDuration = durationYears * 0.6;
         if (avgDuration <= 0) return 0;
         const annualisedRoughIrr = Math.pow(tvpiForFallback, 1 / avgDuration) - 1;
-        return Math.pow(1 + annualisedRoughIrr, 1/4) - 1; // Convert annual rough IRR to quarterly
+        return Math.pow(1 + annualisedRoughIrr, 1/4) - 1; 
     }
 
     for (let i = 0; i < maxIterations; i++) {
         let midRate = (lowRate + highRate) / 2;
-        if (midRate <= -1) midRate = -1 + tolerance; // Avoid -1
+        if (midRate <= -1) midRate = -1 + tolerance;
 
         let npvAtMid = calculateNPV(midRate);
 
         if (Math.abs(npvAtMid) < tolerance) {
-            return midRate; // Found the root
+            return midRate;
         }
 
-        // Adjust the interval
         if (npvAtLow * npvAtMid < 0) {
             highRate = midRate;
             npvAtHigh = npvAtMid;
@@ -103,7 +98,6 @@ const calculateQuarterlyIRR = (cashflows: number[], tvpiForFallback: number): nu
         }
     }
 
-    // If max iterations reached, return the best guess
     return (lowRate + highRate) / 2;
 };
 
@@ -213,11 +207,14 @@ const scenarios: Record<ScenarioId, ScenarioDetails> = {
 };
 
 const formatCurrency = (value: number) => {
+    const sign = value < 0 ? '-' : '';
     const absValue = Math.abs(value);
-    if (absValue >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
-    if (absValue >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-    if (absValue >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-    return `$${value.toFixed(0)}`;
+    let valStr = '';
+    if (absValue >= 1_000_000_000) valStr = `$${(absValue / 1_000_000_000).toFixed(1)}B`;
+    else if (absValue >= 1_000_000) valStr = `$${(absValue / 1_000_000).toFixed(1)}M`;
+    else if (absValue >= 1_000) valStr = `$${(absValue / 1_000).toFixed(0)}K`;
+    else valStr = `$${absValue.toFixed(0)}`;
+    return sign + valStr;
 };
 
 const AssumptionTag = ({ label, assumption }: { label: string, assumption: AssumptionValue }) => {
@@ -293,20 +290,20 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
             <CardHeader><CardTitle className="text-base font-semibold text-highlight">Scenario Visualization</CardTitle></CardHeader>
             <CardContent className="h-[350px] -ml-2">
                 <ChartContainer config={chartConfig} className="h-full w-full">
-                    <ComposedChart data={combinedData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                    <ComposedChart data={combinedData} margin={{ top: 5, right: 40, left: 10, bottom: 5 }}>
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => format(new Date(value), 'MMM yy')} interval={5} />
                         <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Net Cashflow", angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -20, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} tickLine={false} axisLine={false} label={{ value: "Portfolio & Liquidity", angle: 90, position: 'insideRight', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }} />
                         <Tooltip 
                             content={<ChartTooltipContent 
                                 labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} 
                                 indicator="dot" 
                                 formatter={(value, name) => {
                                     const config = chartConfig[name as keyof typeof chartConfig];
-                                    if (!config || (value === 0 && name !== 'liquidityBalance') || value === null || value === undefined) return null;
+                                    if (!config || value === null || value === undefined) return null;
 
-                                    const displayValue = (name === 'contribution' || name === 'withdrawal') ? Math.abs(value as number) : value as number;
+                                    const displayValue = value as number;
                                     let label = config.label;
                                     
                                     return (
@@ -361,11 +358,11 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
     const itdIrr = quarterlyIrr ? (Math.pow(1 + quarterlyIrr, 4) - 1) : 0;
 
     let irrColor;
-    if (itdIrr > 0.15) { // > 15% is good
+    if (itdIrr > 0.15) { 
         irrColor = 'text-green-500';
-    } else if (itdIrr >= 0.08) { // 8-15% is neutral
+    } else if (itdIrr >= 0.08) { 
         irrColor = 'text-orange-500';
-    } else { // < 8% is bad
+    } else { 
         irrColor = 'text-red-500';
     }
 
@@ -658,7 +655,7 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
             const breakevenData = portfolio.kpis.breakevenTiming;
             const breakevenYear = breakevenData.from && breakevenData.from !== 'N/A' && !breakevenData.from.includes('+')
                 ? new Date(breakevenData.from).getFullYear() - new Date().getFullYear() + 1
-                : 12.1; // Represents "Year 12+" for sorting
+                : 12.1; 
 
 
             const peakFundingNeed = Math.abs(portfolio.kpis.peakProjectedOutflow.value);
@@ -776,9 +773,28 @@ const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
 
 export default function ScenarioSimulationPage() {
     const { scenario: selectedScenarioId, setScenario: setSelectedScenarioId, portfolioData, funds } = usePortfolioContext();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const selectedScenario = scenarios[selectedScenarioId];
     
     const totalCommitment = useMemo(() => funds.reduce((sum, fund) => sum + fund.commitment, 0), [funds]);
+
+    if (!mounted) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Skeleton className="lg:col-span-2 h-80 w-full" />
+                    <Skeleton className="lg:col-span-1 h-80 w-full" />
+                </div>
+            </div>
+        );
+    }
 
   return (
     <div className="space-y-6">
