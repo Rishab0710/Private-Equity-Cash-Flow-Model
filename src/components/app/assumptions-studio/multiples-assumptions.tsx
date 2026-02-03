@@ -104,7 +104,7 @@ export function MultiplesAssumptions({
                 </div>
 
                 <div className="pt-2 border-t border-dashed border-black/20">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-8 px-2">
                         {/* DPI Section */}
                         <div className="space-y-2">
                             <Label className="text-[11px] font-semibold text-black">DPI (Realized)</Label>
