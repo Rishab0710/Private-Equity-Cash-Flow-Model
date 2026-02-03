@@ -141,28 +141,31 @@ export default function AssumptionsStudioPage() {
             distributionStart,
             distributionSpeed,
             tvpiTarget,
+            moicTarget,
+            dpiTarget,
+            rvpiTarget
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
         investmentPeriod, deploymentPacing, jCurveDepth, timeToBreakeven, 
-        distributionStart, distributionSpeed, tvpiTarget
+        distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
     ]);
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-white border-black/10">
         <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h1 className="text-sm font-semibold tracking-tight text-highlight">
+                <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase">
                     J-Curve & Multiples Assumptions
                 </h1>
-                <p className="text-xs text-black font-medium">
+                <p className="text-xs text-black font-black">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" className="h-8 px-3 text-xs">Save Assumption Set</Button>
+                <Button size="sm" className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-white font-black">Save Assumption Set</Button>
                 <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>
