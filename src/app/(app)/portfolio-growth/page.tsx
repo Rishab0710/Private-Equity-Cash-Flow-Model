@@ -151,18 +151,18 @@ const MetricRow = ({
     }
 }) => (
     <div className={cn(
-        "grid items-center py-1 px-3 group hover:bg-muted/30 transition-colors rounded-md",
-        likelihood ? "grid-cols-[1.2fr_1.2fr_1fr_auto]" : "grid-cols-[1fr_1fr_auto]"
+        "grid items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md",
+        likelihood ? "grid-cols-[1fr_1.2fr_1.2fr_auto]" : "grid-cols-[1fr_1fr_auto]"
     )}>
         <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
         
         <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
 
         {likelihood && (
-            <p className="text-[10px] text-black/60 font-medium text-center">{likelihood}</p>
+            <p className="text-[10px] text-black font-medium text-center">{likelihood}</p>
         )}
 
-        <div className="flex justify-center">
+        <div className="flex justify-end">
             {details && (
                 <Dialog>
                     <DialogTrigger asChild>
@@ -217,7 +217,7 @@ export default function PortfolioGrowthPage() {
     const [annualContribution, setAnnualContribution] = useState(0);
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
     const [annualIncrease, setAnnualIncrease] = useState(0);
-    const [investmentPeriod, setInvestmentPeriod] = useState(20);
+    const [investmentPeriod, setInvestmentPeriod] = useState(25);
 
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
@@ -331,10 +331,10 @@ export default function PortfolioGrowthPage() {
         );
     }
 
-    const getAllocationDetails = () => {
+    const getAllocationDetails = (currentWealth: number) => {
         return Object.entries(staticAssumptions.assetAllocation).map(([key, percentage]) => {
             const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
-            const val = startingBalance * (parseFloat(percentage) / 100);
+            const val = currentWealth * (parseFloat(percentage) / 100);
             return {
                 label,
                 percentage: percentage,
@@ -371,16 +371,16 @@ export default function PortfolioGrowthPage() {
                     />
                 </div>
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.2fr] gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-[0.7fr_1.3fr] gap-6">
                         <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
-                            <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Portfolio Risk Profile</div>
+                            <div className="py-2 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Portfolio Risk Profile</div>
                             <div className="space-y-0.5 py-1">
                                 <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
                                 <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
                             </div>
                         </div>
                         <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
-                            <div className="py-1 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Potential Wealth Outlook</div>
+                            <div className="py-2 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Potential Wealth Outlook</div>
                             <div className="space-y-0.5 py-1">
                                 <MetricRow 
                                     label="Conservative" 
@@ -391,7 +391,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Conservative Outlook",
                                         rate: `${(portfolioMetrics.meanRateOfReturn - 3.5).toFixed(2)}%`,
                                         stdev: `${(portfolioMetrics.standardDeviation * 0.35).toFixed(2)}%`,
-                                        allocation: getAllocationDetails()
+                                        allocation: getAllocationDetails(potentialWealth.conservative)
                                     }}
                                 />
                                 <MetricRow 
@@ -403,7 +403,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Moderate Outlook",
                                         rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
                                         stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
-                                        allocation: getAllocationDetails()
+                                        allocation: getAllocationDetails(potentialWealth.moderate)
                                     }}
                                 />
                                 <MetricRow 
@@ -415,7 +415,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Aggressive Outlook",
                                         rate: `${(portfolioMetrics.meanRateOfReturn + 2.5).toFixed(2)}%`,
                                         stdev: `${(portfolioMetrics.standardDeviation * 1.4).toFixed(2)}%`,
-                                        allocation: getAllocationDetails()
+                                        allocation: getAllocationDetails(potentialWealth.aggressive)
                                     }}
                                 />
                             </div>
@@ -428,3 +428,4 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
+
