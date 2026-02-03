@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,7 +64,13 @@ export function JCurvePreview({ data, fundName }: { data: any[], fundName: strin
                                     }} 
                                 />} 
                             />
-                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                            <Legend 
+                                verticalAlign="bottom" 
+                                height={36} 
+                                iconType="circle" 
+                                wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
+                                formatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label || value}
+                            />
                             <ReferenceLine y={0} stroke="black" strokeWidth={1} />
                             <Line 
                                 type="monotone" 

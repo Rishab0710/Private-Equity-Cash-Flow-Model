@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,7 +79,13 @@ export function CashflowTimeline({ data }: { data: any[] }) {
                                 }} 
                             />} 
                         />
-                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                        <Legend 
+                            verticalAlign="bottom" 
+                            height={36} 
+                            iconType="circle" 
+                            wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
+                            formatter={(value) => timelineConfig[value as keyof typeof timelineConfig]?.label || value}
+                        />
                         <ReferenceLine y={0} stroke="black" strokeWidth={1} />
                         
                         <Area 
