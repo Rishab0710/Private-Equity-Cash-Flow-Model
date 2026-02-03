@@ -12,13 +12,15 @@ import { funds } from '@/lib/data';
 type FundSelectorProps = {
   selectedFundId: string;
   onFundChange: (fundId: string) => void;
+  showAll?: boolean;
 };
 
 export function FundSelector({
   selectedFundId,
   onFundChange,
+  showAll = true,
 }: FundSelectorProps) {
-  const fundOptions = [{ id: 'all', name: 'All Funds' }, ...funds];
+  const fundOptions = showAll ? [{ id: 'all', name: 'All Funds' }, ...funds] : funds;
   return (
     <Select value={selectedFundId} onValueChange={onFundChange}>
       <SelectTrigger className="w-[160px] bg-secondary/50 border-border h-8 text-xs">

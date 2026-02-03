@@ -151,8 +151,8 @@ const generateAssumptionData = (params: any) => {
 
 export default function AssumptionsStudioPage() {
     const { toast } = useToast();
-    const [fundId, setFundId] = useState('all');
-    const [commitment, setCommitment] = useState(685); // Sum of commitments in lib/data.ts
+    const [fundId, setFundId] = useState('1');
+    const [commitment, setCommitment] = useState(100);
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
     const [jCurveDepth, setJCurveDepth] = useState('moderate');
@@ -275,7 +275,7 @@ export default function AssumptionsStudioPage() {
                     Save Assumption Set
                 </Button>
                 <AssumptionSets sets={savedSets} />
-                <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
+                <FundSelector selectedFundId={fundId} onFundChange={setFundId} showAll={false} />
             </div>
         </CardContent>
       </Card>
