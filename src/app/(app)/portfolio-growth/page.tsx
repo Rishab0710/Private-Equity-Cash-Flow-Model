@@ -148,10 +148,12 @@ const MetricRow = ({
         allocation: { label: string; value: string; percentage: string }[];
     }
 }) => (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md">
-        <p className="text-[11px] font-bold text-black uppercase tracking-tight">{label}</p>
+    <div className="grid grid-cols-[1fr_1fr_auto] items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md">
+        <p className="text-[11px] font-medium text-black uppercase tracking-tight">{label}</p>
         
-        <div className="flex justify-center w-10">
+        <p className={cn("text-xs font-medium text-right pr-4", valueClassName)}>{value}</p>
+
+        <div className="flex justify-center w-8">
             {details && (
                 <Dialog>
                     <DialogTrigger asChild>
@@ -196,8 +198,6 @@ const MetricRow = ({
                 </Dialog>
             )}
         </div>
-
-        <p className={cn("text-xs font-bold text-right", valueClassName)}>{value}</p>
     </div>
 );
 
@@ -368,7 +368,7 @@ export default function PortfolioGrowthPage() {
                                 </div>
                             </div>
                             <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
-                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-highlight uppercase tracking-widest">Potential Wealth (Terminal)</div>
+                                <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-highlight uppercase tracking-widest">Potential Wealth Outlook</div>
                                 <div className="space-y-0.5 py-1">
                                     <MetricRow 
                                         label="Conservative" 
