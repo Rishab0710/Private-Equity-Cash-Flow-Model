@@ -159,7 +159,7 @@ export default function AssumptionsStudioPage() {
                     J-Curve &amp; Multiples Assumptions
                 </h1>
                 <p className="text-muted-foreground">
-                    Set strategy and fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
+                    Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
             <div className="flex items-center gap-2">
