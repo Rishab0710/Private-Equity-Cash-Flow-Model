@@ -185,7 +185,7 @@ export default function AssumptionsStudioPage() {
                 <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase whitespace-nowrap">
                     J-Curve & Multiples Assumptions
                 </h1>
-                <p className="text-[10px] text-black font-medium italic hidden sm:block">
+                <p className="text-[10px] text-black font-medium hidden sm:block">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
@@ -198,7 +198,7 @@ export default function AssumptionsStudioPage() {
       
       <SummaryOutputs data={summaryOutputs} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 space-y-6">
           <JCurveShapeControls
             investmentPeriod={investmentPeriod} setInvestmentPeriod={setInvestmentPeriod}
@@ -216,7 +216,7 @@ export default function AssumptionsStudioPage() {
           />
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
             <JCurvePreview data={jCurveData} />
             <CashflowTimeline data={jCurveData} />
         </div>
