@@ -164,10 +164,10 @@ export default function AssumptionsStudioPage() {
       <Card>
         <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h1 className="text-xl font-bold tracking-tight text-highlight">
+                <h1 className="text-sm font-semibold tracking-tight text-highlight">
                     J-Curve &amp; Multiples Assumptions
                 </h1>
-                <p className="text-black font-medium">
+                <p className="text-xs text-black font-medium">
                     Set fund assumptions for J-Curve shape and TVPI/DPI/RVPI targets.
                 </p>
             </div>
