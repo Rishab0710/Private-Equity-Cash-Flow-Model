@@ -18,15 +18,43 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-const staticAssumptions = {
-    assetAllocation: {
-        equities: '60.00%',
-        fixedIncome: '20.00%',
-        cash: '2.50%',
-        realAssets: '5.00%',
+const allocationProfiles = {
+    base: {
+        equities: '50.00%',
+        fixedIncome: '25.00%',
+        cash: '5.00%',
+        realAssets: '7.50%',
         hedgeFund: '5.00%',
         privateEquity: '7.50%',
     },
+    conservative: {
+        equities: '30.00%',
+        fixedIncome: '50.00%',
+        cash: '10.00%',
+        realAssets: '5.00%',
+        hedgeFund: '2.50%',
+        privateEquity: '2.50%',
+    },
+    moderate: {
+        equities: '50.00%',
+        fixedIncome: '25.00%',
+        cash: '5.00%',
+        realAssets: '7.50%',
+        hedgeFund: '5.00%',
+        privateEquity: '7.50%',
+    },
+    aggressive: {
+        equities: '60.00%',
+        fixedIncome: '10.00%',
+        cash: '2.50%',
+        realAssets: '7.50%',
+        hedgeFund: '5.00%',
+        privateEquity: '15.00%',
+    }
+};
+
+const staticAssumptions = {
+    assetAllocation: allocationProfiles.base,
 };
 
 const generateChartData = (params: {
@@ -331,8 +359,8 @@ export default function PortfolioGrowthPage() {
         );
     }
 
-    const getAllocationDetails = (currentWealth: number) => {
-        return Object.entries(staticAssumptions.assetAllocation).map(([key, percentage]) => {
+    const getAllocationDetails = (currentWealth: number, allocationProfile: Record<string, string>) => {
+        return Object.entries(allocationProfile).map(([key, percentage]) => {
             const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
             const val = currentWealth * (parseFloat(percentage) / 100);
             return {
@@ -391,7 +419,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Conservative Outlook",
                                         rate: `${(portfolioMetrics.meanRateOfReturn - 3.5).toFixed(2)}%`,
                                         stdev: `${(portfolioMetrics.standardDeviation * 0.35).toFixed(2)}%`,
-                                        allocation: getAllocationDetails(potentialWealth.conservative)
+                                        allocation: getAllocationDetails(potentialWealth.conservative, allocationProfiles.conservative)
                                     }}
                                 />
                                 <MetricRow 
@@ -403,7 +431,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Moderate Outlook",
                                         rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
                                         stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
-                                        allocation: getAllocationDetails(potentialWealth.moderate)
+                                        allocation: getAllocationDetails(potentialWealth.moderate, allocationProfiles.moderate)
                                     }}
                                 />
                                 <MetricRow 
@@ -415,7 +443,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Aggressive Outlook",
                                         rate: `${(portfolioMetrics.meanRateOfReturn + 2.5).toFixed(2)}%`,
                                         stdev: `${(portfolioMetrics.standardDeviation * 1.4).toFixed(2)}%`,
-                                        allocation: getAllocationDetails(potentialWealth.aggressive)
+                                        allocation: getAllocationDetails(potentialWealth.aggressive, allocationProfiles.aggressive)
                                     }}
                                 />
                             </div>
@@ -428,4 +456,3 @@ export default function PortfolioGrowthPage() {
     </div>
   );
 }
-
