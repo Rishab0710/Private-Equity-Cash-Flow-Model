@@ -32,21 +32,21 @@ export function MultiplesAssumptions({
     const [displayDpi, setDisplayDpi] = useState(dpiTarget.toFixed(2));
     const [displayRvpi, setDisplayRvpi] = useState(rvpiTarget.toFixed(2));
 
-    // Sync local display values with parent state when it changes from outside
+    // Synchronize local display values with parent state whenever they change
     useEffect(() => {
-        if (parseFloat(displayTvpi) !== tvpiTarget) setDisplayTvpi(tvpiTarget.toFixed(2));
+        setDisplayTvpi(tvpiTarget.toFixed(2));
     }, [tvpiTarget]);
 
     useEffect(() => {
-        if (parseFloat(displayMoic) !== moicTarget) setDisplayMoic(moicTarget.toFixed(2));
+        setDisplayMoic(moicTarget.toFixed(2));
     }, [moicTarget]);
 
     useEffect(() => {
-        if (parseFloat(displayDpi) !== dpiTarget) setDisplayDpi(dpiTarget.toFixed(2));
+        setDisplayDpi(dpiTarget.toFixed(2));
     }, [dpiTarget]);
 
     useEffect(() => {
-        if (parseFloat(displayRvpi) !== rvpiTarget) setDisplayRvpi(rvpiTarget.toFixed(2));
+        setDisplayRvpi(rvpiTarget.toFixed(2));
     }, [rvpiTarget]);
 
     const handleNumericChange = (val: string, setter: (n: number) => void, displaySetter: (s: string) => void) => {

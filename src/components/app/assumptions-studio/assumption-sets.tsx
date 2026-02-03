@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import { MoreHorizontal, PlayCircle, Layers } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CompareDrawer, type ComparisonSet } from "./compare-drawer";
 import { useToast } from "@/hooks/use-toast";
 
@@ -97,6 +98,11 @@ export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
     const { toast } = useToast();
     const [selectedSets, setSelectedSets] = useState<number[]>([]);
     const [isCompareDrawerOpen, setCompareDrawerOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleCompare = () => {
         if (selectedSets.length >= 2 && selectedSets.length <= 3) {
@@ -126,6 +132,14 @@ export function AssumptionSets({ sets }: { sets: ComparisonSet[] }) {
             setSelectedSets(prev => prev.filter(id => id !== setId));
         }
     };
+
+    if (!mounted) {
+        return (
+            <Button variant="outline" className="h-7 px-3 text-[10px] border-primary text-primary opacity-50 font-bold uppercase" disabled>
+                View Assumption Sets
+            </Button>
+        );
+    }
 
     return (
         <Dialog>

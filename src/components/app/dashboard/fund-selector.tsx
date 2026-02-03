@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -8,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { funds } from '@/lib/data';
+import { useState, useEffect } from 'react';
 
 type FundSelectorProps = {
   selectedFundId: string;
@@ -20,6 +22,16 @@ export function FundSelector({
   onFundChange,
   showAll = true,
 }: FundSelectorProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-[160px] h-8 bg-secondary/50 rounded-md animate-pulse" />;
+  }
+
   const fundOptions = showAll ? [{ id: 'all', name: 'All Funds' }, ...funds] : funds;
   return (
     <Select value={selectedFundId} onValueChange={onFundChange}>

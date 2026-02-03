@@ -179,8 +179,13 @@ export default function AssumptionsStudioPage() {
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
     const [savedSets, setSavedSets] = useState<ComparisonSet[]>(initialSets);
+    const [mounted, setMounted] = useState(false);
 
     const isUpdatingRef = useRef(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const selectedFundName = funds.find(f => f.id === fundId)?.name || "Selected Fund";
 
@@ -196,14 +201,14 @@ export default function AssumptionsStudioPage() {
         isUpdatingRef.current = false;
     }, [dpiTarget, rvpiTarget]);
 
-    // Synchronize DPI and RVPI when TVPI changes
+    // Synchronize DPI and RVPI when TVPI changes (Proportional Sync)
     useEffect(() => {
         if (isUpdatingRef.current) return;
         isUpdatingRef.current = true;
         
         const currentSum = dpiTarget + rvpiTarget;
         if (Math.abs(currentSum - tvpiTarget) > 0.001) {
-            // Distribute the change proportionally
+            // Distribute the change proportionally based on existing ratio
             const ratio = currentSum > 0 ? dpiTarget / currentSum : 0.68; // default ratio if sum is 0
             const newDpi = parseFloat((tvpiTarget * ratio).toFixed(2));
             const newRvpi = parseFloat((tvpiTarget - newDpi).toFixed(2));
@@ -293,6 +298,10 @@ export default function AssumptionsStudioPage() {
             description: "The current model has been added to your Assumption Sets.",
         });
     };
+
+    if (!mounted) {
+        return <div className="min-h-screen bg-background" />;
+    }
 
   return (
     <div className="space-y-6">

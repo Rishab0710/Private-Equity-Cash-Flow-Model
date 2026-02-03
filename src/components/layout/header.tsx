@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -11,12 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Menu,
-  TrendingUp,
   User,
   ChevronDown,
   LogOut,
   BrainCircuit,
   ClipboardList,
+  TrendingUp,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
@@ -31,10 +32,10 @@ const navItems = [
 
 export function Header() {
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setMounted(true);
   }, []);
 
   return (
@@ -62,59 +63,70 @@ export function Header() {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="bg-card">
-            <nav className="grid gap-4 p-4 text-base font-medium">
-              <Link
-                href="/assumptions-studio"
-                className="flex items-center gap-2 text-lg font-semibold mb-4"
-              >
-                <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
-              </Link>
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
-                     pathname.startsWith(item.href)
-                      ? 'bg-muted text-foreground font-semibold'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
+        {/* Guard Radix components with mounted state to prevent hydration mismatches */}
+        {mounted ? (
+          <>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 md:hidden"
                 >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </SheetContent>
-        </Sheet>
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="bg-card">
+                <nav className="grid gap-4 p-4 text-base font-medium">
+                  <Link
+                    href="/assumptions-studio"
+                    className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  >
+                    <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
+                  </Link>
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
+                         pathname.startsWith(item.href)
+                          ? 'bg-muted text-foreground font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-header hover:text-white/90">
-              <User className="h-5 w-5 text-accent" />
-              <span className="font-semibold text-sm">QA1 Guest</span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuItem className="text-accent cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span className="font-medium text-black">Logout</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-header hover:text-white/90">
+                  <User className="h-5 w-5 text-accent" />
+                  <span className="font-semibold text-sm">QA1 Guest</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem className="text-accent cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span className="font-medium text-black">Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : (
+          <div className="flex items-center gap-2 text-white opacity-50 px-3">
+             <User className="h-5 w-5 text-accent" />
+             <span className="font-semibold text-sm">QA1 Guest</span>
+             <ChevronDown className="h-4 w-4" />
+          </div>
+        )}
       </div>
     </header>
   );
