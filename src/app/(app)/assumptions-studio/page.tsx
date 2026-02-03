@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { AssumptionSets } from "@/components/app/assumptions-studio/assumption-sets";
 import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-timeline";
-import { ContextSelector } from "@/components/app/assumptions-studio/context-selector";
 import { JCurvePreview } from "@/components/app/assumptions-studio/j-curve-preview";
 import { JCurveShapeControls } from "@/components/app/assumptions-studio/j-curve-shape-controls";
 import { MultiplesAssumptions } from "@/components/app/assumptions-studio/multiples-assumptions";
@@ -10,6 +9,7 @@ import { NotesTagging } from "@/components/app/assumptions-studio/notes-tagging"
 import { SummaryOutputs } from "@/components/app/assumptions-studio/summary-outputs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { FundSelector } from '@/components/app/dashboard/fund-selector';
 
 // Mappings from qualitative inputs to quantitative model factors
 const generateAssumptionData = (params: any) => {
@@ -28,11 +28,11 @@ const generateAssumptionData = (params: any) => {
     const commitment = 100;
     
     const pacingFactor = { 'front-loaded': 1.5, 'balanced': 1, 'back-loaded': 0.7 }[deploymentPacing as keyof typeof deploymentPacing] || 1;
-    const depthFactor = { 'shallow': 0.8, 'moderate': 1, 'deep': 1.2 }[jCurveDepth as keyof typeof jCurveDepth] || 1; // Deeper curve = lower NAV growth
+    const depthFactor = { 'shallow': 0.8, 'moderate': 1, 'deep': 1.2 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
     const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
     const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
     const distSpeedFactor = { 'slow': 0.8, 'normal': 1, 'fast': 1.2 }[distributionSpeed as keyof typeof distributionSpeed] || 1;
-    const tailFactor = { 'short': 1.2, 'medium': 1, 'long': 0.8 }[tailLength as keyof typeof tailLength] || 1; // Affects decay
+    const tailFactor = { 'short': 1.2, 'medium': 1, 'long': 0.8 }[tailLength as keyof typeof tailLength] || 1; 
     
     const returnFactor = (tvpiTarget / 2.2);
 
@@ -103,8 +103,9 @@ const generateAssumptionData = (params: any) => {
     return { jCurveData, summaryOutputs };
 };
 
-
 export default function AssumptionsStudioPage() {
+    const [fundId, setFundId] = useState('all');
+    
     // J-Curve Shape Controls State
     const [investmentPeriod, setInvestmentPeriod] = useState(5);
     const [deploymentPacing, setDeploymentPacing] = useState('balanced');
@@ -163,14 +164,13 @@ export default function AssumptionsStudioPage() {
             </div>
             <div className="flex items-center gap-2">
                 <Button>Save Assumption Set</Button>
-                <Button variant="outline">Set as Active for Fund</Button>
+                <FundSelector selectedFundId={fundId} onFundChange={setFundId} />
             </div>
         </CardContent>
       </Card>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <ContextSelector />
           <JCurveShapeControls
             investmentPeriod={investmentPeriod} setInvestmentPeriod={setInvestmentPeriod}
             deploymentPacing={deploymentPacing} setDeploymentPacing={setDeploymentPacing}
