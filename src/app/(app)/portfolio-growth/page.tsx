@@ -8,6 +8,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 import { cn } from '@/lib/utils';
+import { Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 const staticAssumptions = {
     assetAllocation: {
@@ -123,9 +132,65 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
 
-const MetricRow = ({ label, value, valueClassName }: { label: string, value: string | number, valueClassName?: string }) => (
-    <div className="flex justify-between items-center py-1.5 px-3">
-        <p className="text-[11px] font-bold text-black uppercase tracking-tight">{label}</p>
+const MetricRow = ({ 
+    label, 
+    value, 
+    valueClassName,
+    details
+}: { 
+    label: string, 
+    value: string | number, 
+    valueClassName?: string,
+    details?: {
+        title: string;
+        rate: string;
+        stdev: string;
+        allocation: { label: string; value: string; percentage: string }[];
+    }
+}) => (
+    <div className="flex justify-between items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md">
+        <div className="flex items-center gap-2">
+            <p className="text-[11px] font-bold text-black uppercase tracking-tight">{label}</p>
+            {details && (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-4 w-4 opacity-40 hover:opacity-100 transition-opacity">
+                            <Info className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-highlight uppercase text-sm font-bold tracking-tight">
+                                {details.title} - Model Assumptions
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 pt-2">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-3 bg-muted/50 rounded-lg border">
+                                    <p className="text-[10px] font-bold text-black/60 uppercase">Expected Return</p>
+                                    <p className="text-lg font-bold text-black">{details.rate}</p>
+                                </div>
+                                <div className="p-3 bg-muted/50 rounded-lg border">
+                                    <p className="text-[10px] font-bold text-black/60 uppercase">Vol (StDev)</p>
+                                    <p className="text-lg font-bold text-black">{details.stdev}</p>
+                                </div>
+                            </div>
+                            <div className="rounded-lg border overflow-hidden">
+                                <div className="bg-muted/30 px-3 py-2 text-[10px] font-bold text-black uppercase border-b tracking-widest">Asset Allocation Details</div>
+                                <div className="divide-y divide-border text-[11px] bg-white">
+                                    {details.allocation.map((item, i) => (
+                                        <div key={i} className="flex justify-between p-2.5">
+                                            <span className="font-medium text-black/70">{item.label}</span>
+                                            <span className="font-bold text-black">{item.value} <span className="text-black/50 ml-1 font-medium">({item.percentage})</span></span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
         <p className={cn("text-xs font-bold", valueClassName)}>{value}</p>
     </div>
 );
@@ -247,6 +312,18 @@ export default function PortfolioGrowthPage() {
         );
     }
 
+    const getAllocationDetails = () => {
+        return Object.entries(staticAssumptions.assetAllocation).map(([key, percentage]) => {
+            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+            const val = startingBalance * (parseFloat(percentage) / 100);
+            return {
+                label,
+                percentage: percentage,
+                value: formatCurrency(val)
+            };
+        });
+    };
+
   return (
     <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -287,9 +364,39 @@ export default function PortfolioGrowthPage() {
                             <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden">
                                 <div className="py-2 px-3 bg-muted/30 font-bold text-[10px] text-black uppercase tracking-widest">Potential Wealth (Terminal)</div>
                                 <div className="space-y-0.5 py-1">
-                                    <MetricRow label="Conservative" value={formatCurrency(potentialWealth.conservative)} valueClassName="text-chart-3" />
-                                    <MetricRow label="Moderate" value={formatCurrency(potentialWealth.moderate)} valueClassName="text-chart-1" />
-                                    <MetricRow label="Aggressive" value={formatCurrency(potentialWealth.aggressive)} valueClassName="text-chart-2" />
+                                    <MetricRow 
+                                        label="Conservative" 
+                                        value={formatCurrency(potentialWealth.conservative)} 
+                                        valueClassName="text-chart-3" 
+                                        details={{
+                                            title: "Conservative Outlook",
+                                            rate: `${(portfolioMetrics.meanRateOfReturn - 3.5).toFixed(2)}%`,
+                                            stdev: `${(portfolioMetrics.standardDeviation * 0.35).toFixed(2)}%`,
+                                            allocation: getAllocationDetails()
+                                        }}
+                                    />
+                                    <MetricRow 
+                                        label="Moderate" 
+                                        value={formatCurrency(potentialWealth.moderate)} 
+                                        valueClassName="text-chart-1" 
+                                        details={{
+                                            title: "Moderate Outlook",
+                                            rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
+                                            stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
+                                            allocation: getAllocationDetails()
+                                        }}
+                                    />
+                                    <MetricRow 
+                                        label="Aggressive" 
+                                        value={formatCurrency(potentialWealth.aggressive)} 
+                                        valueClassName="text-chart-2" 
+                                        details={{
+                                            title: "Aggressive Outlook",
+                                            rate: `${(portfolioMetrics.meanRateOfReturn + 2.5).toFixed(2)}%`,
+                                            stdev: `${(portfolioMetrics.standardDeviation * 1.4).toFixed(2)}%`,
+                                            allocation: getAllocationDetails()
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>
