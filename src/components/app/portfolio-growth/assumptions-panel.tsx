@@ -52,14 +52,14 @@ const AssetAllocationRow = ({
 
     return (
         <div className="grid grid-cols-[1.5fr_1fr_0.8fr] items-center py-1.5 px-3 hover:bg-muted/20 transition-colors">
-            <p className="text-[11px] text-black font-medium">{label}</p>
-            <p className="text-[11px] font-bold text-right pr-2">{formatCurrency(value)}</p>
+            <p className="text-xs text-black font-medium">{label}</p>
+            <p className="text-xs font-bold text-right pr-2">{formatCurrency(value)}</p>
             <div className="relative">
                 <Input 
                     type="text"
                     value={displayVal}
                     onChange={(e) => handleChange(e.target.value)}
-                    className="h-6 text-right pr-4 text-[11px] font-bold border-black/10 focus:ring-1 focus:ring-primary"
+                    className="h-6 text-right pr-4 text-xs font-bold border-black/10 focus:ring-1 focus:ring-primary shadow-none"
                 />
                 <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] font-bold text-black/40">%</span>
             </div>
@@ -117,19 +117,19 @@ export function AssumptionsPanel({
             <div className="divide-y divide-border rounded-lg border border-black/10 bg-white shadow-sm p-2">
                  <div className="py-1 px-2 font-bold text-[9px] text-highlight uppercase tracking-widest mb-1">Portfolio Inflows / Outflows</div>
                 <div className="flex justify-between items-center py-1.5 px-2">
-                    <Label htmlFor="starting-balance" className="text-[11px] font-medium text-black">Starting Balance</Label>
+                    <Label htmlFor="starting-balance" className="text-xs font-medium text-black">Starting Balance</Label>
                     <div className="relative">
                         <Input
                             id="starting-balance"
                             type="text"
                             value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
                             disabled
-                            className="h-7 w-32 pl-3 text-[11px] font-bold text-foreground disabled:opacity-100 bg-muted/20 border-none"
+                            className="h-7 w-32 pl-3 text-xs font-bold text-foreground disabled:opacity-100 bg-muted/20 border-none shadow-none text-right"
                         />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5 px-2">
-                    <Label htmlFor="annual-contribution" className="text-[11px] font-medium text-black">Annual Contribution</Label>
+                    <Label htmlFor="annual-contribution" className="text-xs font-medium text-black">Annual Contribution</Label>
                     <div className="relative">
                         <Input 
                             id="annual-contribution" 
@@ -138,12 +138,12 @@ export function AssumptionsPanel({
                             value={contributionDisplay}
                             onChange={handleDisplayChange(setContributionDisplay)}
                             onBlur={() => parseAndSet(contributionDisplay, setAnnualContribution)}
-                            className="h-7 w-32 pl-3 text-[11px] font-bold text-left border-black/10"
+                            className="h-7 w-32 pl-3 text-xs font-bold text-right border-black/10 shadow-none"
                         />
                     </div>
                 </div>
                  <div className="flex justify-between items-center py-1.5 px-2">
-                    <Label htmlFor="annual-withdrawal" className="text-[11px] font-medium text-black">Annual Withdrawal</Label>
+                    <Label htmlFor="annual-withdrawal" className="text-xs font-medium text-black">Annual Withdrawal</Label>
                     <div className="relative">
                          <Input 
                             id="annual-withdrawal" 
@@ -152,20 +152,20 @@ export function AssumptionsPanel({
                             value={withdrawalDisplay}
                             onChange={handleDisplayChange(setWithdrawalDisplay)}
                             onBlur={() => parseAndSet(withdrawalDisplay, setAnnualWithdrawal)}
-                            className="h-7 w-32 pl-3 text-[11px] font-bold text-left border-black/10"
+                            className="h-7 w-32 pl-3 text-xs font-bold text-right border-black/10 shadow-none"
                         />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5 px-2">
-                    <Label htmlFor="annual-increase" className="text-[11px] font-medium text-black">Annual Increase (%)</Label>
+                    <Label htmlFor="annual-increase" className="text-xs font-medium text-black">Annual Increase (%)</Label>
                     <div className="relative">
-                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-7 w-32 text-[11px] font-bold text-left border-black/10" />
+                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-7 w-32 text-xs font-bold text-right border-black/10 shadow-none" />
                     </div>
                 </div>
                 <div className="flex justify-between items-center py-1.5 px-2">
-                    <Label htmlFor="investment-period" className="text-[11px] font-medium text-black">Investment Period (Yrs)</Label>
+                    <Label htmlFor="investment-period" className="text-xs font-medium text-black">Inv. Period (Yrs)</Label>
                     <div className="relative">
-                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-7 w-32 text-[11px] font-bold text-left border-black/10" />
+                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-7 w-32 text-xs font-bold text-right border-black/10 shadow-none" />
                     </div>
                 </div>
             </div>
@@ -188,12 +188,12 @@ export function AssumptionsPanel({
                     />
                 ))}
                 <div className="grid grid-cols-[1.5fr_1fr_0.8fr] items-center py-2.5 px-3 font-bold text-black bg-muted/20 border-t">
-                    <p className="text-[11px] uppercase tracking-wider">Total Portfolio</p>
-                    <p className="text-[11px] text-right pr-2">
+                    <p className="text-xs uppercase tracking-wider">Total Portfolio</p>
+                    <p className="text-xs text-right pr-2">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
                     </p>
                     <p className={cn(
-                        "text-[11px] text-right pr-2",
+                        "text-xs text-right pr-2",
                         Math.abs(totalAllocation - 100) > 0.1 ? "text-red-500" : "text-green-600"
                     )}>
                         {totalAllocation.toFixed(2)}%

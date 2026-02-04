@@ -51,17 +51,22 @@ export function AppLayout({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // We only need to generate portfolio data for data-heavy pages
     const dataPages = ['/', '/portfolio-growth', '/scenario-simulation', '/liquidity'];
     if (dataPages.includes(pathname) && asOfDate) {
       const customFactors = {
           callFactor: capitalCallPacing / 100,
           distFactor: distributionVelocity / 100,
-      }
+      };
       const { portfolio, funds: newFunds } = getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate, customFactors);
       
-      // Update data but preserve the custom funds added via UI if any
       setPortfolioData(portfolio);
+      // Sync the state funds with the calculated NAVs and commitments from the data engine
+      setFunds(current => {
+          return current.map(f => {
+              const updated = newFunds.find(nf => nf.id === f.id);
+              return updated ? { ...f, ...updated } : f;
+          });
+      });
     }
   }, [fundId, scenario, pathname, asOfDate, capitalCallPacing, distributionVelocity]);
 

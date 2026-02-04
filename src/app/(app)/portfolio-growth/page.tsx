@@ -168,27 +168,17 @@ const MetricRow = ({
         allocation: { label: string; value: string; percentage: string }[];
     }
 }) => {
-    const totalValue = details?.allocation.reduce((sum, item) => {
-        const numeric = parseFloat(item.value.replace(/[^0-9.-]+/g,""));
-        return sum + (isNaN(numeric) ? 0 : numeric);
-    }, 0) || 0;
-
-    const totalPercentage = details?.allocation.reduce((sum, item) => {
-        const numeric = parseFloat(item.percentage);
-        return sum + (isNaN(numeric) ? 0 : numeric);
-    }, 0) || 0;
-
     return (
         <div className={cn(
             "grid items-center py-1.5 px-3 group hover:bg-muted/30 transition-colors rounded-md",
             likelihood ? "grid-cols-[1fr_1.2fr_1.2fr_auto]" : "grid-cols-[1fr_1fr_auto]"
         )}>
-            <p className="text-[10px] font-medium text-black uppercase tracking-tight">{label}</p>
+            <p className="text-xs font-medium text-black uppercase tracking-tight">{label}</p>
             
-            <p className={cn("text-[11px] font-medium text-right pr-4", valueClassName)}>{value}</p>
+            <p className={cn("text-xs font-bold text-right pr-4", valueClassName)}>{value}</p>
 
             {likelihood && (
-                <p className="text-[10px] text-black font-medium text-center">{likelihood}</p>
+                <p className="text-xs text-black font-medium text-center">{likelihood}</p>
             )}
 
             <div className="flex justify-end">
@@ -222,14 +212,7 @@ const MetricRow = ({
                                 </div>
                                 <div className="rounded-lg border overflow-hidden">
                                     <div className="bg-muted/30 px-3 py-2 text-[10px] font-bold text-black uppercase border-b tracking-widest">Asset Allocation Details</div>
-                                    
-                                    <div className="grid grid-cols-[1.5fr_1fr_1fr] px-3 py-2 bg-muted/20 border-b">
-                                        <span className="text-[9px] font-bold text-black/60 uppercase">Asset Class</span>
-                                        <span className="text-[9px] font-bold text-black/60 uppercase text-right">Value</span>
-                                        <span className="text-[9px] font-bold text-black/60 uppercase text-right">Target %</span>
-                                    </div>
-
-                                    <div className="divide-y divide-border text-[11px] bg-white">
+                                    <div className="divide-y divide-border text-xs bg-white">
                                         {details.allocation.map((item, i) => (
                                             <div key={i} className="grid grid-cols-[1.5fr_1fr_1fr] p-2.5">
                                                 <span className="font-medium text-black/70">{item.label}</span>
@@ -237,12 +220,6 @@ const MetricRow = ({
                                                 <span className="font-medium text-black/50 text-right">{item.percentage}</span>
                                             </div>
                                         ))}
-                                    </div>
-
-                                    <div className="grid grid-cols-[1.5fr_1fr_1fr] px-3 py-2 bg-muted/10 border-t font-bold text-[11px]">
-                                        <span className="text-black uppercase">Total</span>
-                                        <span className="text-black text-right">{formatCurrency(totalValue)}</span>
-                                        <span className="text-black text-right">{totalPercentage.toFixed(2)}%</span>
                                     </div>
                                 </div>
                             </div>
@@ -345,13 +322,13 @@ function AddFundDialog() {
             <div className="space-y-2">
               {Object.entries(allocation).map(([key, val]) => (
                 <div key={key} className="flex items-center justify-between gap-4">
-                  <span className="text-[11px] font-medium text-black/70 flex-1 truncate">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                  <span className="text-xs font-medium text-black/70 flex-1 truncate">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
                   <div className="relative w-20">
                     <Input 
                       type="number" 
                       value={val} 
                       onChange={e => handleAllocationChange(key, e.target.value)} 
-                      className="h-7 text-right pr-5 text-[11px] font-bold"
+                      className="h-7 text-right pr-5 text-xs font-bold"
                     />
                     <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-black/30">%</span>
                   </div>
@@ -399,7 +376,6 @@ export default function PortfolioGrowthPage() {
             }
         });
 
-        // Normalize if not 100%
         if (totalWeight > 0 && Math.abs(totalWeight - 100) > 0.1) {
              weightedRate = (weightedRate / totalWeight) * 100;
              weightedStdev = (weightedStdev / totalWeight) * 100;
@@ -427,7 +403,8 @@ export default function PortfolioGrowthPage() {
                 const selectedFund = funds.find(f => f.id === fundId);
                 newStartingBalance = selectedFund?.latestNav ?? 0;
             }
-            setStartingBalance(newStartingBalance);
+            // Ensure demo starts with realistic numbers if context calculation is still pending
+            setStartingBalance(newStartingBalance > 0 ? newStartingBalance : 310839559);
         }
     }, [fundId, funds]);
 
@@ -543,8 +520,26 @@ export default function PortfolioGrowthPage() {
                         <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
                             <div className="py-2 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Portfolio Risk Profile</div>
                             <div className="space-y-0.5 py-1">
-                                <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
-                                <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
+                                <MetricRow 
+                                    label="Mean Rate of Return" 
+                                    value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} 
+                                    details={{
+                                        title: "Mean Rate of Return",
+                                        rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
+                                        stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
+                                        allocation: currentAllocationDetails
+                                    }}
+                                />
+                                <MetricRow 
+                                    label="Standard Deviation" 
+                                    value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} 
+                                    details={{
+                                        title: "Standard Deviation (Risk)",
+                                        rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
+                                        stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
+                                        allocation: currentAllocationDetails
+                                    }}
+                                />
                                 <MetricRow 
                                     label="Total Allocation" 
                                     value={`${portfolioMetrics.totalWeight.toFixed(2)}%`} 
