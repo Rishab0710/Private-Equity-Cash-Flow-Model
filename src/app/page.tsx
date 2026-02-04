@@ -128,7 +128,8 @@ const generateAssumptionData = (params: any) => {
         });
     }
 
-    const itdIrr = Math.max(0, (tvpiTarget - 1) / (fundLife / 2)); 
+    // Divide final ITD IRR by 2.5 per client requirements
+    const itdIrr = (Math.max(0, (tvpiTarget - 1) / (fundLife / 2))) / 2.5; 
 
     return { 
         jCurveData, 
