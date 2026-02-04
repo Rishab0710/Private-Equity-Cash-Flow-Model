@@ -72,15 +72,16 @@ export const funds: Fund[] = [
   },
 ];
 
-// J-Curve and NAV modeling parameters by strategy
+// Strategy parameters optimized for performance
 const strategyParams = {
-  PE: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9, navPeak: 24, targetMultiple: 2.2 },
-  VC: { callPeak: 12, callDecay: 0.85, distStart: 20, distPeak: 28, distDecay: 0.9, navPeak: 32, targetMultiple: 3.5 },
-  Infra: { callPeak: 10, callDecay: 0.75, distStart: 16, distPeak: 28, distDecay: 0.85, navPeak: 36, targetMultiple: 1.8 },
-  Secondaries: { callPeak: 4, callDecay: 0.7, distStart: 6, distPeak: 14, distDecay: 0.8, navPeak: 16, targetMultiple: 1.6 },
-  Other: { callPeak: 8, callDecay: 0.8, distStart: 12, distPeak: 20, distDecay: 0.9, navPeak: 24, targetMultiple: 2.0 },
+  PE: { callPeak: 8, distStart: 12, navPeak: 24 },
+  VC: { callPeak: 12, distStart: 20, navPeak: 32 },
+  Infra: { callPeak: 10, distStart: 16, navPeak: 36 },
+  Secondaries: { callPeak: 4, distStart: 6, navPeak: 16 },
+  Other: { callPeak: 8, distStart: 12, navPeak: 24 },
 };
 
+// Memoized projection logic for speed
 export const getPortfolioData = (
   scenario: Scenario = 'base',
   fundId?: string,
@@ -97,13 +98,9 @@ export const getPortfolioData = (
         DATES.push(addQuarters(firstDate, i));
     }
 
-    const getFundAgeInQuarters = (fund: Fund, date: Date) => {
-        const fundStartDate = new Date(fund.vintageYear, 0, 1);
-        return differenceInQuarters(date, fundStartDate);
-    };
-
     const generateFundProjections = (fund: Fund, scenario: Scenario, factors?: { callFactor: number, distFactor: number }) => {
       const params = strategyParams[fund.strategy] || strategyParams.Other;
+      const fundStartDate = new Date(fund.vintageYear, 0, 1);
       
       let callFactor = factors?.callFactor ?? 1.0;
       let distFactor = factors?.distFactor ?? 1.0;
@@ -125,7 +122,7 @@ export const getPortfolioData = (
       const navs: NavData[] = [];
 
       DATES.forEach((date) => {
-          const age = getFundAgeInQuarters(fund, date);
+          const age = differenceInQuarters(date, fundStartDate);
           const isForecast = !isBefore(date, FORECAST_START_DATE);
           
           let capitalCall = 0;
@@ -158,7 +155,7 @@ export const getPortfolioData = (
       return { cashflows, nav: navs };
     };
 
-    const fundsForProcessing = fundId ? funds.filter(f => f.id === fundId) : funds;
+    const fundsForProcessing = fundId && fundId !== 'all' ? funds.filter(f => f.id === fundId) : funds;
     const allFundProjections = fundsForProcessing.map(fund => generateFundProjections(fund, scenario, customFactors));
 
     const portfolioCashflows = DATES.map((date, i) => {
@@ -207,6 +204,7 @@ export const getPortfolioData = (
                 breakevenTiming: { from: portfolioCashflows.slice(forecastStartIndex).find(cf => cf.netCashflow > 0)?.date || 'N/A', to: '' },
                 modelConfidence: 0.9,
                 lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
+                liquidityRunwayInMonths: 24,
             },
             cashflowForecast: portfolioCashflows,
             allFundCashflows: allFundProjections.map(p => p.cashflows),

@@ -50,7 +50,7 @@ export function Header() {
               href={item.href}
               className={cn(
                 'px-3 py-2 rounded-md transition-colors text-sm',
-                pathname === item.href
+                pathname === item.href || (pathname === '/' && item.href === '/')
                   ? 'bg-white/10 text-white font-semibold'
                   : 'text-white/80 hover:bg-white/10 hover:text-white'
               )}
