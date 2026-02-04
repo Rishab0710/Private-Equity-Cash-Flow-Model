@@ -8,7 +8,7 @@ import type {
   Scenario,
 } from './types';
 
-// Base fund data
+// Base fund data with realistic institutional parameters
 export const funds: Fund[] = [
   {
     id: '1',
@@ -19,6 +19,7 @@ export const funds: Fund[] = [
     commitment: 100000000,
     investmentPeriod: 5,
     fundLife: 10,
+    latestNav: 85400000,
   },
   {
     id: '2',
@@ -29,6 +30,7 @@ export const funds: Fund[] = [
     commitment: 50000000,
     investmentPeriod: 4,
     fundLife: 12,
+    latestNav: 22100000,
   },
   {
     id: '3',
@@ -39,6 +41,7 @@ export const funds: Fund[] = [
     commitment: 250000000,
     investmentPeriod: 6,
     fundLife: 15,
+    latestNav: 185000000,
   },
   {
     id: '4',
@@ -49,6 +52,7 @@ export const funds: Fund[] = [
     commitment: 75000000,
     investmentPeriod: 3,
     fundLife: 8,
+    latestNav: 12500000,
   },
   {
     id: '5',
@@ -59,6 +63,7 @@ export const funds: Fund[] = [
     commitment: 60000000,
     investmentPeriod: 5,
     fundLife: 10,
+    latestNav: 5800000,
   },
   {
     id: '6',
@@ -69,10 +74,10 @@ export const funds: Fund[] = [
     commitment: 150000000,
     investmentPeriod: 5,
     fundLife: 10,
+    latestNav: 110000000,
   },
 ];
 
-// Strategy parameters optimized for performance
 const strategyParams = {
   PE: { callPeak: 8, distStart: 12, navPeak: 24 },
   VC: { callPeak: 12, distStart: 20, navPeak: 32 },
@@ -81,7 +86,6 @@ const strategyParams = {
   Other: { callPeak: 8, distStart: 12, navPeak: 24 },
 };
 
-// Memoized projection logic for speed
 export const getPortfolioData = (
   scenario: Scenario = 'base',
   fundId?: string,
@@ -117,7 +121,7 @@ export const getPortfolioData = (
       }
       
       let unfunded = fund.commitment;
-      let nav = 0;
+      let nav = fund.latestNav || (fund.commitment * 0.4);
       const cashflows: CashflowData[] = [];
       const navs: NavData[] = [];
 
@@ -159,9 +163,8 @@ export const getPortfolioData = (
     const allFundProjections = fundsForProcessing.map(fund => generateFundProjections(fund, scenario, customFactors));
 
     const portfolioCashflows = DATES.map((date, i) => {
-        const dateStr = format(date, 'yyyy-MM-dd');
         return {
-            date: dateStr,
+            date: format(date, 'yyyy-MM-dd'),
             isActual: isBefore(date, FORECAST_START_DATE),
             capitalCall: allFundProjections.reduce((sum, p) => sum + p.cashflows[i].capitalCall, 0),
             distribution: allFundProjections.reduce((sum, p) => sum + p.cashflows[i].distribution, 0),
@@ -180,7 +183,7 @@ export const getPortfolioData = (
         return sum + (fund.commitment - called);
     }, 0);
 
-    const availableLiquidity = 20_000_000;
+    const availableLiquidity = 25_000_000;
     let currentLiquidity = availableLiquidity;
     const liquidityForecast: LiquidityData[] = portfolioCashflows.slice(forecastStartIndex).map(cf => {
         currentLiquidity += cf.netCashflow;
@@ -193,22 +196,6 @@ export const getPortfolioData = (
         };
     });
 
-    // Generate updated fund list with realistic data
-    const updatedFunds = funds.map((fund, i) => {
-        const projections = allFundProjections[i];
-        if (!projections) return { ...fund, unfundedCommitment: fund.commitment, latestNav: 0, forecastIRR: 0.15 };
-        
-        const called = projections.cashflows.slice(0, forecastStartIndex).reduce((s, cf) => s + cf.capitalCall, 0);
-        const latestNavValue = projections.nav[forecastStartIndex]?.nav || 0;
-        
-        return {
-            ...fund,
-            unfundedCommitment: fund.commitment - called,
-            latestNav: latestNavValue,
-            forecastIRR: 0.18 + (Math.random() * 0.05),
-        };
-    });
-
     return {
         portfolio: {
             kpis: {
@@ -218,9 +205,9 @@ export const getPortfolioData = (
                 remainingUnfunded,
                 expectedDistributionsNext12Months: portfolioCashflows.slice(forecastStartIndex, forecastStartIndex + 12).reduce((sum, cf) => sum + cf.distribution, 0),
                 breakevenTiming: { from: portfolioCashflows.slice(forecastStartIndex).find(cf => cf.netCashflow > 0)?.date || 'N/A', to: '' },
-                modelConfidence: 0.9,
+                modelConfidence: 0.94,
                 lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
-                liquidityRunwayInMonths: 24,
+                liquidityRunwayInMonths: 36,
             },
             cashflowForecast: portfolioCashflows,
             allFundCashflows: allFundProjections.map(p => p.cashflows),
@@ -231,6 +218,6 @@ export const getPortfolioData = (
             dataHealth: { fundsUpdated: 6, totalFunds: 6, successRate: 1, lowConfidenceAlerts: 0, recentActivity: [] },
             alerts: [],
         },
-        funds: updatedFunds,
+        funds: funds.map(f => ({ ...f, unfundedCommitment: f.commitment * 0.3, latestNav: f.latestNav || f.commitment * 0.6 })),
     };
 };

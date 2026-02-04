@@ -9,15 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Menu,
-  User,
-  ChevronDown,
-  LogOut,
-  BrainCircuit,
-  ClipboardList,
-  TrendingUp,
-} from 'lucide-react';
+import { Menu, User, ChevronDown, LogOut, BrainCircuit, ClipboardList, TrendingUp } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -38,10 +30,10 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-header px-3">
+    <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-header px-4">
       <div className="flex items-center gap-6">
         <Link href="/" className="flex items-center gap-2">
-           <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
+           <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={120} height={24} />
         </Link>
         <nav className="hidden items-center gap-1 font-medium md:flex lg:gap-2">
           {navItems.map((item) => (
@@ -49,7 +41,7 @@ export function Header() {
               key={item.href}
               href={item.href}
               className={cn(
-                'px-3 py-2 rounded-md transition-colors text-sm',
+                'px-3 py-1.5 rounded-md transition-colors text-xs',
                 pathname === item.href || (pathname === '/' && item.href === '/')
                   ? 'bg-white/10 text-white font-semibold'
                   : 'text-white/80 hover:bg-white/10 hover:text-white'
@@ -60,70 +52,20 @@ export function Header() {
           ))}
         </nav>
       </div>
-
       <div className="flex flex-1 items-center justify-end gap-2">
-        {mounted ? (
-          <>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="bg-card">
-                <nav className="grid gap-4 p-4 text-base font-medium">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2 text-lg font-semibold mb-4"
-                  >
-                    <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
-                  </Link>
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
-                         pathname === item.href
-                          ? 'bg-muted text-foreground font-semibold'
-                          : 'text-muted-foreground hover:text-foreground'
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-header hover:text-white/90">
-                  <User className="h-5 w-5 text-accent" />
-                  <span className="font-semibold text-sm">QA1 Guest</span>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem className="text-accent cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span className="font-medium text-black">Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        ) : (
-          <div className="flex items-center gap-2 text-white opacity-50 px-3">
-             <User className="h-5 w-5 text-accent" />
-             <span className="font-semibold text-sm">QA1 Guest</span>
-             <ChevronDown className="h-4 w-4" />
-          </div>
+        {mounted && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-header hover:text-white/90">
+                <User className="h-4 w-4 text-accent" />
+                <span className="font-semibold text-xs">QA1 Guest</span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" align="end">
+              <DropdownMenuItem className="text-accent cursor-pointer"><LogOut className="mr-2 h-4 w-4" /><span className="font-medium text-black">Logout</span></DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
     </header>

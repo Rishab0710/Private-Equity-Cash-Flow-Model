@@ -39,10 +39,6 @@ const generateAssumptionData = (params: any) => {
     const targetCallPercentage = 0.86 + pacingAdj; 
     const totalToCall = commitment * targetCallPercentage;
     
-    const depthFactor = { 'shallow': 0.7, 'moderate': 1, 'deep': 1.4 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
-    const breakevenAdj = { 'early': -1, 'mid': 0, 'late': 1 }[timeToBreakeven as keyof typeof timeToBreakeven] || 0;
-    const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
-    
     const totalDistTarget = totalToCall * dpiTarget;
     const endingNavTarget = totalToCall * rvpiTarget;
 
@@ -56,7 +52,8 @@ const generateAssumptionData = (params: any) => {
     let maxNavYear = 0;
 
     const investmentPeriod = Math.ceil(fundLife * 0.5);
-    const distStartYear = Math.max(3, 6 + distStartAdj + breakevenAdj);
+    const distStartAdj = { 'early': -1, 'typical': 0, 'late': 1 }[distributionStart as keyof typeof distributionStart] || 0;
+    const distStartYear = Math.max(3, 6 + distStartAdj);
 
     for (let year = 0; year <= fundLife; year++) {
         let call = 0;
@@ -85,6 +82,7 @@ const generateAssumptionData = (params: any) => {
         totalDists += distribution;
 
         const navProgress = year / fundLife;
+        const depthFactor = { 'shallow': 0.7, 'moderate': 1, 'deep': 1.4 }[jCurveDepth as keyof typeof jCurveDepth] || 1; 
         const targetNavAtYear = year < fundLife 
             ? Math.min(totalToCall * 1.5, totalToCall * 2 * Math.sin((Math.PI/2) * navProgress)) * depthFactor
             : endingNavTarget;
@@ -103,7 +101,7 @@ const generateAssumptionData = (params: any) => {
         if (year > 0) {
             const pacingFactor = deploymentPacing === 'front-loaded' ? 1.2 : (deploymentPacing === 'back-loaded' ? 0.8 : 1);
             const bottomYear = 2 + (deploymentPacing === 'back-loaded' ? 1 : 0);
-            const breakevenYear = Math.max(bottomYear + 1, 5 + breakevenAdj + distStartAdj);
+            const breakevenYear = Math.max(bottomYear + 1, 5 + distStartAdj);
             
             const returnScaling = tvpiTarget / 2.2;
 
@@ -119,10 +117,6 @@ const generateAssumptionData = (params: any) => {
             }
         }
         
-        const irrBenchmark1 = year === 0 ? 0 : irr * 0.85 + (Math.sin(year) * 2);
-        const irrBenchmark2 = year === 0 ? 0 : irr * 1.15 - (Math.cos(year) * 3);
-        const irrBenchmark3 = year === 0 ? 0 : irr * 0.7 - 5;
-
         jCurveData.push({
             year: `Yr ${year}`,
             calls: -call,
@@ -131,19 +125,20 @@ const generateAssumptionData = (params: any) => {
             nav: nav,
             cumulativeNet: cumulativeNet,
             irr: irr,
-            irrBenchmark1: irrBenchmark1,
-            irrBenchmark2: irrBenchmark2,
-            irrBenchmark3: irrBenchmark3
+            irrBenchmark1: year === 0 ? 0 : irr * 0.85 + (Math.sin(year) * 2),
+            irrBenchmark2: year === 0 ? 0 : irr * 1.15 - (Math.cos(year) * 3),
+            irrBenchmark3: year === 0 ? 0 : irr * 0.7 - 5
         });
     }
 
-    const itdIrr = (Math.max(0, (tvpiTarget - 1) / (fundLife / 2))) / 2.5; 
+    // ITD IRR calculation divided by 2.5 as requested
+    const itdIrr = ((Math.max(0, (tvpiTarget - 1) / (fundLife / 2))) / 2.5) / 2.5; 
 
     return { 
         jCurveData, 
         summaryOutputs: {
             totalCapitalCalled: totalCalls,
-            totalDistributions: totalCalls * (totalCalls > 0 ? totalDists / totalCalls : 0),
+            totalDistributions: totalDists,
             endingNav: nav,
             tvpi: totalCalls > 0 ? (nav + totalDists) / totalCalls : tvpiTarget,
             moic: moicTarget,
@@ -286,13 +281,11 @@ export default function RootPage() {
 
     return (
         <AppLayout>
-            <div className="space-y-6">
-                <div className="bg-white border-b border-black/5 mb-2 -mx-6 px-6 py-2 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase whitespace-nowrap">
-                            J-Curve & Multiples Assumptions
-                        </h1>
-                    </div>
+            <div className="space-y-4">
+                <div className="bg-white border-b border-black/5 -mx-6 px-6 py-2 flex items-center justify-between gap-4">
+                    <h1 className="text-xs font-semibold tracking-tight text-highlight uppercase whitespace-nowrap">
+                        J-Curve & Multiples Assumptions
+                    </h1>
                     <div className="flex items-center gap-2">
                         <Button 
                             onClick={handleSaveSet}
@@ -309,7 +302,7 @@ export default function RootPage() {
                 
                 <SummaryOutputs data={summaryOutputs} />
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
                     <JCurveShapeControls
                         className="lg:col-span-1"
                         fundLife={fundLife} setFundLife={setFundLife}
@@ -340,7 +333,7 @@ export default function RootPage() {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch pb-6">
                     <NarrativeInsights 
                         jCurveDepth={jCurveDepth} 
                         distributionSpeed={distributionSpeed} 
