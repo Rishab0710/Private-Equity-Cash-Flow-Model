@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
@@ -10,7 +9,6 @@ import { NarrativeInsights } from "@/components/app/assumptions-studio/narrative
 import { NextStepsRecommendations } from "@/components/app/assumptions-studio/recommendations";
 import { SummaryOutputs } from "@/components/app/assumptions-studio/summary-outputs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
