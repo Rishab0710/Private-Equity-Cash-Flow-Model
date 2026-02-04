@@ -193,6 +193,22 @@ export const getPortfolioData = (
         };
     });
 
+    // Generate updated fund list with realistic data
+    const updatedFunds = funds.map((fund, i) => {
+        const projections = allFundProjections[i];
+        if (!projections) return { ...fund, unfundedCommitment: fund.commitment, latestNav: 0, forecastIRR: 0.15 };
+        
+        const called = projections.cashflows.slice(0, forecastStartIndex).reduce((s, cf) => s + cf.capitalCall, 0);
+        const latestNavValue = projections.nav[forecastStartIndex]?.nav || 0;
+        
+        return {
+            ...fund,
+            unfundedCommitment: fund.commitment - called,
+            latestNav: latestNavValue,
+            forecastIRR: 0.18 + (Math.random() * 0.05),
+        };
+    });
+
     return {
         portfolio: {
             kpis: {
@@ -215,6 +231,6 @@ export const getPortfolioData = (
             dataHealth: { fundsUpdated: 6, totalFunds: 6, successRate: 1, lowConfidenceAlerts: 0, recentActivity: [] },
             alerts: [],
         },
-        funds: funds.map(f => ({ ...f, unfundedCommitment: 0, latestNav: 0, forecastIRR: 0 })),
+        funds: updatedFunds,
     };
 };
