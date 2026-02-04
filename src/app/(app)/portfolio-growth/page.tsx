@@ -8,15 +8,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { FundSelector } from '@/components/app/dashboard/fund-selector';
 import { cn } from '@/lib/utils';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Plus, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Fund } from '@/lib/types';
 
 const assetClassBaseMetrics: Record<string, { rate: number, stdev: number }> = {
     equities: { rate: 9.0, stdev: 16.0 },
@@ -249,6 +254,123 @@ const MetricRow = ({
     );
 };
 
+function AddFundDialog() {
+  const { addFund, setFundId } = usePortfolioContext();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [commitment, setCommitment] = useState(10000000);
+  const [strategy, setStrategy] = useState<'PE' | 'VC' | 'Infra' | 'Secondaries' | 'Other'>('PE');
+  const [returnAssumption, setReturnAssumption] = useState(12.0);
+  const [stdevAssumption, setStdevAssumption] = useState(15.0);
+  const [allocation, setAllocation] = useState<Record<string, number>>(initialAllocation);
+
+  const handleSave = () => {
+    const id = `custom-${Date.now()}`;
+    const newFund: Fund = {
+      id,
+      name,
+      commitment,
+      strategy,
+      region: 'North America',
+      vintageYear: new Date().getFullYear(),
+      investmentPeriod: 5,
+      fundLife: 10,
+      latestNav: commitment,
+      forecastIRR: returnAssumption / 100,
+    };
+    addFund(newFund);
+    setFundId(id);
+    setOpen(false);
+  };
+
+  const handleAllocationChange = (key: string, val: string) => {
+    const num = parseFloat(val);
+    if (!isNaN(num)) {
+      setAllocation(prev => ({ ...prev, [key]: num }));
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-2 border-primary/30 text-primary font-bold uppercase text-[10px] hover:bg-primary/5">
+          <Plus className="h-3.5 w-3.5" />
+          Add a New Fund
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-highlight font-bold uppercase tracking-tight text-sm">Create New Model Fund</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold uppercase text-black/60">Fund Name</Label>
+              <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Frontier Growth III" className="h-8 text-xs" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-black/60">Strategy</Label>
+                <Select value={strategy} onValueChange={(v: any) => setStrategy(v)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PE" className="text-xs">Private Equity</SelectItem>
+                    <SelectItem value="VC" className="text-xs">Venture Capital</SelectItem>
+                    <SelectItem value="Infra" className="text-xs">Infrastructure</SelectItem>
+                    <SelectItem value="Secondaries" className="text-xs">Secondaries</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-black/60">Commitment ($)</Label>
+                <Input type="number" value={commitment} onChange={e => setCommitment(Number(e.target.value))} className="h-8 text-xs" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-black/60">Mean Return (%)</Label>
+                <Input type="number" value={returnAssumption} onChange={e => setReturnAssumption(Number(e.target.value))} className="h-8 text-xs" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold uppercase text-black/60">Vol (StDev %)</Label>
+                <Input type="number" value={stdevAssumption} onChange={e => setStdevAssumption(Number(e.target.value))} className="h-8 text-xs" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-black/10 overflow-hidden bg-muted/10 p-4">
+            <h4 className="text-[10px] font-bold uppercase text-black/60 mb-3 border-b border-black/5 pb-1">Target Allocation Profile</h4>
+            <div className="space-y-2">
+              {Object.entries(allocation).map(([key, val]) => (
+                <div key={key} className="flex items-center justify-between gap-4">
+                  <span className="text-[11px] font-medium text-black/70 flex-1 truncate">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                  <div className="relative w-20">
+                    <Input 
+                      type="number" 
+                      value={val} 
+                      onChange={e => handleAllocationChange(key, e.target.value)} 
+                      className="h-7 text-right pr-5 text-[11px] font-bold"
+                    />
+                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-black/30">%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="pt-4">
+          <Button onClick={handleSave} className="bg-primary text-white font-bold uppercase text-[11px] h-9 px-8">
+            <Check className="h-4 w-4 mr-2" />
+            Save and Apply to Model
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function PortfolioGrowthPage() {
     const { fundId, setFundId, funds, portfolioData } = usePortfolioContext();
     
@@ -391,10 +513,13 @@ export default function PortfolioGrowthPage() {
             <h1 className="text-sm font-semibold tracking-tight text-highlight uppercase">
                 Potential Growth of Portfolio Wealth
             </h1>
-            <FundSelector
-                selectedFundId={fundId}
-                onFundChange={setFundId}
-            />
+            <div className="flex items-center gap-2">
+              <AddFundDialog />
+              <FundSelector
+                  selectedFundId={fundId}
+                  onFundChange={setFundId}
+              />
+            </div>
         </div>
        <div className="pt-1">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

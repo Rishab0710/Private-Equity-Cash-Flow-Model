@@ -19,6 +19,7 @@ type PortfolioContextType = {
   setCapitalCallPacing: (pacing: number) => void;
   distributionVelocity: number;
   setDistributionVelocity: (velocity: number) => void;
+  addFund: (fund: Fund) => void;
 };
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -41,22 +42,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [capitalCallPacing, setCapitalCallPacing] = useState(100);
   const [distributionVelocity, setDistributionVelocity] = useState(100);
 
-
   useEffect(() => {
     setAsOfDate(new Date());
   }, []);
 
+  const addFund = (newFund: Fund) => {
+    setFunds(prev => [...prev, newFund]);
+  };
+
   useEffect(() => {
     // We only need to generate portfolio data for data-heavy pages
-    const dataPages = ['/liquidity', '/portfolio-growth', '/scenario-simulation'];
+    const dataPages = ['/', '/portfolio-growth', '/scenario-simulation', '/liquidity'];
     if (dataPages.includes(pathname) && asOfDate) {
       const customFactors = {
           callFactor: capitalCallPacing / 100,
           distFactor: distributionVelocity / 100,
       }
       const { portfolio, funds: newFunds } = getPortfolioData(scenario, fundId === 'all' ? undefined : fundId, asOfDate, customFactors);
+      
+      // Update data but preserve the custom funds added via UI if any
       setPortfolioData(portfolio);
-      setFunds(newFunds);
     }
   }, [fundId, scenario, pathname, asOfDate, capitalCallPacing, distributionVelocity]);
 
@@ -73,7 +78,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
         capitalCallPacing,
         setCapitalCallPacing,
         distributionVelocity,
-        setDistributionVelocity
+        setDistributionVelocity,
+        addFund
       }}>
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
