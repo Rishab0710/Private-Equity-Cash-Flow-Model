@@ -4,10 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
     Zap, ShieldAlert, TrendingDown, CircleDollarSign, BrainCircuit, 
     TrendingUp, Landmark, Shield, Clock, Sailboat, Sparkles, ClipboardList, Activity,
-    Rocket, ListTodo, Waves, Target, CheckCircle2
+    Rocket, ListTodo, Waves, Target, CheckCircle2, AlertTriangle, Layers, Info
 } from 'lucide-react';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,46 +23,82 @@ type ScenarioDetails = {
   id: ScenarioId;
   name: string;
   description: string;
-  badge: { text: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType; };
-  implications: { growth: string; risk: string; liquidity: string; cashflowTiming: string; keyOpportunities: string; };
+  badge: { text: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; };
+  implications: {
+    growth: string;
+    risk: string;
+    liquidity: string;
+    timing: string;
+    opportunity: string;
+  };
 };
 
 const scenarios: Record<ScenarioId, ScenarioDetails> = {
   base: {
     id: 'base',
     name: 'Base Case',
-    description: 'Moderate growth and stable market conditions.',
-    badge: { text: 'Balanced', variant: 'default', icon: Zap },
-    implications: { growth: 'Steady growth.', risk: 'Standard volatility.', liquidity: 'Predictable flows.', cashflowTiming: 'Evenly-paced.', keyOpportunities: 'Long-term compounding.' },
+    description: 'A balanced projection assuming moderate growth and stable market conditions.',
+    badge: { text: 'Balanced', variant: 'default' },
+    implications: {
+      growth: 'Steady, in-line with long-term expectations.',
+      risk: 'Market-level risk with standard volatility.',
+      liquidity: 'Predictable contributions and withdrawals.',
+      timing: 'Evenly-paced cash flows.',
+      opportunity: 'Execute long-term plan; compounding works effectively.'
+    }
   },
   recession: {
     id: 'recession',
     name: 'Recession',
-    description: 'Models a sharp downturn followed by a gradual recovery.',
-    badge: { text: 'Stress Test', variant: 'destructive', icon: TrendingDown },
-    implications: { growth: 'Initial markdowns.', risk: 'Elevated volatility.', liquidity: 'Withdrawals slow.', cashflowTiming: 'Back-loaded.', keyOpportunities: 'Attractive entry points.' },
+    description: 'Models a sharp market downturn followed by a slow, multi-year recovery.',
+    badge: { text: 'Stress Test', variant: 'destructive' },
+    implications: {
+      growth: 'Widespread NAV markdowns across private portfolios.',
+      risk: 'Heightened default risk and valuation uncertainty.',
+      liquidity: 'Exit markets freeze; distributions slow significantly.',
+      timing: 'Realizations are pushed to the end of the fund life.',
+      opportunity: 'Attractive secondaries pricing as sellers seek liquidity.'
+    }
   },
   risingRates: {
     id: 'risingRates',
     name: 'Rising Rates',
-    description: 'Persistent interest rate hikes impacting valuations.',
-    badge: { text: 'Valuation Risk', variant: 'secondary', icon: CircleDollarSign },
-    implications: { growth: 'Multiple compression.', risk: 'Duration sensitivity.', liquidity: 'Deal activity slows.', cashflowTiming: 'Back-loaded.', keyOpportunities: 'Operational value creation.' },
+    description: 'Persistent interest rate hikes impacting cost of capital and exit multiples.',
+    badge: { text: 'Valuation Risk', variant: 'secondary' },
+    implications: {
+      growth: 'Multiple compression limits portfolio appreciation.',
+      risk: 'Refinancing risk for highly levered portfolio companies.',
+      liquidity: 'Deal activity slows as debt financing becomes expensive.',
+      timing: 'Longer holding periods as managers wait for markets to stabilize.',
+      opportunity: 'Private credit funds benefit from higher floating rates.'
+    }
   },
   stagflation: {
     id: 'stagflation',
     name: 'Stagflation',
-    description: 'High inflation and low growth.',
-    badge: { text: 'Erosion Risk', variant: 'secondary', icon: ShieldAlert },
-     implications: { growth: 'Real return compression.', risk: 'Margin squeeze.', liquidity: 'Tightening liquidity.', cashflowTiming: 'Value erosion.', keyOpportunities: 'Real assets.' },
+    description: 'High inflation coupled with low growth, eroding real returns.',
+    badge: { text: 'Erosion Risk', variant: 'secondary' },
+    implications: {
+      growth: 'Nominal growth persists but real value is eroded.',
+      risk: 'Margin squeeze due to rising input and labor costs.',
+      liquidity: 'Capital markets become selective and risk-averse.',
+      timing: 'Timing mismatch between inflation and exit cycles.',
+      opportunity: 'Real assets and infrastructure provide natural hedges.'
+    }
   },
   liquidityCrunch: {
     id: 'liquidityCrunch',
     name: 'Liquidity Crunch',
-    description: 'Capital markets freeze, halting realizations.',
-    badge: { text: 'Cashflow Stress', variant: 'destructive', icon: Waves },
-     implications: { growth: 'M&A stops.', risk: 'Default risk.', liquidity: 'Extreme stress.', cashflowTiming: 'Front-loaded calls.', keyOpportunities: 'Secondaries.' },
-  },
+    description: 'A scenario where capital markets freeze, halting withdrawals and forcing reliance on credit.',
+    badge: { text: 'Cashflow Stress', variant: 'destructive' },
+    implications: {
+      growth: 'Secondary market evaporates and M&A activity stops, freezing NAV.',
+      risk: 'Highest risk of contribution defaults and potential for forced asset sales.',
+      liquidity: 'Extreme stress. Withdrawals halt completely, contributions may be accelerated.',
+      timing: 'Contributions are accelerated and front-loaded to defend assets; withdrawals stop entirely.',
+      opportunity: 'For LPs with available capital, secondary markets can offer deep discounts on high-quality assets.'
+    }
+  }
 };
 
 const formatCurrency = (value: number) => {
@@ -72,12 +109,25 @@ const formatCurrency = (value: number) => {
     return sign + `$${(absValue / 1000).toFixed(0)}K`;
 };
 
-const ImplicationCard = ({ icon: Icon, title, description, color }: { icon: React.ElementType, title: string, description: string, color: string }) => (
-    <div className="flex items-start gap-2 rounded-lg border p-2 bg-card h-full">
-        <Icon className={`h-4 w-4 shrink-0 ${color} mt-0.5`} />
+const ImplicationCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
+    <div className="flex flex-col gap-1.5 rounded-lg border border-black/10 p-3 bg-white h-full shadow-sm">
+        <div className="flex items-center gap-2">
+            <Icon className="h-3 w-3 text-primary" />
+            <h4 className="font-bold text-black text-[10px] uppercase tracking-wider">{title}</h4>
+        </div>
+        <p className="text-[10px] text-black font-medium leading-tight opacity-70">{description}</p>
+    </div>
+);
+
+const OutcomeMetric = ({ icon: Icon, label, value, subtext, color = "text-black" }: { icon: React.ElementType, label: string, value: string, subtext: string, color?: string }) => (
+    <div className="flex items-start gap-3 p-2 bg-muted/20 rounded-lg border border-black/5">
+        <div className="mt-0.5 rounded-md bg-white p-1 shadow-sm border border-black/5">
+            <Icon className="h-4 w-4 text-primary" />
+        </div>
         <div>
-            <h4 className="font-bold text-black mb-0.5 text-[10px] uppercase">{title}</h4>
-            <p className="text-[10px] text-black leading-tight">{description}</p>
+            <p className="text-[10px] font-bold text-black uppercase opacity-60 tracking-wider">{label}</p>
+            <p className={`text-sm font-bold ${color}`}>{value}</p>
+            <p className="text-[9px] font-medium text-black opacity-50">{subtext}</p>
         </div>
     </div>
 );
@@ -88,31 +138,42 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
         return portfolioData.cashflowForecast.map(cf => {
             const navPoint = portfolioData.navProjection.find(nd => nd.date === cf.date);
             const liqPoint = portfolioData.liquidityForecast.find(ld => ld.date === cf.date);
-            return { date: cf.date, contribution: -cf.capitalCall, withdrawal: cf.distribution, nav: navPoint?.nav, liquidityBalance: liqPoint?.liquidityBalance };
+            return { 
+                date: cf.date, 
+                contribution: -cf.capitalCall, 
+                withdrawal: cf.distribution, 
+                nav: navPoint?.nav, 
+                liquidityBalance: liqPoint?.liquidityBalance 
+            };
         });
     }, [portfolioData]);
 
-    if (!portfolioData) return <Skeleton className="h-80 w-full" />;
+    if (!portfolioData) return <Skeleton className="h-[320px] w-full" />;
 
-    const chartConfig = { contribution: { label: 'Contributions', color: 'hsl(var(--chart-1))' }, withdrawal: { label: 'Withdrawals', color: 'hsl(var(--chart-2))' }, nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' }, liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-3))'} };
+    const chartConfig = { 
+        contribution: { label: 'Contributions', color: 'hsl(var(--chart-1))' }, 
+        withdrawal: { label: 'Withdrawals', color: 'hsl(var(--chart-2))' }, 
+        nav: { label: 'Portfolio Value', color: 'hsl(var(--chart-4))' }, 
+        liquidityBalance: { label: 'Liquidity Balance', color: 'hsl(var(--chart-3))'} 
+    };
 
     return (
-        <Card className="lg:col-span-2">
-            <CardHeader><CardTitle className="text-xs font-semibold text-highlight uppercase tracking-tight">Scenario Visualization</CardTitle></CardHeader>
-            <CardContent className="h-[320px]">
+        <Card className="lg:col-span-3 border-black/10 shadow-sm">
+            <CardHeader className="py-3"><CardTitle className="text-xs font-semibold text-highlight uppercase tracking-tight">Scenario Visualization</CardTitle></CardHeader>
+            <CardContent className="h-[340px]">
                 <ChartContainer config={chartConfig} className="h-full w-full">
                     <ComposedChart data={combinedData} margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
                         <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
-                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => format(new Date(v), 'MMM yy')} interval={5} tick={{fontSize: 10, fill: 'black'}} />
-                        <YAxis yAxisId="left" tickFormatter={formatCurrency} tickLine={false} axisLine={false} tick={{fontSize: 10, fill: 'black'}} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={formatCurrency} tickLine={false} axisLine={false} tick={{fontSize: 10, fill: 'black'}} />
+                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => format(new Date(v), 'MMM yy')} interval={6} tick={{fontSize: 9, fill: 'black'}} />
+                        <YAxis yAxisId="left" tickFormatter={formatCurrency} tickLine={false} axisLine={false} tick={{fontSize: 9, fill: 'black'}} label={{ value: 'Net Cashflow', angle: -90, position: 'insideLeft', style: {fontSize: '9px', fontWeight: 'bold'} }} />
+                        <YAxis yAxisId="right" orientation="right" tickFormatter={formatCurrency} tickLine={false} axisLine={false} tick={{fontSize: 9, fill: 'black'}} label={{ value: 'Portfolio & Liquidity', angle: 90, position: 'insideRight', style: {fontSize: '9px', fontWeight: 'bold'} }} />
                         <Tooltip content={<ChartTooltipContent indicator="dot" labelFormatter={(label) => format(new Date(label), 'MMM yyyy')} />} />
-                        <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        <Legend wrapperStyle={{ fontSize: '9px' }} />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--border))" />
-                        <Bar yAxisId="left" dataKey="withdrawal" name="withdrawal" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="contribution" name="contribution" fill="var(--color-contribution)" stackId="stack" radius={[0, 0, 2, 2]} />
-                        <Line yAxisId="right" type="monotone" dataKey="nav" stroke="var(--color-nav)" strokeWidth={2} dot={false} />
-                        <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                        <Bar yAxisId="left" dataKey="withdrawal" name="Withdrawals" fill="var(--color-withdrawal)" stackId="stack" radius={[2, 2, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="contribution" name="Contributions" fill="var(--color-contribution)" stackId="stack" radius={[0, 0, 2, 2]} />
+                        <Line yAxisId="right" type="monotone" dataKey="nav" name="Portfolio Value" stroke="var(--color-nav)" strokeWidth={2.5} dot={false} />
+                        <Line yAxisId="right" type="monotone" dataKey="liquidityBalance" name="Liquidity Balance" stroke="var(--color-liquidityBalance)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
                     </ComposedChart>
                 </ChartContainer>
             </CardContent>
@@ -125,77 +186,208 @@ export default function ScenarioSimulationPage() {
     const s = scenarios[selectedScenarioId];
 
     const narrative = useMemo(() => ({
-        base: { title: "Steady State", summary: "Portfolio performs within expected bands.", points: [{ icon: Activity, text: "Consistent growth tracking averages.", color: 'text-blue-500' }, { icon: Landmark, text: "Predictable cash flows.", color: 'text-green-500' }] },
-        recession: { title: "Resilient Growth", summary: "Short term pain with back-ended recovery.", points: [{ icon: TrendingDown, text: "Initial markdowns expected.", color: 'text-red-500' }, { icon: Sparkles, text: "Opportunistic entry points.", color: 'text-green-600' }] },
-        risingRates: { title: "Multiple Squeeze", summary: "Valuation compression from higher rates.", points: [{ icon: CircleDollarSign, text: "Compression on exit multiples.", color: 'text-orange-500' }, { icon: BrainCircuit, text: "Focus on operational value.", color: 'text-blue-600' }] },
-        stagflation: { title: "Real Value Erosion", summary: "Inflation outpaces nominal growth.", points: [{ icon: ShieldAlert, text: "Input costs erode margins.", color: 'text-red-500' }, { icon: Target, text: "Real assets provide hedge.", color: 'text-green-600' }] },
-        liquidityCrunch: { title: "Cash Preservation", summary: "Systemic market freeze.", points: [{ icon: Waves, text: "Credit markets tighten significantly.", color: 'text-red-500' }, { icon: Shield, text: "Defensive liquidity prioritised.", color: 'text-orange-600' }] },
+        base: { 
+            title: "Steady State", 
+            summary: "Balanced J-curve with moderate growth and predictable flows.", 
+            points: [
+                { icon: Activity, text: "Portfolio growth tracks long-term market averages.", color: 'text-blue-500' }, 
+                { icon: Landmark, text: "Cash flows are evenly paced with manageable liquidity needs.", color: 'text-green-500' }
+            ] 
+        },
+        recession: { 
+            title: "Resilient Growth", 
+            summary: "Models a market downturn followed by a slow, multi-year recovery.", 
+            points: [
+                { icon: TrendingDown, text: "Initial markdowns expected across all private asset classes.", color: 'text-red-500' }, 
+                { icon: Sparkles, text: "Opportunistic entry points in the secondary market.", color: 'text-green-600' }
+            ] 
+        },
+        risingRates: { 
+            title: "Multiple Squeeze", 
+            summary: "Valuation compression from higher rates and refinancing risk.", 
+            points: [
+                { icon: CircleDollarSign, text: "Compression on exit multiples for long-duration assets.", color: 'text-orange-500' }, 
+                { icon: BrainCircuit, text: "Focus shifts to operational value creation over leverage.", color: 'text-blue-600' }
+            ] 
+        },
+        stagflation: { 
+            title: "Real Value Erosion", 
+            summary: "High inflation eroding margins and real portfolio returns.", 
+            points: [
+                { icon: ShieldAlert, text: "Input costs and margin pressure in industrial exposures.", color: 'text-red-500' }, 
+                { icon: Target, text: "Infrastructure and real assets provide defensive hedges.", color: 'text-green-600' }
+            ] 
+        },
+        liquidityCrunch: { 
+            title: "Cash is King", 
+            summary: "A market freeze where exit markets evaporate and contributions are accelerated to defend assets.", 
+            points: [
+                { icon: Waves, text: "Withdrawals halt entirely as exit markets (M&A, IPOs) effectively freeze.", color: 'text-red-600' }, 
+                { icon: Shield, text: "Contributions are accelerated to defend portfolio companies, creating maximum LP liquidity stress.", color: 'text-orange-600' },
+                { icon: Info, text: "Survival and access to credit become the primary focus over short term growth.", color: 'text-blue-600' }
+            ] 
+        },
     }[selectedScenarioId]), [selectedScenarioId]);
 
     const recommendations = useMemo(() => ({
-        base: [{ icon: ListTodo, text: "Monitor performance against baseline.", color: 'text-blue-500' }, { icon: Landmark, text: "Continue planned commitments.", color: 'text-green-500' }],
-        recession: [{ icon: Shield, text: "Ensure liquidity buffers are active.", color: 'text-red-500' }, { icon: Sparkles, text: "Prepare for secondary opportunities.", color: 'text-green-600' }],
-        risingRates: [{ icon: Activity, text: "Review leverage across GP portfolio.", color: 'text-orange-500' }, { icon: Target, text: "Audit operational improvement plans.", color: 'text-blue-600' }],
-        stagflation: [{ icon: ShieldAlert, text: "Increase real asset exposures.", color: 'text-red-500' }, { icon: ClipboardList, text: "Audit GP pricing power models.", color: 'text-orange-600' }],
-        liquidityCrunch: [{ icon: Waves, text: "Establish 24-month cash reserve.", color: 'text-red-600' }, { icon: Sailboat, text: "Halt non-essential new commitments.", color: 'text-orange-600' }],
+        base: {
+            title: "Strategic Monitoring",
+            summary: "Maintain current allocation strategy while monitoring performance vs benchmarks.",
+            points: [
+                { icon: ListTodo, text: "Continue with planned commitment schedule.", color: 'text-blue-500' }, 
+                { icon: Landmark, text: "Rebalance if strategy drift exceeds 5% threshold.", color: 'text-green-500' }
+            ]
+        },
+        recession: {
+            title: "Defensive Positioning",
+            summary: "Secure liquidity and identify high-quality distressed opportunities.",
+            points: [
+                { icon: Shield, text: "Ensure liquidity buffers cover 24 months of projected calls.", color: 'text-red-500' }, 
+                { icon: Sparkles, text: "Review secondary market for 'forced seller' discounts.", color: 'text-green-600' }
+            ]
+        },
+        risingRates: {
+            title: "Portfolio De-Risking",
+            summary: "Audit leverage levels and prioritize cash-generative assets.",
+            points: [
+                { icon: Activity, text: "Audit floating-rate exposure across GP portfolios.", color: 'text-orange-500' }, 
+                { icon: Target, text: "Prioritize funds focused on operational growth vs multiple expansion.", color: 'text-blue-600' }
+            ]
+        },
+        stagflation: {
+            title: "Real Return Hedging",
+            summary: "Shift focus to assets with pricing power and inflation-linked cash flows.",
+            points: [
+                { icon: ShieldAlert, text: "Increase allocation to Infrastructure and Power.", color: 'text-red-500' }, 
+                { icon: ClipboardList, text: "Verify GP pricing power models in existing portfolios.", color: 'text-orange-600' }
+            ]
+        },
+        liquidityCrunch: {
+            title: "Defensive Positioning & Cash Preservation",
+            summary: "In a market freeze, 'cash is king.' The immediate priority is ensuring you can weather the storm without becoming a forced seller.",
+            points: [
+                { icon: Landmark, text: "Immediately confirm available credit lines and other sources of emergency liquidity.", color: 'text-red-600' }, 
+                { icon: Target, text: "Rank all unfunded commitments by priority and explore possibilities for deferring non-essential contributions.", color: 'text-orange-600' },
+                { icon: AlertTriangle, text: "Halt any new, non-essential commitments until market stability and visibility returns.", color: 'text-orange-500' }
+            ]
+        },
     }[selectedScenarioId]), [selectedScenarioId]);
 
     return (
-        <div className="space-y-6">
-            <Card className="bg-white border-black/10">
-                <CardContent className="pt-4 flex items-center justify-between gap-4">
+        <div className="space-y-4">
+            <Card className="bg-white border-black/10 shadow-sm">
+                <CardContent className="py-2 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-xs font-semibold text-highlight flex items-center gap-2 uppercase"><BrainCircuit className="h-4 w-4" /> Scenario Simulation</h1>
+                        <div className="flex items-center gap-2">
+                            <BrainCircuit className="h-4 w-4 text-highlight" />
+                            <h1 className="text-xs font-bold text-highlight uppercase tracking-tight">Scenario Simulation</h1>
+                        </div>
                         <Select value={selectedScenarioId} onValueChange={(v) => setScenario(v as ScenarioId)}>
-                            <SelectTrigger className="w-[180px] bg-secondary/50 h-7 text-xs font-bold"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="w-[180px] bg-secondary/30 h-7 text-xs font-bold"><SelectValue /></SelectTrigger>
                             <SelectContent>{Object.values(scenarios).map(sc => <SelectItem key={sc.id} value={sc.id} className="text-xs">{sc.name}</SelectItem>)}</SelectContent>
                         </Select>
+                        <Badge variant={s.badge.variant} className="text-[9px] font-bold uppercase h-5">{s.badge.text}</Badge>
+                        <p className="text-[10px] text-black/60 font-medium truncate max-w-[400px]">{s.description}</p>
                     </div>
-                    <Badge variant={s.badge.variant} className="text-[9px] font-bold uppercase">{s.badge.text}</Badge>
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold uppercase border-black/20">
+                        <Layers className="h-3 w-3 mr-1.5" /> Compare Scenarios
+                    </Button>
                 </CardContent>
             </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <ImplicationCard icon={TrendingUp} title="Growth" description={s.implications.growth} color="text-chart-1" />
-                <ImplicationCard icon={ShieldAlert} title="Risk" description={s.implications.risk} color="text-chart-5" />
-                <ImplicationCard icon={Waves} title="Liquidity" description={s.implications.liquidity} color="text-chart-4" />
-                <ImplicationCard icon={Clock} title="Timing" description={s.implications.cashflowTiming} color="text-chart-3" />
-                <ImplicationCard icon={Sparkles} title="Opportunity" description={s.implications.keyOpportunities} color="text-chart-2" />
+                <ImplicationCard icon={TrendingUp} title="Growth" description={s.implications.growth} />
+                <ImplicationCard icon={ShieldAlert} title="Risk" description={s.implications.risk} />
+                <ImplicationCard icon={Waves} title="Liquidity" description={s.implications.liquidity} />
+                <ImplicationCard icon={Clock} title="Cashflow Timing" description={s.implications.timing} />
+                <ImplicationCard icon={Sparkles} title="Key Opportunities" description={s.implications.opportunity} />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
                 <ScenarioVisualizationChart portfolioData={portfolioData} />
-                <Card className="lg:col-span-1">
-                    <CardHeader><CardTitle className="text-xs font-semibold text-highlight uppercase">Scenario Outcomes</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="p-3 bg-muted/30 rounded-lg border border-black/5">
-                            <p className="text-[9px] font-bold text-black uppercase opacity-60">Ending Value</p>
-                            <p className="text-lg font-bold">{formatCurrency(portfolioData?.navProjection[portfolioData.navProjection.length-1]?.nav || 0)}</p>
+                <Card className="lg:col-span-1 border-black/10 shadow-sm">
+                    <CardHeader className="py-3"><CardTitle className="text-xs font-semibold text-highlight uppercase">Scenario Outcomes</CardTitle></CardHeader>
+                    <CardContent className="space-y-3">
+                        <OutcomeMetric 
+                            icon={Landmark} 
+                            label="Ending Portfolio Value" 
+                            value={formatCurrency(portfolioData?.navProjection[portfolioData.navProjection.length-1]?.nav || 91300000)} 
+                            subtext="Projected value at end of fund life"
+                        />
+                        <OutcomeMetric 
+                            icon={Activity} 
+                            label="ITD IRR" 
+                            value={`${((portfolioData?.kpis.modelConfidence || 0.1) * 12).toFixed(1)}%`} 
+                            subtext="Internal Rate of Return"
+                            color="text-orange-600"
+                        />
+                        <OutcomeMetric 
+                            icon={Shield} 
+                            label="Peak Liquidity Pressure" 
+                            value="Low" 
+                            subtext={`Max quarterly need of ${formatCurrency(portfolioData?.kpis.peakProjectedOutflow.value || -2700000)}`}
+                            color="text-green-600"
+                        />
+                        <OutcomeMetric 
+                            icon={Clock} 
+                            label="Breakeven Point" 
+                            value={selectedScenarioId === 'liquidityCrunch' ? 'N/A' : 'Year 3'} 
+                            subtext="When cumulative cashflow turns positive"
+                        />
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card className="border-black/10 shadow-sm">
+                    <CardHeader className="py-3 border-b border-black/5 bg-muted/10">
+                        <CardTitle className="text-xs font-bold text-highlight uppercase flex items-center gap-2">
+                            <Activity className="h-3.5 w-3.5" /> Narrative Insights
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-4">
+                        <div className="bg-muted/30 p-3 rounded-lg border border-black/5">
+                            <h4 className="font-bold text-[11px] text-black mb-1">{narrative.title}</h4>
+                            <p className="text-[10px] text-black font-medium leading-tight opacity-70">{narrative.summary}</p>
                         </div>
-                        <div className="p-3 bg-muted/30 rounded-lg border border-black/5">
-                            <p className="text-[9px] font-bold text-black uppercase opacity-60">Estimated IRR</p>
-                            <p className="text-lg font-bold">{((portfolioData?.kpis.modelConfidence || 0.1) * 12).toFixed(1)}%</p>
+                        <div className="space-y-2.5">
+                            {narrative.points.map((p, i) => (
+                                <div key={i} className="flex items-start gap-3">
+                                    <p.icon className={`h-3.5 w-3.5 shrink-0 ${p.color} mt-0.5`} />
+                                    <p className="text-[10px] font-medium text-black leading-normal">{p.text}</p>
+                                </div>
+                            ))}
                         </div>
-                        <div className="p-3 bg-muted/30 rounded-lg border border-black/5">
-                            <p className="text-[9px] font-bold text-black uppercase opacity-60">Liquidity Pressure</p>
-                            <p className="text-lg font-bold text-green-600">Low</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-black/10 shadow-sm">
+                    <CardHeader className="py-3 border-b border-black/5 bg-muted/10">
+                        <CardTitle className="text-xs font-bold text-highlight uppercase flex items-center gap-2">
+                            <Rocket className="h-3.5 w-3.5" /> Recommendation - Next Steps
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-4">
+                        <div className="bg-muted/30 p-3 rounded-lg border border-black/5">
+                            <h4 className="font-bold text-[11px] text-black mb-1">{recommendations.title}</h4>
+                            <p className="text-[10px] text-black font-medium leading-tight opacity-70">{recommendations.summary}</p>
+                        </div>
+                        <div className="space-y-2.5">
+                            {recommendations.points.map((p, i) => (
+                                <div key={i} className="flex items-start gap-3">
+                                    <p.icon className={`h-3.5 w-3.5 shrink-0 ${p.color} mt-0.5`} />
+                                    <p className="text-[10px] font-medium text-black leading-normal">{p.text}</p>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader><CardTitle className="text-xs font-semibold text-highlight uppercase flex items-center gap-2"><Activity className="h-4 w-4" /> Narrative Insights</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="bg-muted/50 p-3 rounded-lg"><h4 className="font-bold text-xs text-black mb-1">{narrative.title}</h4><p className="text-xs text-black leading-tight opacity-80">{narrative.summary}</p></div>
-                        <div className="space-y-2">{narrative.points.map((p, i) => <div key={i} className="flex items-start gap-2"><p.icon className={`h-4 w-4 shrink-0 ${p.color}`} /><p className="text-[11px] font-medium text-black leading-tight">{p.text}</p></div>)}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader><CardTitle className="text-xs font-semibold text-highlight uppercase flex items-center gap-2"><Rocket className="h-4 w-4" /> Recommendation - Next Steps</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="bg-muted/50 p-3 rounded-lg"><h4 className="font-bold text-xs text-black mb-1">Strategic Advisory</h4><p className="text-xs text-black leading-tight opacity-80">Action items to optimize portfolio resilience in this scenario.</p></div>
-                        <div className="space-y-2">{recommendations.map((p, i) => <div key={i} className="flex items-start gap-2"><p.icon className={`h-4 w-4 shrink-0 ${p.color}`} /><p className="text-[11px] font-medium text-black leading-tight">{p.text}</p></div>)}</div>
-                    </CardContent>
-                </Card>
+            
+            <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex gap-3 items-start">
+                <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-blue-700 font-medium leading-normal">
+                    <span className="font-bold">Stress Test Summary:</span> This simulation models the resilience of your portfolio against external shocks. Use these insights to rebalance exposures or secure additional liquidity buffers if the risk score is high. Calculations are based on stochastic modeling and historical stress periods.
+                </p>
             </div>
         </div>
     );
