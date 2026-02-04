@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { 
     Zap, ShieldAlert, TrendingDown, CircleDollarSign, BrainCircuit, 
     TrendingUp, Landmark, Shield, Clock, Sailboat, Sparkles, ClipboardList, Activity,
-    Rocket, ListTodo, Waves, Target, CheckCircle2, AlertTriangle, Layers, Info
+    Rocket, ListTodo, Waves, Target, CheckCircle2, AlertTriangle, Layers, Info, X
 } from 'lucide-react';
 import { usePortfolioContext } from '@/components/layout/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +16,14 @@ import { Bar, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line,
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from 'date-fns';
 import type { PortfolioData } from '@/lib/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch';
 
@@ -31,6 +39,12 @@ type ScenarioDetails = {
     timing: string;
     opportunity: string;
   };
+  outcomes: {
+    endingValue: string;
+    irr: string;
+    pressure: string;
+    breakeven: string;
+  }
 };
 
 const scenarios: Record<ScenarioId, ScenarioDetails> = {
@@ -45,6 +59,12 @@ const scenarios: Record<ScenarioId, ScenarioDetails> = {
       liquidity: 'Predictable contributions and withdrawals.',
       timing: 'Evenly-paced cash flows.',
       opportunity: 'Execute long-term plan; compounding works effectively.'
+    },
+    outcomes: {
+      endingValue: '$163.7M',
+      irr: '14.2%',
+      pressure: 'Low',
+      breakeven: 'Year 3'
     }
   },
   recession: {
@@ -58,6 +78,12 @@ const scenarios: Record<ScenarioId, ScenarioDetails> = {
       liquidity: 'Exit markets freeze; distributions slow significantly.',
       timing: 'Realizations are pushed to the end of the fund life.',
       opportunity: 'Attractive secondaries pricing as sellers seek liquidity.'
+    },
+    outcomes: {
+      endingValue: '$128.4M',
+      irr: '8.1%',
+      pressure: 'Medium',
+      breakeven: 'Year 5'
     }
   },
   risingRates: {
@@ -71,6 +97,12 @@ const scenarios: Record<ScenarioId, ScenarioDetails> = {
       liquidity: 'Deal activity slows as debt financing becomes expensive.',
       timing: 'Longer holding periods as managers wait for markets to stabilize.',
       opportunity: 'Private credit funds benefit from higher floating rates.'
+    },
+    outcomes: {
+      endingValue: '$142.1M',
+      irr: '11.4%',
+      pressure: 'Low',
+      breakeven: 'Year 4'
     }
   },
   stagflation: {
@@ -84,6 +116,12 @@ const scenarios: Record<ScenarioId, ScenarioDetails> = {
       liquidity: 'Capital markets become selective and risk-averse.',
       timing: 'Timing mismatch between inflation and exit cycles.',
       opportunity: 'Real assets and infrastructure provide natural hedges.'
+    },
+    outcomes: {
+      endingValue: '$135.2M',
+      irr: '9.8%',
+      pressure: 'Medium',
+      breakeven: 'Year 6'
     }
   },
   liquidityCrunch: {
@@ -97,6 +135,12 @@ const scenarios: Record<ScenarioId, ScenarioDetails> = {
       liquidity: 'Extreme stress. Withdrawals halt completely, contributions may be accelerated.',
       timing: 'Contributions are accelerated and front-loaded to defend assets; withdrawals stop entirely.',
       opportunity: 'For LPs with available capital, secondary markets can offer deep discounts on high-quality assets.'
+    },
+    outcomes: {
+      endingValue: '$112.5M',
+      irr: '4.2%',
+      pressure: 'High',
+      breakeven: 'N/A'
     }
   }
 };
@@ -181,8 +225,89 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
     );
 };
 
+export function ScenarioComparisonDialog({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="text-sm font-bold text-highlight uppercase tracking-tight flex items-center gap-2">
+            <Layers className="h-4 w-4" /> Scenario Comparison Model
+          </DialogTitle>
+          <DialogDescription className="text-xs text-black font-medium">
+            Side-by-side performance and risk attribution across all simulated market scenarios.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="px-6 pb-6">
+          <div className="rounded-lg border border-black/10 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="text-[10px] font-bold text-black uppercase w-[150px]">Metric / Factor</TableHead>
+                  {Object.values(scenarios).map(s => (
+                    <TableHead key={s.id} className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold text-black uppercase">{s.name}</span>
+                        <Badge variant={s.badge.variant} className="text-[8px] font-bold uppercase h-4 px-1">{s.badge.text}</Badge>
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow className="bg-muted/10 font-bold">
+                  <TableCell className="text-[10px] uppercase text-highlight border-r">Implications</TableCell>
+                  <TableCell colSpan={5} className="bg-transparent"></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><TrendingUp className="h-3 w-3 text-primary" /> Growth</TableCell>
+                  {Object.values(scenarios).map(s => <TableCell key={s.id} className="text-[10px] text-black/70 font-medium text-center">{s.implications.growth}</TableCell>)}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><ShieldAlert className="h-3 w-3 text-primary" /> Risk</TableCell>
+                  {Object.values(scenarios).map(s => <TableCell key={s.id} className="text-[10px] text-black/70 font-medium text-center">{s.implications.risk}</TableCell>)}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><Waves className="h-3 w-3 text-primary" /> Liquidity</TableCell>
+                  {Object.values(scenarios).map(s => <TableCell key={s.id} className="text-[10px] text-black/70 font-medium text-center">{s.implications.liquidity}</TableCell>)}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><Clock className="h-3 w-3 text-primary" /> Cash Timing</TableCell>
+                  {Object.values(scenarios).map(s => <TableCell key={s.id} className="text-[10px] text-black/70 font-medium text-center">{s.implications.timing}</TableCell>)}
+                </TableRow>
+                <TableRow className="bg-muted/10 font-bold">
+                  <TableCell className="text-[10px] uppercase text-highlight border-r">Outcomes</TableCell>
+                  <TableCell colSpan={5} className="bg-transparent"></TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><Landmark className="h-3 w-3 text-primary" /> Ending Value</TableCell>
+                  {Object.values(scenarios).map(s => <TableCell key={s.id} className="text-[11px] font-bold text-black text-center">{s.outcomes.endingValue}</TableCell>)}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><Activity className="h-3 w-3 text-primary" /> ITD IRR</TableCell>
+                  {Object.values(scenarios).map(s => <TableCell key={s.id} className="text-[11px] font-bold text-orange-600 text-center">{s.outcomes.irr}</TableCell>)}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-[10px] font-bold text-black uppercase border-r flex items-center gap-1.5"><Shield className="h-3 w-3 text-primary" /> Liq. Pressure</TableCell>
+                  {Object.values(scenarios).map(s => (
+                    <TableCell key={s.id} className="text-center">
+                      <span className={`text-[10px] font-bold ${s.outcomes.pressure === 'High' ? 'text-red-600' : s.outcomes.pressure === 'Medium' ? 'text-orange-600' : 'text-green-600'}`}>
+                        {s.outcomes.pressure}
+                      </span>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ScenarioSimulationPage() {
     const { scenario: selectedScenarioId, setScenario, portfolioData } = usePortfolioContext();
+    const [isCompareOpen, setIsCompareOpen] = useState(false);
     const s = scenarios[selectedScenarioId];
 
     const narrative = useMemo(() => ({
@@ -289,7 +414,12 @@ export default function ScenarioSimulationPage() {
                         <Badge variant={s.badge.variant} className="text-[9px] font-bold uppercase h-5">{s.badge.text}</Badge>
                         <p className="text-[10px] text-black/60 font-medium truncate max-w-[400px]">{s.description}</p>
                     </div>
-                    <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold uppercase border-black/20">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 text-[10px] font-bold uppercase border-black/20"
+                      onClick={() => setIsCompareOpen(true)}
+                    >
                         <Layers className="h-3 w-3 mr-1.5" /> Compare Scenarios
                     </Button>
                 </CardContent>
@@ -311,27 +441,27 @@ export default function ScenarioSimulationPage() {
                         <OutcomeMetric 
                             icon={Landmark} 
                             label="Ending Portfolio Value" 
-                            value={formatCurrency(portfolioData?.navProjection[portfolioData.navProjection.length-1]?.nav || 91300000)} 
+                            value={s.outcomes.endingValue} 
                             subtext="Projected value at end of fund life"
                         />
                         <OutcomeMetric 
                             icon={Activity} 
                             label="ITD IRR" 
-                            value={`${((portfolioData?.kpis.modelConfidence || 0.1) * 12).toFixed(1)}%`} 
+                            value={s.outcomes.irr} 
                             subtext="Internal Rate of Return"
                             color="text-orange-600"
                         />
                         <OutcomeMetric 
                             icon={Shield} 
                             label="Peak Liquidity Pressure" 
-                            value="Low" 
-                            subtext={`Max quarterly need of ${formatCurrency(portfolioData?.kpis.peakProjectedOutflow.value || -2700000)}`}
-                            color="text-green-600"
+                            value={s.outcomes.pressure} 
+                            subtext={`Max quarterly need in stress period`}
+                            color={s.outcomes.pressure === 'Low' ? 'text-green-600' : s.outcomes.pressure === 'Medium' ? 'text-orange-600' : 'text-red-600'}
                         />
                         <OutcomeMetric 
                             icon={Clock} 
                             label="Breakeven Point" 
-                            value={selectedScenarioId === 'liquidityCrunch' ? 'N/A' : 'Year 3'} 
+                            value={s.outcomes.breakeven} 
                             subtext="When cumulative cashflow turns positive"
                         />
                     </CardContent>
@@ -389,6 +519,8 @@ export default function ScenarioSimulationPage() {
                     <span className="font-bold">Stress Test Summary:</span> This simulation models the resilience of your portfolio against external shocks. Use these insights to rebalance exposures or secure additional liquidity buffers if the risk score is high. Calculations are based on stochastic modeling and historical stress periods.
                 </p>
             </div>
+
+            <ScenarioComparisonDialog isOpen={isCompareOpen} onOpenChange={setIsCompareOpen} />
         </div>
     );
 }
