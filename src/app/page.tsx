@@ -29,7 +29,10 @@ const generateAssumptionData = (params: any) => {
         tvpiTarget,
         moicTarget,
         dpiTarget,
-        rvpiTarget
+        rvpiTarget,
+        overrideYear,
+        overrideCall,
+        overrideDist
     } = params;
     
     const pacingAdj = deploymentPacing === 'front-loaded' ? 0.02 : (deploymentPacing === 'back-loaded' ? -0.02 : 0);
@@ -63,8 +66,6 @@ const generateAssumptionData = (params: any) => {
             const pacingAdjustment = deploymentPacing === 'front-loaded' ? (2 * (1 - progress)) : (deploymentPacing === 'back-loaded' ? (2 * progress) : 1);
             call = Math.min(unfunded, baseCall * pacingAdjustment);
         }
-        unfunded -= call;
-        totalCalls += call;
 
         let distribution = 0;
         if (year >= distStartYear && year < fundLife) {
@@ -73,6 +74,14 @@ const generateAssumptionData = (params: any) => {
             distribution = Math.max(0, distAmount);
         }
 
+        // Apply overrides for actual cash flows
+        if (year === overrideYear) {
+            if (overrideCall > 0) call = overrideCall;
+            if (overrideDist > 0) distribution = overrideDist;
+        }
+
+        unfunded = Math.max(0, unfunded - call);
+        totalCalls += call;
         totalDists += distribution;
 
         const navProgress = year / fundLife;
@@ -128,19 +137,18 @@ const generateAssumptionData = (params: any) => {
         });
     }
 
-    // Divide final ITD IRR by 2.5 per client requirements
     const itdIrr = (Math.max(0, (tvpiTarget - 1) / (fundLife / 2))) / 2.5; 
 
     return { 
         jCurveData, 
         summaryOutputs: {
             totalCapitalCalled: totalCalls,
-            totalDistributions: totalCalls * dpiTarget,
-            endingNav: totalCalls * rvpiTarget,
-            tvpi: tvpiTarget,
+            totalDistributions: totalCalls * (totalCalls > 0 ? totalDists / totalCalls : 0),
+            endingNav: nav,
+            tvpi: totalCalls > 0 ? (nav + totalDists) / totalCalls : tvpiTarget,
             moic: moicTarget,
-            dpi: dpiTarget,
-            rvpi: rvpiTarget,
+            dpi: totalCalls > 0 ? totalDists / totalCalls : dpiTarget,
+            rvpi: totalCalls > 0 ? nav / totalCalls : rvpiTarget,
             itdIrr: itdIrr,
             peakNav: { value: maxNavValue, year: maxNavYear },
             remainingUnfunded: commitment - totalCalls
@@ -163,6 +171,11 @@ export default function RootPage() {
     const [moicTarget, setMoicTarget] = useState(2.31); 
     const [dpiTarget, setDpiTarget] = useState(1.5);
     const [rvpiTarget, setRvpiTarget] = useState(0.7);
+
+    // Actual cash flow overrides
+    const [overrideYear, setOverrideYear] = useState(1);
+    const [overrideCall, setOverrideCall] = useState(0);
+    const [overrideDist, setOverrideDist] = useState(0);
 
     const [jCurveData, setJCurveData] = useState<any[]>([]);
     const [summaryOutputs, setSummaryOutputs] = useState<any | null>(null);
@@ -230,13 +243,15 @@ export default function RootPage() {
     useEffect(() => {
         const data = generateAssumptionData({
             fundLife, commitment, deploymentPacing, jCurveDepth, timeToBreakeven, 
-            distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
+            distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget,
+            overrideYear, overrideCall, overrideDist
         });
         setJCurveData(data.jCurveData);
         setSummaryOutputs(data.summaryOutputs);
     }, [
         fundLife, commitment, deploymentPacing, jCurveDepth, timeToBreakeven, 
-        distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget
+        distributionStart, distributionSpeed, tvpiTarget, moicTarget, dpiTarget, rvpiTarget,
+        overrideYear, overrideCall, overrideDist
     ]);
 
     const handleSaveSet = () => {
@@ -313,9 +328,11 @@ export default function RootPage() {
                     <MultiplesAssumptions 
                         className="lg:col-span-1"
                         tvpiTarget={tvpiTarget} setTvpiTarget={setTvpiTarget}
-                        moicTarget={moicTarget} setMoicTarget={setMoicTarget}
                         dpiTarget={dpiTarget} setDpiTarget={setDpiTarget}
                         rvpiTarget={rvpiTarget} setRvpiTarget={setRvpiTarget}
+                        overrideYear={overrideYear} setOverrideYear={setOverrideYear}
+                        overrideCall={overrideCall} setOverrideCall={setOverrideCall}
+                        overrideDist={overrideDist} setOverrideDist={setOverrideDist}
                     />
                     <CashflowTimeline 
                         className="lg:col-span-3"
