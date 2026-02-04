@@ -145,7 +145,7 @@ const generateAssumptionData = (params: any) => {
     };
 };
 
-export default function IndexPage() {
+export default function AssumptionsStudioPage() {
     const { toast } = useToast();
     const [fundId, setFundId] = useState('1');
     const [fundLife, setFundLife] = useState(10);

@@ -1,12 +1,7 @@
 'use client';
 
-import AssumptionsStudioPage from './(app)/page';
-import { AppLayout } from '@/components/layout/app-layout';
+import { redirect } from 'next/navigation';
 
 export default function RootIndex() {
-  return (
-    <AppLayout>
-      <AssumptionsStudioPage />
-    </AppLayout>
-  );
+  redirect('/assumptions-studio');
 }
