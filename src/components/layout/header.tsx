@@ -25,7 +25,7 @@ import { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/', label: 'Assumptions Studio', icon: ClipboardList },
-  { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
+  { href: '/portfolio-growth', label: 'Build Model Portfolio', icon: TrendingUp },
   { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
 ];
 
