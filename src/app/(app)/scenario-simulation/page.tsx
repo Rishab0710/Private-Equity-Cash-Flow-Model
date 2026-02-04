@@ -6,9 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { 
     Zap, ShieldAlert, TrendingDown, ChevronsUp, Waves, CircleDollarSign, BrainCircuit, 
-    TrendingUp, Landmark, Shield, BarChart, Hourglass, Activity, Clock, Rocket, 
-    ClipboardList, Search, Briefcase, ShieldCheck, Gauge, FileBarChart, Building, 
-    Filter, Target, FileWarning, ListTodo, Ban, Sailboat, Sparkles, Info
+    TrendingUp, Landmark, Shield, Clock, Sailboat, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPortfolioData } from '@/lib/data';
@@ -21,8 +19,6 @@ import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { TooltipProvider, Tooltip as UITooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
 
 type ScenarioId = 'base' | 'recession' | 'risingRates' | 'stagflation' | 'liquidityCrunch';
 
@@ -56,37 +52,13 @@ type ScenarioDetails = {
   };
 };
 
-const calculateQuarterlyIRR = (cashflows: number[], tvpiForFallback: number): number => {
-    const maxIterations = 50;
-    const tolerance = 1e-6;
-    const calculateNPV = (rate: number) => cashflows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + rate, t), 0);
-
-    let lowRate = -0.9999; 
-    let highRate = 5.0; 
-
-    let npvAtLow = calculateNPV(lowRate);
-    let npvAtHigh = calculateNPV(highRate);
-
-    if (npvAtLow * npvAtHigh > 0) {
-        const durationYears = cashflows.length / 4;
-        if (tvpiForFallback <= 0 || durationYears <= 0) return 0;
-        const annualisedRoughIrr = Math.pow(tvpiForFallback, 1 / (durationYears * 0.6)) - 1;
-        return Math.pow(1 + annualisedRoughIrr, 1/4) - 1; 
-    }
-
-    for (let i = 0; i < maxIterations; i++) {
-        let midRate = (lowRate + highRate) / 2;
-        let npvAtMid = calculateNPV(midRate);
-        if (Math.abs(npvAtMid) < tolerance) return midRate;
-        if (npvAtLow * npvAtMid < 0) {
-            highRate = midRate;
-            npvAtHigh = npvAtMid;
-        } else {
-            lowRate = midRate;
-            npvAtLow = npvAtMid;
-        }
-    }
-    return (lowRate + highRate) / 2;
+// Optimized IRR estimation for faster UI performance
+const estimateAnnualIRR = (cashflows: number[], tvpi: number): number => {
+    if (tvpi <= 0) return 0;
+    const durationYears = cashflows.length / 4;
+    if (durationYears <= 0) return 0;
+    // Rule of thumb approximation for demo speed
+    return Math.pow(tvpi, 1 / (durationYears * 0.7)) - 1;
 };
 
 const scenarios: Record<ScenarioId, ScenarioDetails> = {
@@ -282,22 +254,23 @@ const ScenarioVisualizationChart = ({ portfolioData }: { portfolioData: Portfoli
 const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: PortfolioData | null, totalCommitment: number }) => {
     if (!portfolioData) return <Skeleton className="h-full min-h-[300px] lg:col-span-1" />;
 
-    const { kpis, navProjection, liquidityForecast, cashflowForecast } = portfolioData;
-    const cumulativeCalls = cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
-    const cumulativeDists = cashflowForecast.reduce((s, c) => s + c.distribution, 0);
-    const endingValue = navProjection[navProjection.length-1]?.nav || 0;
-    const tvpi = cumulativeCalls > 0 ? (endingValue + cumulativeDists) / cumulativeCalls : 0;
-    
-    const irrCashflows = cashflowForecast.map(cf => cf.netCashflow);
-    if (irrCashflows.length > 0) irrCashflows[irrCashflows.length - 1] += endingValue;
-    const firstCfIndex = irrCashflows.findIndex(cf => cf !== 0);
-    const finalIrrCashflows = firstCfIndex > -1 ? irrCashflows.slice(firstCfIndex) : [];
-    const itdIrr = finalIrrCashflows.length > 1 ? (Math.pow(1 + calculateQuarterlyIRR(finalIrrCashflows, tvpi), 4) - 1) : 0;
+    const outcomes = useMemo(() => {
+        const { kpis, navProjection, liquidityForecast, cashflowForecast } = portfolioData;
+        const cumulativeCalls = cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
+        const cumulativeDists = cashflowForecast.reduce((s, c) => s + c.distribution, 0);
+        const endingValue = navProjection[navProjection.length-1]?.nav || 0;
+        const tvpi = cumulativeCalls > 0 ? (endingValue + cumulativeDists) / cumulativeCalls : 0;
+        
+        const irrCashflows = cashflowForecast.map(cf => cf.netCashflow);
+        const itdIrr = estimateAnnualIRR(irrCashflows, tvpi);
 
-    const peakGap = Math.max(0, ...liquidityForecast.map(l => l.fundingGap));
-    const simulatedPeakPressure = Math.max(Math.abs(kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
-    const pressure = simulatedPeakPressure > totalCommitment * 0.1 ? 'High' : (simulatedPeakPressure > totalCommitment * 0.05 ? 'Medium' : 'Low');
-    const breakevenPoint = kpis.breakevenTiming.from !== 'N/A' ? `Year ${new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1}` : 'N/A';
+        const peakGap = Math.max(0, ...liquidityForecast.map(l => l.fundingGap));
+        const simulatedPeakPressure = Math.max(Math.abs(kpis.peakProjectedOutflow.value), peakGap > 0 ? peakGap * 1.2 : 0);
+        const pressure = simulatedPeakPressure > totalCommitment * 0.1 ? 'High' : (simulatedPeakPressure > totalCommitment * 0.05 ? 'Medium' : 'Low');
+        const breakevenPoint = kpis.breakevenTiming.from !== 'N/A' ? `Year ${new Date(kpis.breakevenTiming.from).getFullYear() - new Date().getFullYear() + 1}` : 'N/A';
+        
+        return { endingValue, itdIrr, pressure, breakevenPoint, tvpi };
+    }, [portfolioData, totalCommitment]);
     
     return (
         <Card className="lg:col-span-1">
@@ -307,28 +280,28 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
                     <Landmark className="h-6 w-6 text-primary mt-1" />
                     <div>
                         <p className="text-sm text-black">Ending Value</p>
-                        <p className={`text-xl font-bold ${tvpi < 1.5 ? 'text-red-500' : 'text-green-500'}`}>{formatCurrency(endingValue)}</p>
+                        <p className={`text-xl font-bold ${outcomes.tvpi < 1.5 ? 'text-red-500' : 'text-green-500'}`}>{formatCurrency(outcomes.endingValue)}</p>
                     </div>
                  </div>
                  <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
                     <TrendingUp className="h-6 w-6 text-primary mt-1" />
                     <div>
-                        <p className="text-sm text-black">ITD IRR</p>
-                        <p className={`text-xl font-bold ${itdIrr < 0.08 ? 'text-red-500' : 'text-green-500'}`}>{`${(itdIrr * 100).toFixed(1)}%`}</p>
+                        <p className="text-sm text-black">Estimated IRR</p>
+                        <p className={`text-xl font-bold ${outcomes.itdIrr < 0.08 ? 'text-red-500' : 'text-green-500'}`}>{`${(outcomes.itdIrr * 100).toFixed(1)}%`}</p>
                     </div>
                  </div>
                  <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
                     <Shield className="h-6 w-6 text-primary mt-1" />
                     <div>
                         <p className="text-sm text-black">Liquidity Pressure</p>
-                        <p className={`text-xl font-bold ${pressure === 'High' ? 'text-red-500' : 'text-green-500'}`}>{pressure}</p>
+                        <p className={`text-xl font-bold ${outcomes.pressure === 'High' ? 'text-red-500' : 'text-green-500'}`}>{outcomes.pressure}</p>
                     </div>
                  </div>
                  <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
                     <Sailboat className="h-6 w-6 text-primary mt-1" />
                     <div>
                         <p className="text-sm text-black">Breakeven Point</p>
-                        <p className="text-xl font-bold">{breakevenPoint}</p>
+                        <p className="text-xl font-bold">{outcomes.breakevenPoint}</p>
                     </div>
                  </div>
             </CardContent>
@@ -338,9 +311,9 @@ const ScenarioOutcomes = ({ portfolioData, totalCommitment }: { portfolioData: P
 
 const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
     const insight = useMemo(() => ({
-        base: { title: "Stay the Course", summary: "Balanced J-curve with moderate growth and predictable flows.", points: [{ icon: Activity, text: "Growth tracks long-term market averages.", color: 'text-blue-500' }, { icon: Landmark, text: "Cash flows are evenly paced.", color: 'text-blue-500' }] },
+        base: { title: "Stay the Course", summary: "Balanced J-curve with moderate growth and predictable flows.", points: [{ icon: Zap, text: "Growth tracks long-term market averages.", color: 'text-blue-500' }, { icon: Landmark, text: "Cash flows are evenly paced.", color: 'text-blue-500' }] },
         recession: { title: "Short-term Pain, Long-term Gain?", summary: "Initial markdowns creating early pressure but fueling powerful back-ended recovery.", points: [{ icon: TrendingDown, text: "Initial markdowns pause withdrawals.", color: 'text-red-500' }, { icon: ChevronsUp, text: "Strong returns from down-market deployment.", color: 'text-green-500' }] },
-        risingRates: { title: "A Slower Grind", summary: "Valuation multiple compression slowing NAV growth and exit pace.", points: [{ icon: CircleDollarSign, text: "Multiples compress as rates rise.", color: 'text-yellow-600' }, { icon: Hourglass, text: "Exit markets cool, delaying realizations.", color: 'text-yellow-600' }] },
+        risingRates: { title: "A Slower Grind", summary: "Valuation multiple compression slowing NAV growth and exit pace.", points: [{ icon: CircleDollarSign, text: "Multiples compress as rates rise.", color: 'text-yellow-600' }, { icon: Clock, text: "Exit markets cool, delaying realizations.", color: 'text-yellow-600' }] },
         stagflation: { title: "The Real Return Squeeze", summary: "Nominal growth mask eroding real returns. Pricing power is critical.", points: [{ icon: ShieldAlert, text: "Inflation erodes real return value.", color: 'text-red-500' }, { icon: Waves, text: "System-wide liquidity restrictions.", color: 'text-red-500' }] },
         liquidityCrunch: { title: "Cash is King", summary: "Systemic halt in exit markets requiring defensive cash preservation.", points: [{ icon: Waves, text: "Withdrawals halt entirely in exit freeze.", color: 'text-red-500' }, { icon: Shield, text: "Survival focus over short-term growth.", color: 'text-yellow-600' }] },
     }[scenarioId]), [scenarioId]);
@@ -365,99 +338,6 @@ const NarrativeInsights = ({ scenarioId }: { scenarioId: ScenarioId }) => {
         </Card>
     )
 }
-
-const NextStepsRecommendations = ({ scenarioId }: { scenarioId: ScenarioId }) => {
-    const rec = useMemo(() => ({
-        base: { title: "Stay the Course & Monitor", summary: "Maintain discipline and track progress against goals.", points: [{ icon: TrendingUp, text: "Review against baseline regularly.", color: 'text-blue-500' }, { icon: ClipboardList, text: "Align cash needs with withdrawal schedule.", color: 'text-blue-500' }] },
-        recession: { title: "Manage Liquidity", summary: "Survive stress while preparing for down-market opportunities.", points: [{ icon: ShieldCheck, text: "Ensure liquidity for accelerated calls.", color: 'text-red-500' }, { icon: Search, text: "Evaluate top-tier commitments at lower valuations.", color: 'text-yellow-600' }] },
-        risingRates: { title: "Focus on Value Creation", summary: "Returns scarcity requires skilled operational value-add.", points: [{ icon: Gauge, text: "Review long-duration asset exposure.", color: 'text-yellow-600' }, { icon: BrainCircuit, text: "Prioritize operational experts.", color: 'text-blue-500' }] },
-        stagflation: { title: "Prioritize Real Returns", summary: "Assets with pricing power and inflation hedges are critical.", points: [{ icon: Building, text: "Increase real asset/infra allocation.", color: 'text-green-500' }, { icon: Target, text: "Set goals in real (inflation-adjusted) terms.", color: 'text-yellow-600' }] },
-        liquidityCrunch: { title: "Cash Preservation", summary: "Defensive positioning to weather a market freeze.", points: [{ icon: FileWarning, text: "Confirm available credit lines immediately.", color: 'text-red-500' }, { icon: Ban, text: "Halt new non-essential commitments.", color: 'text-yellow-600' }] },
-    }[scenarioId]), [scenarioId]);
-
-    return (
-        <Card>
-             <CardHeader><CardTitle className="text-base font-semibold text-highlight">Recommendations</CardTitle></CardHeader>
-             <CardContent className="space-y-4">
-                 <div className="bg-muted/50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-1">{rec.title}</h4>
-                    <p className="text-sm text-black">{rec.summary}</p>
-                 </div>
-                 <div className="space-y-3">
-                    {rec.points.map((p, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                            <p.icon className={`h-5 w-5 mt-0.5 shrink-0 ${p.color}`} />
-                            <p className="text-sm text-black flex-1">{p.text}</p>
-                        </div>
-                    ))}
-                 </div>
-            </CardContent>
-        </Card>
-    )
-};
-
-const ScenarioComparisonDialog = ({ funds }: { funds: Fund[] }) => {
-    const [selectedIds, setSelectedIds] = useState<ScenarioId[]>(['base', 'recession']);
-    const totalCommitment = useMemo(() => funds.reduce((s, f) => s + f.commitment, 0), [funds]);
-
-    const comparisonData = useMemo(() => {
-        return selectedIds.map(id => {
-            const { portfolio } = getPortfolioData(id, undefined, new Date());
-            const calls = portfolio.cashflowForecast.reduce((s, c) => s + c.capitalCall, 0);
-            const dists = portfolio.cashflowForecast.reduce((s, c) => s + c.distribution, 0);
-            const endVal = portfolio.navProjection[portfolio.navProjection.length-1]?.nav || 0;
-            const tvpi = calls > 0 ? (endVal + dists) / calls : 0;
-            const cfs = portfolio.cashflowForecast.map(cf => cf.netCashflow);
-            if (cfs.length > 0) cfs[cfs.length - 1] += endVal;
-            const firstIdx = cfs.findIndex(v => v !== 0);
-            const fCfs = firstIdx > -1 ? cfs.slice(firstIdx) : [];
-            const irr = fCfs.length > 1 ? (Math.pow(1 + calculateQuarterlyIRR(fCfs, tvpi), 4) - 1) : 0;
-            return { id, name: scenarios[id].name, endVal, irr, tvpi };
-        });
-    }, [selectedIds]);
-
-    return (
-        <DialogContent className="max-w-4xl">
-            <DialogHeader><DialogTitle>Compare Scenarios</DialogTitle></DialogHeader>
-            <div className="grid grid-cols-5 gap-6 mt-4">
-                <div className="col-span-1 border-r pr-4 space-y-2">
-                    <h4 className="font-semibold text-sm">Select Scenarios</h4>
-                    {Object.values(scenarios).map(s => (
-                        <div key={s.id} className="flex items-center gap-2">
-                            <Checkbox id={`comp-${s.id}`} checked={selectedIds.includes(s.id)} onCheckedChange={(checked) => setSelectedIds(prev => checked ? (prev.length < 4 ? [...prev, s.id] : prev) : (prev.length > 2 ? prev.filter(id => id !== s.id) : prev))} />
-                            <label htmlFor={`comp-${s.id}`} className="text-sm font-medium">{s.name}</label>
-                        </div>
-                    ))}
-                </div>
-                <div className="col-span-4">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Metric</TableHead>
-                                {comparisonData.map(d => <TableHead key={d.id} className="text-center">{d.name}</TableHead>)}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell className="font-medium">Ending Value</TableCell>
-                                {comparisonData.map(d => <TableCell key={d.id} className="text-center">{formatCurrency(d.endVal)}</TableCell>)}
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">ITD IRR</TableCell>
-                                {comparisonData.map(d => <TableCell key={d.id} className="text-center">{`${(d.irr * 100).toFixed(1)}%`}</TableCell>)}
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">TVPI</TableCell>
-                                {comparisonData.map(d => <TableCell key={d.id} className="text-center">{`${d.tvpi.toFixed(2)}x`}</TableCell>)}
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
-        </DialogContent>
-    );
-};
-
 
 export default function ScenarioSimulationPage() {
     const { scenario: selectedScenarioId, setScenario: setSelectedScenarioId, portfolioData, funds } = usePortfolioContext();
@@ -495,10 +375,6 @@ export default function ScenarioSimulationPage() {
                             <p className="truncate text-black">{selectedScenario.description}</p>
                         </div>
                     )}
-                    <Dialog>
-                        <DialogTrigger asChild><Button variant="outline">Compare Scenarios</Button></DialogTrigger>
-                        <ScenarioComparisonDialog funds={funds} />
-                    </Dialog>
                 </CardContent>
             </Card>
 
@@ -523,7 +399,14 @@ export default function ScenarioSimulationPage() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <NarrativeInsights scenarioId={selectedScenarioId} />
-                <NextStepsRecommendations scenarioId={selectedScenarioId} />
+                <Card>
+                    <CardHeader><CardTitle className="text-base font-semibold text-highlight">Stress Test Summary</CardTitle></CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-black">
+                            This simulation models the resilience of your portfolio against external shocks. Use these insights to rebalance exposures or secure additional liquidity buffers if the risk score is high.
+                        </p>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

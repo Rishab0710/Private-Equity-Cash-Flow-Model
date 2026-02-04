@@ -238,7 +238,7 @@ export default function AssumptionsStudioPage() {
 
     const handleSaveSet = () => {
         const newSet: ComparisonSet = {
-            id: savedSets.length + 1,
+            id: Date.now(),
             name: `${selectedFundName} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
             strategy: funds.find(f => f.id === fundId)?.strategy || 'Custom',
             vintage: 2024,

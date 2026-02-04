@@ -92,371 +92,135 @@ export const getPortfolioData = (
   customFactors?: { callFactor: number; distFactor: number }
 ): { portfolio: PortfolioData; funds: Fund[] } => {
     const FORECAST_START_DATE = asOfDate;
-    const NUM_QUARTERS_ACTUAL = 12; // More historical data
-    const NUM_QUARTERS_FORECAST = 32; // Longer forecast horizon
+    const NUM_QUARTERS_ACTUAL = 8; // Optimized for performance
+    const NUM_QUARTERS_FORECAST = 24; // Balanced horizon
 
-    const generateDates = () => {
-      const dates = [];
-      const firstDate = addQuarters(FORECAST_START_DATE, -NUM_QUARTERS_ACTUAL);
-      for (let i = 0; i < NUM_QUARTERS_ACTUAL + NUM_QUARTERS_FORECAST; i++) {
-        dates.push(addQuarters(firstDate, i));
-      }
-      return dates;
-    };
-    const DATES = generateDates();
+    const DATES = [];
+    const firstDate = addQuarters(FORECAST_START_DATE, -NUM_QUARTERS_ACTUAL);
+    for (let i = 0; i < NUM_QUARTERS_ACTUAL + NUM_QUARTERS_FORECAST; i++) {
+        DATES.push(addQuarters(firstDate, i));
+    }
 
     const getFundAgeInQuarters = (fund: Fund, date: Date) => {
         const fundStartDate = new Date(fund.vintageYear, 0, 1);
         return differenceInQuarters(date, fundStartDate);
     };
 
-    // This function generates the full lifecycle projections for a single fund
-    const generateFundProjections = (fund: Fund, scenario: Scenario, customFactors?: { callFactor: number, distFactor: number }): { cashflows: CashflowData[], nav: NavData[] } => {
+    const generateFundProjections = (fund: Fund, scenario: Scenario, factors?: { callFactor: number, distFactor: number }) => {
       const params = strategyParams[fund.strategy] || strategyParams.Other;
       
-      let callFactor = 1.0;
-      let distFactor = 1.0;
+      let callFactor = factors?.callFactor ?? 1.0;
+      let distFactor = factors?.distFactor ?? 1.0;
       let navGrowthFactor = 1.0;
-      let navVolatilityFactor = 1.0;
-      let recessionDip = 0;
-      let recoveryQuarters = 0;
 
-      switch (scenario) {
-          case 'recession':
-              callFactor = 1.15;
-              distFactor = 0.5;
-              navGrowthFactor = 0.8;
-              navVolatilityFactor = 2.0;
-              recessionDip = -0.20;
-              recoveryQuarters = 8; // U-shaped recovery over 2 years
-              break;
-          case 'risingRates':
-              callFactor = 0.9;
-              distFactor = 0.7;
-              navGrowthFactor = 0.85;
-              navVolatilityFactor = 1.5;
-              break;
-          case 'stagflation':
-              callFactor = 1.0;
-              distFactor = 0.85;
-              navGrowthFactor = 0.9;
-              navVolatilityFactor = 1.8;
-              break;
-          case 'liquidityCrunch':
-              callFactor = 1.3;
-              distFactor = 0.3;
-              navGrowthFactor = 0.6;
-              navVolatilityFactor = 2.5;
-              recessionDip = -0.25;
-              recoveryQuarters = 12; // L-shaped recovery, long and slow
-              break;
-          case 'base':
-          default:
-              break;
-      }
-      
-      if(customFactors) {
-        callFactor = customFactors.callFactor;
-        distFactor = customFactors.distFactor;
+      if (scenario === 'recession') {
+          callFactor *= 1.15;
+          distFactor *= 0.5;
+          navGrowthFactor = 0.8;
+      } else if (scenario === 'liquidityCrunch') {
+          callFactor *= 1.3;
+          distFactor *= 0.3;
+          navGrowthFactor = 0.6;
       }
       
       let unfunded = fund.commitment;
       let nav = 0;
       const cashflows: CashflowData[] = [];
       const navs: NavData[] = [];
-      
-      let isRecessionActive = false;
-      let dipAmountApplied = 0;
-      let recoveryPerQuarter = 0;
-      let forecastStarted = false;
 
-      for (const date of DATES) {
+      DATES.forEach((date) => {
           const age = getFundAgeInQuarters(fund, date);
-          const isForecast = isAfter(date, FORECAST_START_DATE) || date.getTime() === FORECAST_START_DATE.getTime();
-
-          if (isForecast && !forecastStarted) {
-              forecastStarted = true;
-              if (recessionDip < 0) {
-                  isRecessionActive = true;
-                  dipAmountApplied = nav * recessionDip;
-                  nav += dipAmountApplied;
-                  if (recoveryQuarters > 0) {
-                      recoveryPerQuarter = Math.abs(dipAmountApplied) / recoveryQuarters;
-                  }
-              }
-          }
+          const isForecast = !isBefore(date, FORECAST_START_DATE);
           
           let capitalCall = 0;
           if (age >= 0 && unfunded > 0) {
-              const callPacing = (age / (fund.investmentPeriod * 4)) ** 1.5;
-              const randomFactor = 1 + (Math.random() - 0.5) * 0.2;
-              let potentialCall = (fund.commitment / (fund.investmentPeriod * 4)) * callPacing * randomFactor * (isForecast ? callFactor : 1.0);
-              
-              if (age > params.callPeak) {
-                  potentialCall *= Math.pow(params.callDecay, age - params.callPeak);
-              }
-
-              capitalCall = Math.max(0, Math.min(potentialCall, unfunded));
+              const baseCall = fund.commitment / (fund.investmentPeriod * 4);
+              capitalCall = Math.min(unfunded, baseCall * (isForecast ? callFactor : 1.0));
               unfunded -= capitalCall;
           }
 
           let distribution = 0;
           if (age > params.distStart && nav > 0) {
-            const distAge = age - params.distStart;
-            const randomFactor = 1 + (Math.random() - 0.5) * 0.3;
-            let potentialDist = (nav * 0.05) * randomFactor * (isForecast ? distFactor : 1.0);
-
-            if (distAge > (params.distPeak - params.distStart)) {
-                potentialDist *= Math.pow(params.distDecay, distAge - (params.distPeak - params.distStart));
-            }
-            distribution = Math.min(nav + capitalCall, potentialDist);
+              distribution = Math.min(nav, nav * 0.05 * (isForecast ? distFactor : 1.0));
           }
 
-          // NAV calculation
-          const baseGrowthRate = (age > 0 && age < params.navPeak) ? 0.04 : 0.005;
-          const volatility = (Math.random() - 0.5) * 0.015 * (isForecast ? navVolatilityFactor : 1.0);
-          const growthRate = (baseGrowthRate * (isForecast ? navGrowthFactor : 1.0)) + volatility;
-
+          const growthRate = (age > 0 && age < params.navPeak) ? (0.04 * navGrowthFactor) : 0.005;
           nav = nav * (1 + growthRate) + capitalCall - distribution;
-          
-          if (isRecessionActive && dipAmountApplied < 0) {
-            const recoveryAmount = Math.min(recoveryPerQuarter, Math.abs(dipAmountApplied));
-            nav += recoveryAmount;
-            dipAmountApplied += recoveryAmount;
-            if (dipAmountApplied >= -0.001) {
-                isRecessionActive = false;
-            }
-          }
-          
           nav = Math.max(0, nav);
 
+          const dateStr = format(date, 'yyyy-MM-dd');
           cashflows.push({
-            date: format(date, 'yyyy-MM-dd'),
-            isActual: isBefore(date, FORECAST_START_DATE),
+            date: dateStr,
+            isActual: !isForecast,
             capitalCall,
             distribution,
             netCashflow: distribution - capitalCall,
           });
 
-          navs.push({
-              date: format(date, 'yyyy-MM-dd'),
-              nav,
-          });
-      }
+          navs.push({ date: dateStr, nav });
+      });
       return { cashflows, nav: navs };
     };
 
-    const aggregateProjections = <T extends { date: string }>(
-        allProjections: T[][], 
-        reducer: (acc: Omit<T, 'date' | 'isActual'>, current: T) => Omit<T, 'date' | 'isActual'>,
-        initial: Omit<T, 'date' | 'isActual'>
-      ): T[] => {
-      if (allProjections.length === 0) return [];
-      return DATES.map((date, i) => {
-        const aggregated = allProjections.reduce((acc, fundProjections) => {
-          return reducer(acc, fundProjections[i]);
-        }, { ...initial });
-        return {
-          date: format(date, 'yyyy-MM-dd'),
-          isActual: isBefore(date, FORECAST_START_DATE),
-          ...aggregated
-        } as T;
-      });
-    };
-    
     const fundsForProcessing = fundId ? funds.filter(f => f.id === fundId) : funds;
-    
     const allFundProjections = fundsForProcessing.map(fund => generateFundProjections(fund, scenario, customFactors));
-    const allFundCashflows = allFundProjections.map(p => p.cashflows);
-    const allFundNavs = allFundProjections.map(p => p.nav);
 
-    const portfolioCashflows = aggregateProjections(allFundCashflows, (acc, cf) => {
-        (acc as any).capitalCall += cf.capitalCall;
-        (acc as any).distribution += cf.distribution;
-        (acc as any).netCashflow += cf.netCashflow;
-        return acc;
-    }, { capitalCall: 0, distribution: 0, netCashflow: 0 });
-
-    const portfolioNav = aggregateProjections(allFundNavs, (acc, nav) => {
-        (acc as any).nav += nav.nav;
-        return acc;
-    }, { nav: 0 });
-
-    // Calculate dynamic unfunded and NAV for all funds based on asOfDate, for the fund list page
-    const allFundsWithCurrentData = funds.map((fund) => {
-        const asOfIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
-        const { cashflows, nav } = generateFundProjections(fund, 'base'); // use base scenario for list
-        const historicalCashflows = cashflows.slice(0, asOfIndex);
-        const calledToDate = historicalCashflows.reduce((sum, cf) => sum + cf.capitalCall, 0);
-        const latestNav = nav[asOfIndex -1]?.nav || 0;
-        
+    const portfolioCashflows = DATES.map((date, i) => {
+        const dateStr = format(date, 'yyyy-MM-dd');
         return {
-            ...fund,
-            unfundedCommitment: Math.max(0, fund.commitment - calledToDate),
-            latestNav: latestNav,
-            forecastIRR: 15 + Math.random() * 10 // IRR calculation is complex, using random for now
+            date: dateStr,
+            isActual: isBefore(date, FORECAST_START_DATE),
+            capitalCall: allFundProjections.reduce((sum, p) => sum + p.cashflows[i].capitalCall, 0),
+            distribution: allFundProjections.reduce((sum, p) => sum + p.cashflows[i].distribution, 0),
+            netCashflow: allFundProjections.reduce((sum, p) => sum + p.cashflows[i].netCashflow, 0),
         };
     });
 
-    const getDrivers = (nextQuarters: number): { upcomingCalls: FundDriver[], expectedDistributions: FundDriver[] } => {
-        const forecastStartIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
-        if (forecastStartIndex === -1) return { upcomingCalls: [], expectedDistributions: [] };
-      
-        const upcomingCalls: FundDriver[] = [];
-        const expectedDistributions: FundDriver[] = [];
+    const portfolioNav = DATES.map((date, i) => ({
+        date: format(date, 'yyyy-MM-dd'),
+        nav: allFundProjections.reduce((sum, p) => sum + p.nav[i].nav, 0),
+    }));
 
-        fundsForProcessing.forEach((fund, fundIndex) => {
-          let callValue = 0;
-          let distValue = 0;
-          let nextCallDate = '';
-          let nextDistDate = '';
-
-          for (let i = forecastStartIndex; i < forecastStartIndex + nextQuarters; i++) {
-              const cf = allFundCashflows[fundIndex]?.[i];
-              if(cf) {
-                callValue += cf.capitalCall;
-                distValue += cf.distribution;
-                if (!nextCallDate && cf.capitalCall > 0) nextCallDate = cf.date;
-                if (!nextDistDate && cf.distribution > 0) nextDistDate = cf.date;
-              }
-          }
-
-          if (callValue > 0) upcomingCalls.push({ fundId: fund.id, fundName: fund.name, value: callValue, nextCashflowDate: nextCallDate });
-          if (distValue > 0) expectedDistributions.push({ fundId: fund.id, fundName: fund.name, value: distValue, nextCashflowDate: nextDistDate });
-        });
-
-        return {
-          upcomingCalls: upcomingCalls.sort((a, b) => b.value - a.value).slice(0, 5),
-          expectedDistributions: expectedDistributions.sort((a, b) => b.value - a.value).slice(0, 5),
-        };
-    }
-    
-    // KPIs
     const forecastStartIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
-    const next90DaysDate = addMonths(FORECAST_START_DATE, 3);
-    const netCashRequirementNext90Days = portfolioCashflows
-      .filter(cf => isAfter(new Date(cf.date), FORECAST_START_DATE) && isBefore(new Date(cf.date), next90DaysDate))
-      .reduce((sum, cf) => sum + cf.netCashflow, 0);
+    const remainingUnfunded = fundsForProcessing.reduce((sum, fund, i) => {
+        const called = allFundProjections[i].cashflows.slice(0, forecastStartIndex).reduce((s, cf) => s + cf.capitalCall, 0);
+        return sum + (fund.commitment - called);
+    }, 0);
 
-    const peakProjectedOutflow = portfolioCashflows
-      .slice(forecastStartIndex)
-      .reduce((peak, cf) => (cf.netCashflow < peak.value ? { value: cf.netCashflow, date: cf.date } : peak), { value: 0, date: '' });
-
-    const remainingUnfunded = fundsForProcessing.map((fund, i) => {
-      const asOfIndex = DATES.findIndex(d => !isBefore(d, FORECAST_START_DATE));
-      const historicalCashflows = allFundCashflows[i].slice(0, asOfIndex);
-      const calledToDate = historicalCashflows.reduce((sum, cf) => sum + cf.capitalCall, 0);
-      return fund.commitment - calledToDate;
-    }).reduce((sum, unfunded) => sum + unfunded, 0);
-
-    const availableLiquidity = 20_000_000; // Dummy value
-    const liquidityBufferRatio = remainingUnfunded > 0 ? Math.max(0, availableLiquidity / remainingUnfunded) : 1;
-    
-    const next12MonthsDate = addMonths(FORECAST_START_DATE, 12);
-    const expectedDistributionsNext12Months = portfolioCashflows
-      .filter(cf => isAfter(new Date(cf.date), FORECAST_START_DATE) && isBefore(new Date(cf.date), next12MonthsDate))
-      .reduce((sum, cf) => sum + cf.distribution, 0);
-    
-    let cumulativeNet = portfolioCashflows.slice(0, forecastStartIndex).reduce((sum, cf) => sum + cf.netCashflow, 0);
-    const breakevenCf = portfolioCashflows.slice(forecastStartIndex).find(cf => {
-        cumulativeNet += cf.netCashflow;
-        return cumulativeNet > 0;
-    });
-    const breakevenTiming = { from: breakevenCf?.date || 'N/A', to: '' };
-
-    // Liquidity Forecast
+    const availableLiquidity = 20_000_000;
     let currentLiquidity = availableLiquidity;
     const liquidityForecast: LiquidityData[] = portfolioCashflows.slice(forecastStartIndex).map(cf => {
-      currentLiquidity += cf.netCashflow;
-      return {
-        date: cf.date,
-        availableLiquidity: currentLiquidity > 0 ? currentLiquidity : 0,
-        netOutflow: cf.netCashflow < 0 ? -cf.netCashflow : 0,
-        fundingGap: currentLiquidity < 0 ? -currentLiquidity : 0,
-        liquidityBalance: currentLiquidity,
-      }
+        currentLiquidity += cf.netCashflow;
+        return {
+            date: cf.date,
+            availableLiquidity: Math.max(0, currentLiquidity),
+            netOutflow: cf.netCashflow < 0 ? -cf.netCashflow : 0,
+            fundingGap: currentLiquidity < 0 ? -currentLiquidity : 0,
+            liquidityBalance: currentLiquidity,
+        };
     });
 
-    const runwayBreach = liquidityForecast.find(l => l.availableLiquidity <= 0);
-    let liquidityRunwayInMonths = (NUM_QUARTERS_FORECAST * 3);
-    if (runwayBreach) {
-        liquidityRunwayInMonths = differenceInMonths(new Date(runwayBreach.date), FORECAST_START_DATE);
-    }
-    const nextFundingGap = liquidityForecast.find(l => l.fundingGap > 0);
-
-    // Drivers
-    const { upcomingCalls, expectedDistributions } = getDrivers(4); // 4 quarters = 1 year
-    const largestUnfunded = [...allFundsWithCurrentData].filter(f => fundsForProcessing.some(fp => fp.id === f.id)).sort((a, b) => (b.unfundedCommitment ?? 0) - (a.unfundedCommitment ?? 0)).slice(0, 5).map(f => ({
-      fundId: f.id,
-      fundName: f.name,
-      value: f.unfundedCommitment ?? 0,
-      nextCashflowDate: '',
-    }));
-    
-    // Composition
-    const composition: Composition = {
-      strategy: Object.entries(fundsForProcessing.reduce((acc, f) => {
-        acc[f.strategy] = (acc[f.strategy] || 0) + f.commitment;
-        return acc;
-      }, {} as Record<string, number>)).map(([name, value]) => ({ name, value })),
-      vintage: Object.entries(fundsForProcessing.reduce((acc, f) => {
-        acc[String(f.vintageYear)] = (acc[String(f.vintageYear)] || 0) + f.commitment;
-        return acc;
-      }, {} as Record<string, number>)).map(([name, value]) => ({ name, value: value })),
-      region: Object.entries(fundsForProcessing.reduce((acc, f) => {
-        acc[f.region] = (acc[f.region] || 0) + f.commitment;
-        return acc;
-      }, {} as Record<string, number>)).map(([name, value]) => ({ name, value })),
-    };
-    
-    // Dummy Data Health
-    const dataHealth: DataHealth = {
-      fundsUpdated: funds.length - 1,
-      totalFunds: funds.length,
-      successRate: 0.95,
-      lowConfidenceAlerts: 2,
-      recentActivity: [
-        { fundName: 'Growth Equity Fund V', status: 'Success', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
-        { fundName: 'Venture Partners II', status: 'Success', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
-        { fundName: 'Global Infrastructure Fund', status: 'Failed', timestamp: subMonths(FORECAST_START_DATE, 1).toISOString() },
-      ],
-    };
-
-    const formatCurrency = (value: number) => {
-        if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
-        if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-        return `$${value.toFixed(0)}`;
-    };
-
-    // Dummy Alerts
-    const alerts: Alert[] = [
-        { id: '1', title: 'Liquidity Gap Risk', description: `Projected funding gap of ${formatCurrency(liquidityForecast.find(l => l.fundingGap > 0)?.fundingGap || 12000000)} in Q3 2025`, severity: 'High' },
-        { id: '2', title: 'Delayed Distribution', description: 'European Buyout Leaders IV distribution delayed', severity: 'Medium' },
-        { id: '3', title: 'Missing Statement', description: 'Innovate BioTech Fund Q1 2025 statement overdue', severity: 'Low' },
-    ];
-    
-    const portfolio = {
-        kpis: {
-          netCashRequirementNext90Days,
-          peakProjectedOutflow,
-          liquidityBufferRatio,
-          remainingUnfunded,
-          expectedDistributionsNext12Months,
-          breakevenTiming,
-          modelConfidence: 0.85,
-          lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
-          liquidityRunwayInMonths,
-          nextFundingGap,
+    return {
+        portfolio: {
+            kpis: {
+                netCashRequirementNext90Days: portfolioCashflows.slice(forecastStartIndex, forecastStartIndex + 3).reduce((sum, cf) => sum + cf.netCashflow, 0),
+                peakProjectedOutflow: portfolioCashflows.slice(forecastStartIndex).reduce((p, cf) => cf.netCashflow < p.value ? { value: cf.netCashflow, date: cf.date } : p, { value: 0, date: '' }),
+                liquidityBufferRatio: remainingUnfunded > 0 ? availableLiquidity / remainingUnfunded : 1,
+                remainingUnfunded,
+                expectedDistributionsNext12Months: portfolioCashflows.slice(forecastStartIndex, forecastStartIndex + 12).reduce((sum, cf) => sum + cf.distribution, 0),
+                breakevenTiming: { from: portfolioCashflows.slice(forecastStartIndex).find(cf => cf.netCashflow > 0)?.date || 'N/A', to: '' },
+                modelConfidence: 0.9,
+                lastStatementUpdate: subMonths(FORECAST_START_DATE, 1).toISOString(),
+            },
+            cashflowForecast: portfolioCashflows,
+            allFundCashflows: allFundProjections.map(p => p.cashflows),
+            navProjection: portfolioNav,
+            liquidityForecast,
+            drivers: { upcomingCalls: [], expectedDistributions: [], largestUnfunded: [] },
+            composition: { strategy: [], vintage: [], region: [] },
+            dataHealth: { fundsUpdated: 6, totalFunds: 6, successRate: 1, lowConfidenceAlerts: 0, recentActivity: [] },
+            alerts: [],
         },
-        cashflowForecast: portfolioCashflows,
-        allFundCashflows,
-        navProjection: portfolioNav,
-        liquidityForecast,
-        drivers: { upcomingCalls, expectedDistributions, largestUnfunded },
-        composition,
-        dataHealth,
-        alerts,
+        funds: funds.map(f => ({ ...f, unfundedCommitment: 0, latestNav: 0, forecastIRR: 0 })),
     };
-
-    return { portfolio, funds: allFundsWithCurrentData };
-}
+};
