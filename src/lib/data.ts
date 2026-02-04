@@ -1,11 +1,7 @@
-import { addMonths, addQuarters, format, isAfter, isBefore, subMonths, differenceInQuarters, differenceInMonths } from 'date-fns';
+import { addQuarters, format, isBefore, subMonths, differenceInQuarters } from 'date-fns';
 import type {
-  Alert,
   CashflowData,
-  Composition,
-  DataHealth,
   Fund,
-  FundDriver,
   LiquidityData,
   NavData,
   PortfolioData,
@@ -92,8 +88,8 @@ export const getPortfolioData = (
   customFactors?: { callFactor: number; distFactor: number }
 ): { portfolio: PortfolioData; funds: Fund[] } => {
     const FORECAST_START_DATE = asOfDate;
-    const NUM_QUARTERS_ACTUAL = 8; // Optimized for performance
-    const NUM_QUARTERS_FORECAST = 24; // Balanced horizon
+    const NUM_QUARTERS_ACTUAL = 8;
+    const NUM_QUARTERS_FORECAST = 24;
 
     const DATES = [];
     const firstDate = addQuarters(FORECAST_START_DATE, -NUM_QUARTERS_ACTUAL);

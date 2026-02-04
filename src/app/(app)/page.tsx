@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect, useRef } from 'react';
 import { AssumptionSets, initialSets } from "@/components/app/assumptions-studio/assumption-sets";
 import { CashflowTimeline } from "@/components/app/assumptions-studio/cashflow-timeline";
