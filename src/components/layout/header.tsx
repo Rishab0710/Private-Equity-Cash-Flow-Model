@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
 const navItems = [
-  { href: '/assumptions-studio', label: 'Assumptions Studio', icon: ClipboardList },
+  { href: '/', label: 'Assumptions Studio', icon: ClipboardList },
   { href: '/portfolio-growth', label: 'Cash Flow Forecasting', icon: TrendingUp },
   { href: '/scenario-simulation', label: 'Scenario Simulation', icon: BrainCircuit },
 ];
@@ -41,7 +41,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-4 border-b border-border bg-header px-3">
       <div className="flex items-center gap-6">
-        <Link href="/assumptions-studio" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
            <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
         </Link>
         <nav className="hidden items-center gap-1 font-medium md:flex lg:gap-2">
@@ -51,7 +51,7 @@ export function Header() {
               href={item.href}
               className={cn(
                 'px-3 py-2 rounded-md transition-colors text-sm',
-                pathname.startsWith(item.href)
+                pathname === item.href
                   ? 'bg-white/10 text-white font-semibold'
                   : 'text-white/80 hover:bg-white/10 hover:text-white'
               )}
@@ -63,7 +63,6 @@ export function Header() {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2">
-        {/* Guard Radix components with mounted state to prevent hydration mismatches */}
         {mounted ? (
           <>
             <Sheet>
@@ -80,7 +79,7 @@ export function Header() {
               <SheetContent side="left" className="bg-card">
                 <nav className="grid gap-4 p-4 text-base font-medium">
                   <Link
-                    href="/assumptions-studio"
+                    href="/"
                     className="flex items-center gap-2 text-lg font-semibold mb-4"
                   >
                     <Image src="https://firstrateaugmentedintelligence.com/kapnative-reporting-app/assets/images/logo-light.png" alt="KAPNATIVE Logo" width={140} height={28} />
@@ -91,7 +90,7 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
-                         pathname.startsWith(item.href)
+                         pathname === item.href
                           ? 'bg-muted text-foreground font-semibold'
                           : 'text-muted-foreground hover:text-foreground'
                       )}
