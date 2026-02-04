@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AssumptionsPanel } from '@/components/app/portfolio-growth/assumptions-panel';
 import { GrowthChart } from '@/components/app/portfolio-growth/growth-chart';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,43 +18,28 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-const allocationProfiles = {
-    base: {
-        equities: '50.00%',
-        fixedIncome: '25.00%',
-        cash: '5.00%',
-        realAssets: '7.50%',
-        hedgeFund: '5.00%',
-        privateEquity: '7.50%',
-    },
-    conservative: {
-        equities: '30.00%',
-        fixedIncome: '50.00%',
-        cash: '10.00%',
-        realAssets: '5.00%',
-        hedgeFund: '2.50%',
-        privateEquity: '2.50%',
-    },
-    moderate: {
-        equities: '50.00%',
-        fixedIncome: '25.00%',
-        cash: '5.00%',
-        realAssets: '7.50%',
-        hedgeFund: '5.00%',
-        privateEquity: '7.50%',
-    },
-    aggressive: {
-        equities: '60.00%',
-        fixedIncome: '10.00%',
-        cash: '2.50%',
-        realAssets: '7.50%',
-        hedgeFund: '5.00%',
-        privateEquity: '15.00%',
-    }
+const assetClassBaseMetrics: Record<string, { rate: number, stdev: number }> = {
+    equities: { rate: 9.0, stdev: 16.0 },
+    fixedIncome: { rate: 4.5, stdev: 6.0 },
+    cash: { rate: 3.0, stdev: 1.0 },
+    realAssets: { rate: 7.0, stdev: 12.0 },
+    hedgeFund: { rate: 8.0, stdev: 14.0 },
+    privateEquity: { rate: 12.5, stdev: 22.0 },
 };
 
-const staticAssumptions = {
-    assetAllocation: allocationProfiles.base,
+const initialAllocation = {
+    equities: 50.0,
+    fixedIncome: 25.0,
+    cash: 5.0,
+    realAssets: 7.5,
+    hedgeFund: 5.0,
+    privateEquity: 7.5,
+};
+
+const allocationProfiles = {
+    conservative: { equities: 30, fixedIncome: 50, cash: 10, realAssets: 5, hedgeFund: 2.5, privateEquity: 2.5 },
+    moderate: { equities: 50, fixedIncome: 25, cash: 5, realAssets: 7.5, hedgeFund: 5, privateEquity: 7.5 },
+    aggressive: { equities: 60, fixedIncome: 10, cash: 2.5, realAssets: 7.5, hedgeFund: 5, privateEquity: 15 },
 };
 
 const generateChartData = (params: {
@@ -272,14 +257,38 @@ export default function PortfolioGrowthPage() {
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
     const [annualIncrease, setAnnualIncrease] = useState(0);
     const [investmentPeriod, setInvestmentPeriod] = useState(25);
+    const [assetAllocation, setAssetAllocation] = useState<Record<string, number>>(initialAllocation);
 
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
     const [likelihoods, setLikelihoods] = useState<any | null>(null);
-    const [portfolioMetrics, setPortfolioMetrics] = useState({
-        meanRateOfReturn: 8.50,
-        standardDeviation: 14.50,
-    });
+
+    const portfolioMetrics = useMemo(() => {
+        let totalWeight = 0;
+        let weightedRate = 0;
+        let weightedStdev = 0;
+
+        Object.entries(assetAllocation).forEach(([key, weight]) => {
+            const metrics = assetClassBaseMetrics[key];
+            if (metrics) {
+                weightedRate += (metrics.rate * weight) / 100;
+                weightedStdev += (metrics.stdev * weight) / 100;
+                totalWeight += weight;
+            }
+        });
+
+        // Normalize if not 100%
+        if (totalWeight > 0 && Math.abs(totalWeight - 100) > 0.1) {
+             weightedRate = (weightedRate / totalWeight) * 100;
+             weightedStdev = (weightedStdev / totalWeight) * 100;
+        }
+
+        return {
+            meanRateOfReturn: weightedRate,
+            standardDeviation: weightedStdev,
+            totalWeight
+        };
+    }, [assetAllocation]);
 
     const [mounted, setMounted] = useState(false);
 
@@ -306,45 +315,11 @@ export default function PortfolioGrowthPage() {
             annualContribution,
             annualWithdrawal,
             annualIncrease,
-            investmentPeriod
+            investmentPeriod,
+            ...portfolioMetrics
         };
         
-        const strategyRiskProfiles = {
-            'PE': { baseReturn: 9.5, baseStdev: 16.0 },
-            'VC': { baseReturn: 11.0, baseStdev: 20.0 },
-            'Infra': { baseReturn: 7.0, baseStdev: 12.0 },
-            'Secondaries': { baseReturn: 8.0, baseStdev: 14.0 },
-            'Other': { baseReturn: 8.5, baseStdev: 14.5 },
-            'all': { baseReturn: 8.5, baseStdev: 14.5 }
-        };
-
-        let riskProfile;
-        if (fundId === 'all' || !funds) {
-            riskProfile = strategyRiskProfiles.all;
-        } else {
-            const selectedFund = funds.find(f => f.id === fundId);
-            riskProfile = strategyRiskProfiles[selectedFund?.strategy as keyof typeof strategyRiskProfiles] || strategyRiskProfiles.Other;
-        }
-
-        const { baseReturn, baseStdev } = riskProfile;
-        const timeFactor = (investmentPeriod - 20) / 10; 
-        const netFlow = annualContribution - annualWithdrawal;
-        const netFlowFactor = startingBalance > 0 ? (netFlow / startingBalance) : 0;
-        const increaseFactor = (annualIncrease / 100) * (netFlow > 0 ? 1 : -1);
-
-        const returnAdjustment = (timeFactor * 0.5) + (netFlowFactor * 2) + (increaseFactor * 1);
-        const stdevAdjustment = (timeFactor * 1.0) + (netFlowFactor * 3) + (increaseFactor * 2);
-        
-        const newReturn = Math.max(5.0, Math.min(12.0, baseReturn + returnAdjustment));
-        const newStdev = Math.max(10.0, Math.min(22.0, baseStdev + stdevAdjustment));
-
-        const newPortfolioMetrics = {
-            meanRateOfReturn: newReturn,
-            standardDeviation: newStdev,
-        };
-        setPortfolioMetrics(newPortfolioMetrics);
-
-        const data = generateChartData({ ...params, ...newPortfolioMetrics });
+        const data = generateChartData(params);
         setChartData(data);
         const lastDataPoint = data[data.length - 1];
         if (lastDataPoint) {
@@ -356,8 +331,11 @@ export default function PortfolioGrowthPage() {
         }
         setLikelihoods(calculateLikelihoods(params));
 
-    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, fundId, funds]);
+    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, portfolioMetrics]);
 
+    const handleAllocationChange = (key: string, value: number) => {
+        setAssetAllocation(prev => ({ ...prev, [key]: value }));
+    };
 
     if (!mounted || !chartData || !potentialWealth || !likelihoods || !portfolioData) {
         return (
@@ -385,17 +363,27 @@ export default function PortfolioGrowthPage() {
         );
     }
 
-    const getAllocationDetails = (currentWealth: number, allocationProfile: Record<string, string>) => {
-        return Object.entries(allocationProfile).map(([key, percentage]) => {
+    const getAllocationDetails = (currentWealth: number, profile: Record<string, number>) => {
+        return Object.entries(profile).map(([key, percentage]) => {
             const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
-            const val = currentWealth * (parseFloat(percentage) / 100);
+            const val = currentWealth * (percentage / 100);
             return {
                 label,
-                percentage: percentage,
+                percentage: `${percentage.toFixed(2)}%`,
                 value: formatCurrency(val)
             };
         });
     };
+
+    const currentAllocationDetails = Object.entries(assetAllocation).map(([key, percentage]) => {
+        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+        const val = startingBalance * (percentage / 100);
+        return {
+            label,
+            percentage: `${percentage.toFixed(2)}%`,
+            value: formatCurrency(val)
+        };
+    });
 
   return (
     <div className="space-y-4">
@@ -412,7 +400,8 @@ export default function PortfolioGrowthPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-1">
                     <AssumptionsPanel 
-                        assumptions={staticAssumptions} 
+                        assetAllocation={assetAllocation}
+                        onAllocationChange={handleAllocationChange}
                         startingBalance={startingBalance}
                         annualContribution={annualContribution}
                         setAnnualContribution={setAnnualContribution}
@@ -431,6 +420,11 @@ export default function PortfolioGrowthPage() {
                             <div className="space-y-0.5 py-1">
                                 <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} />
                                 <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} />
+                                <MetricRow 
+                                    label="Total Allocation" 
+                                    value={`${portfolioMetrics.totalWeight.toFixed(2)}%`} 
+                                    valueClassName={Math.abs(portfolioMetrics.totalWeight - 100) > 0.1 ? "text-red-500" : "text-green-600"}
+                                />
                             </div>
                         </div>
                         <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
@@ -457,7 +451,7 @@ export default function PortfolioGrowthPage() {
                                         title: "Moderate Outlook",
                                         rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`,
                                         stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`,
-                                        allocation: getAllocationDetails(potentialWealth.moderate, allocationProfiles.moderate)
+                                        allocation: currentAllocationDetails
                                     }}
                                 />
                                 <MetricRow 

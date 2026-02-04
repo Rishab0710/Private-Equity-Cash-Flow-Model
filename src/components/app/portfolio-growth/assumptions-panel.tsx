@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 type AssumptionsPanelProps = {
-    assumptions: any;
+    assetAllocation: Record<string, number>;
+    onAllocationChange: (key: string, value: number) => void;
     startingBalance: number;
     annualContribution: number;
     setAnnualContribution: (value: number) => void;
@@ -15,21 +17,59 @@ type AssumptionsPanelProps = {
     setInvestmentPeriod: (value: number) => void;
 }
 
-const AssetAllocationRow = ({ label, percentage, balance }: { label: string, percentage: string, balance: number }) => {
-    const value = balance * (parseFloat(percentage) / 100);
+const AssetAllocationRow = ({ 
+    id,
+    label, 
+    percentage, 
+    balance,
+    onChange
+}: { 
+    id: string,
+    label: string, 
+    percentage: number, 
+    balance: number,
+    onChange: (val: number) => void
+}) => {
+    const value = balance * (percentage / 100);
     const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
     
+    const [displayVal, setDisplayVal] = useState(percentage.toString());
+
+    useEffect(() => {
+        setDisplayVal(percentage.toString());
+    }, [percentage]);
+
+    const handleChange = (val: string) => {
+        const cleaned = val.replace(/[^0-9.]/g, '');
+        setDisplayVal(cleaned);
+        const num = parseFloat(cleaned);
+        if (!isNaN(num)) {
+            onChange(num);
+        } else if (cleaned === '') {
+            onChange(0);
+        }
+    };
+
     return (
-        <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-3">
-            <p className={`text-xs text-black`}>{label}</p>
-            <p className="text-xs font-semibold text-right">{formatCurrency(value)}</p>
-            <p className="text-xs font-semibold text-right">{percentage}</p>
+        <div className="grid grid-cols-[1.5fr_1fr_0.8fr] items-center py-1.5 px-3 hover:bg-muted/20 transition-colors">
+            <p className="text-[11px] text-black font-medium">{label}</p>
+            <p className="text-[11px] font-bold text-right pr-2">{formatCurrency(value)}</p>
+            <div className="relative">
+                <Input 
+                    type="text"
+                    value={displayVal}
+                    onChange={(e) => handleChange(e.target.value)}
+                    className="h-6 text-right pr-4 text-[11px] font-bold border-black/10 focus:ring-1 focus:ring-primary"
+                />
+                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] font-bold text-black/40">%</span>
+            </div>
         </div>
     );
 };
 
 export function AssumptionsPanel({ 
-    assumptions, 
+    assetAllocation,
+    onAllocationChange,
     startingBalance,
     annualContribution,
     setAnnualContribution,
@@ -61,7 +101,7 @@ export function AssumptionsPanel({
         setter(e.target.value);
     }
     
-    const parseAndSet = (displayValue: string, setter: (val: number) => void, originalValue: number) => {
+    const parseAndSet = (displayValue: string, setter: (val: number) => void) => {
          const numericValue = parseFloat(displayValue.replace(/[^0-9.-]+/g,""));
          if (!isNaN(numericValue)) {
             setter(numericValue);
@@ -70,36 +110,26 @@ export function AssumptionsPanel({
          }
     }
 
-
-    const sortedAllocations = Object.entries(assumptions.assetAllocation)
-        .map(([key, percentage]) => {
-            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
-            return {
-                label,
-                percentage: percentage as string,
-                value: startingBalance * (parseFloat(percentage as string) / 100)
-            }
-        })
-        .sort((a, b) => b.value - a.value);
-
+    const totalAllocation = Object.values(assetAllocation).reduce((sum, val) => sum + val, 0);
 
     return (
         <div className="space-y-6">
-            <div className="divide-y divide-border rounded-lg border p-2">
-                <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="starting-balance" className="text-xs font-normal">Starting Balance</Label>
+            <div className="divide-y divide-border rounded-lg border border-black/10 bg-white shadow-sm p-2">
+                 <div className="py-1 px-2 font-bold text-[9px] text-highlight uppercase tracking-widest mb-1">Portfolio Inflows / Outflows</div>
+                <div className="flex justify-between items-center py-1.5 px-2">
+                    <Label htmlFor="starting-balance" className="text-[11px] font-medium text-black">Starting Balance</Label>
                     <div className="relative">
                         <Input
                             id="starting-balance"
                             type="text"
                             value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
                             disabled
-                            className="h-7 w-36 pl-3 text-xs text-left text-foreground disabled:opacity-100"
+                            className="h-7 w-32 pl-3 text-[11px] font-bold text-foreground disabled:opacity-100 bg-muted/20 border-none"
                         />
                     </div>
                 </div>
-                <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-contribution" className="text-xs font-normal">Annual Contribution</Label>
+                <div className="flex justify-between items-center py-1.5 px-2">
+                    <Label htmlFor="annual-contribution" className="text-[11px] font-medium text-black">Annual Contribution</Label>
                     <div className="relative">
                         <Input 
                             id="annual-contribution" 
@@ -107,13 +137,13 @@ export function AssumptionsPanel({
                             placeholder="$0"
                             value={contributionDisplay}
                             onChange={handleDisplayChange(setContributionDisplay)}
-                            onBlur={() => parseAndSet(contributionDisplay, setAnnualContribution, annualContribution)}
-                            className="h-7 w-36 pl-3 text-xs text-left"
+                            onBlur={() => parseAndSet(contributionDisplay, setAnnualContribution)}
+                            className="h-7 w-32 pl-3 text-[11px] font-bold text-left border-black/10"
                         />
                     </div>
                 </div>
-                 <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-withdrawal" className="text-xs font-normal">Annual Withdrawal</Label>
+                 <div className="flex justify-between items-center py-1.5 px-2">
+                    <Label htmlFor="annual-withdrawal" className="text-[11px] font-medium text-black">Annual Withdrawal</Label>
                     <div className="relative">
                          <Input 
                             id="annual-withdrawal" 
@@ -121,51 +151,63 @@ export function AssumptionsPanel({
                             placeholder="$0"
                             value={withdrawalDisplay}
                             onChange={handleDisplayChange(setWithdrawalDisplay)}
-                            onBlur={() => parseAndSet(withdrawalDisplay, setAnnualWithdrawal, annualWithdrawal)}
-                            className="h-7 w-36 pl-3 text-xs text-left"
+                            onBlur={() => parseAndSet(withdrawalDisplay, setAnnualWithdrawal)}
+                            className="h-7 w-32 pl-3 text-[11px] font-bold text-left border-black/10"
                         />
                     </div>
                 </div>
-                <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="annual-increase" className="text-xs font-normal">Annual Increase</Label>
+                <div className="flex justify-between items-center py-1.5 px-2">
+                    <Label htmlFor="annual-increase" className="text-[11px] font-medium text-black">Annual Increase (%)</Label>
                     <div className="relative">
-                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-7 w-36 pr-7 text-xs text-left" />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">%</span>
+                        <Input id="annual-increase" type="number" value={annualIncrease} onChange={e => setAnnualIncrease(Number(e.target.value))} className="h-7 w-32 text-[11px] font-bold text-left border-black/10" />
                     </div>
                 </div>
-                <div className="flex justify-between items-center py-1.5">
-                    <Label htmlFor="investment-period" className="text-xs font-normal">Investment Period</Label>
+                <div className="flex justify-between items-center py-1.5 px-2">
+                    <Label htmlFor="investment-period" className="text-[11px] font-medium text-black">Investment Period (Yrs)</Label>
                     <div className="relative">
-                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-7 w-36 pr-16 text-xs text-left" />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground text-xs">Years</span>
+                        <Input id="investment-period" type="number" value={investmentPeriod} onChange={e => setInvestmentPeriod(Number(e.target.value))} className="h-7 w-32 text-[11px] font-bold text-left border-black/10" />
                     </div>
                 </div>
             </div>
 
-            <div className="divide-y divide-border rounded-lg border">
-                <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-1.5 px-4 font-medium">
-                     <p className="text-xs">Asset Allocation</p>
-                     <p className="text-xs text-right">Value</p>
-                     <p className="text-xs text-right">Current</p>
+            <div className="divide-y divide-border rounded-lg border border-black/10 bg-white shadow-sm overflow-hidden">
+                <div className="py-2 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Asset Allocation Model</div>
+                <div className="grid grid-cols-[1.5fr_1fr_0.8fr] items-center py-1.5 px-4 font-bold text-[9px] text-black/60 uppercase bg-muted/10">
+                     <span>Asset Class</span>
+                     <span className="text-right">Value</span>
+                     <span className="text-right">Target %</span>
                 </div>
-                {sortedAllocations.map(alloc => (
+                {Object.entries(assetAllocation).map(([key, percentage]) => (
                     <AssetAllocationRow 
-                        key={alloc.label}
-                        label={alloc.label} 
-                        percentage={alloc.percentage} 
+                        key={key}
+                        id={key}
+                        label={key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())} 
+                        percentage={percentage} 
                         balance={startingBalance} 
+                        onChange={(val) => onAllocationChange(key, val)}
                     />
                 ))}
-                <div className="grid grid-cols-[2fr_1fr_1fr] items-center py-2 px-3 font-bold text-foreground">
-                    <p className="text-sm">Total</p>
-                    <p className="text-sm text-right">
+                <div className="grid grid-cols-[1.5fr_1fr_0.8fr] items-center py-2.5 px-3 font-bold text-black bg-muted/20 border-t">
+                    <p className="text-[11px] uppercase tracking-wider">Total Portfolio</p>
+                    <p className="text-[11px] text-right pr-2">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(startingBalance)}
                     </p>
-                    <p className="text-sm text-right">
-                        {sortedAllocations.reduce((sum, p) => sum + parseFloat(p.percentage), 0).toFixed(2)}%
+                    <p className={cn(
+                        "text-[11px] text-right pr-2",
+                        Math.abs(totalAllocation - 100) > 0.1 ? "text-red-500" : "text-green-600"
+                    )}>
+                        {totalAllocation.toFixed(2)}%
                     </p>
                 </div>
             </div>
+            
+            {Math.abs(totalAllocation - 100) > 0.1 && (
+                <div className="p-2.5 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-[10px] text-red-600 font-bold uppercase leading-tight">
+                        Warning: Portfolio allocation totals {totalAllocation.toFixed(2)}%. Metrics are normalized but re-balancing is recommended for accurate projections.
+                    </p>
+                </div>
+            )}
         </div>
     )
 }
