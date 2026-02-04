@@ -231,12 +231,23 @@ const MetricRow = ({
     );
 };
 
-function AddFundDialog() {
+interface AddFundDialogProps {
+  onApply: (data: {
+    name: string;
+    contribution: number;
+    withdrawal: number;
+    allocation: Record<string, number>;
+    returnVal: number;
+    stdev: number;
+  }) => void;
+}
+
+function AddFundDialog({ onApply }: AddFundDialogProps) {
   const { addFund, setFundId } = usePortfolioContext();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [commitment, setCommitment] = useState(10000000);
-  const [strategy, setStrategy] = useState<'PE' | 'VC' | 'Infra' | 'Secondaries' | 'Other'>('PE');
+  const [contribution, setContribution] = useState(0);
+  const [withdrawal, setWithdrawal] = useState(0);
   const [returnAssumption, setReturnAssumption] = useState(12.0);
   const [stdevAssumption, setStdevAssumption] = useState(15.0);
   const [allocation, setAllocation] = useState<Record<string, number>>(initialAllocation);
@@ -246,17 +257,28 @@ function AddFundDialog() {
     const newFund: Fund = {
       id,
       name,
-      commitment,
-      strategy,
+      commitment: 0, // Not explicitly used for the growth model logic requested
+      strategy: 'Other',
       region: 'North America',
       vintageYear: new Date().getFullYear(),
       investmentPeriod: 5,
       fundLife: 10,
-      latestNav: commitment,
+      latestNav: 0,
       forecastIRR: returnAssumption / 100,
     };
     addFund(newFund);
     setFundId(id);
+    
+    // Apply new data to the screen model
+    onApply({
+      name,
+      contribution,
+      withdrawal,
+      allocation,
+      returnVal: returnAssumption,
+      stdev: stdevAssumption,
+    });
+    
     setOpen(false);
   };
 
@@ -287,22 +309,12 @@ function AddFundDialog() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase text-black/60">Strategy</Label>
-                <Select value={strategy} onValueChange={(v: any) => setStrategy(v)}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PE" className="text-xs">Private Equity</SelectItem>
-                    <SelectItem value="VC" className="text-xs">Venture Capital</SelectItem>
-                    <SelectItem value="Infra" className="text-xs">Infrastructure</SelectItem>
-                    <SelectItem value="Secondaries" className="text-xs">Secondaries</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-[10px] font-bold uppercase text-black/60">Annual Contribution ($)</Label>
+                <Input type="number" value={contribution} onChange={e => setContribution(Number(e.target.value))} className="h-8 text-xs" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase text-black/60">Commitment ($)</Label>
-                <Input type="number" value={commitment} onChange={e => setCommitment(Number(e.target.value))} className="h-8 text-xs" />
+                <Label className="text-[10px] font-bold uppercase text-black/60">Annual Withdrawal ($)</Label>
+                <Input type="number" value={withdrawal} onChange={e => setWithdrawal(Number(e.target.value))} className="h-8 text-xs" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -436,6 +448,16 @@ export default function PortfolioGrowthPage() {
         setAssetAllocation(prev => ({ ...prev, [key]: value }));
     };
 
+    const handleApplyNewFund = (data: {
+      contribution: number;
+      withdrawal: number;
+      allocation: Record<string, number>;
+    }) => {
+      setAnnualContribution(data.contribution);
+      setAnnualWithdrawal(data.withdrawal);
+      setAssetAllocation(data.allocation);
+    };
+
     if (!mounted || !chartData || !potentialWealth || !likelihoods || !portfolioData) {
         return (
             <div className="space-y-4">
@@ -491,7 +513,7 @@ export default function PortfolioGrowthPage() {
                 Potential Growth of Portfolio Wealth
             </h1>
             <div className="flex items-center gap-2">
-              <AddFundDialog />
+              <AddFundDialog onApply={handleApplyNewFund} />
               <FundSelector
                   selectedFundId={fundId}
                   onFundChange={setFundId}
