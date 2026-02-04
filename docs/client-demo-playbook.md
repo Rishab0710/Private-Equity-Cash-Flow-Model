@@ -1,83 +1,91 @@
-# Verity Forecaster: Client Demo Playbook
+# Verity Forecaster: The Institutional Demo Playbook
 
-This document provides a scripted walkthrough and functional guide for the Verity Forecaster application. Use this to guide your client presentation for maximum impact.
-
----
-
-## 🎯 The Core Narrative
-**"From Visibility to Certainty"**
-*The private market landscape is often opaque. Verity Forecaster turns raw fund data into institutional-grade foresight, allowing you to model fund DNA, project 25-year wealth, and stress-test your portfolio against global volatility.*
+This document is a professional, high-impact guide designed for an executive-level walkthrough. It transitions from fund-level modeling to long-term wealth projections and final resilience testing.
 
 ---
 
 ## 🖥️ Screen 1: Assumptions Studio
-**Theme:** *Modeling the Fund DNA*
+**Theme:** *Engineering the Fund DNA*
 
-### 🛠️ Key Functionalities
-1.  **J-Curve Shape Controls**: 
-    - **Pacing & Depth**: Adjust how fast capital is called and how deep the "valley of death" (negative returns) goes.
-    - **Breakeven Timing**: Models exactly when the cumulative cash flow is expected to cross into profit.
-2.  **Multiples Target Engine**: 
-    - **TVPI/DPI/RVPI Sync**: Changing the J-Curve shape (like speed of distribution) automatically updates the target realized (DPI) and unrealized (RVPI) multiples.
-3.  **Summary Outputs**:
-    - **Dynamic KPIs**: Real-time updates for Total Called, Ending NAV, and ITD IRR as you move sliders.
-4.  **Assumption Sets (Comparison)**:
-    - **Side-by-Side Analysis**: Select multiple saved sets to compare different manager strategies (e.g., Buyout vs. Venture) in a professional drawer.
+### 🛠️ Key Functionalities (The "How it Works")
+1.  **High-Fidelity J-Curve Controls**: 
+    *   **Pacing & Depth**: Models the initial "Valley of Death." Adjusting depth simulates how aggressive or conservative the early investment period is.
+    *   **Breakeven & Dist. Velocity**: Directly controls the pivot point where the fund crosses into profitability, adjusting the slope of the realization curve.
+2.  **Bidirectional Multiples Engine**: 
+    *   **Proportional Sync**: Changing TVPI (Total Value) automatically recalculates DPI (Realized) and RVPI (Unrealized) based on the current J-Curve shape.
+    *   **Heuristic MOIC Tracking**: Automatically scales Gross Multiples (MOIC) to ensure fee and carry assumptions remain institutionally sound.
+3.  **Strategy-Specific Benchmarking**: 
+    *   Visual comparison against "BlackRock Vesey Street" or "Columbia Partners" templates to show where your manager sits relative to the market.
+4.  **Assumption Snapshot Manager**: 
+    *   Save and name specific "Stress" or "Base" cases. Use the **Analytical Comparison Drawer** for side-by-side data attribution of up to 3 models.
+5.  **Dynamic KPI Dashboard**: 
+    *   9 real-time metrics (ITD IRR, Peak NAV, RVPI, etc.) that update 60 times per second as you move sliders, proving the real-time power of the engine.
 
 ### 🎭 Storytelling Script
-> "Before we forecast a portfolio, we must understand the funds within it. In the **Assumptions Studio**, we don't just pick a return; we model the life-cycle. 
+> "Most tools treat private market returns as a flat line. In the **Assumptions Studio**, we treat them as a lifecycle. 
 > 
-> Watch as I adjust the **J-Curve Depth**. Notice how the performance profile dips—this isn't just a graphic; it's recalculating the ITD IRR and the funding pressure. We are creating a 'digital twin' of your investment strategy."
+> Watch the **J-Curve Performance Profile** as I adjust the **Distribution Speed** to 'Fast.' Notice how the slope of our DPI realization sharpens immediately. We aren't just picking an outcome; we are creating a 'digital twin' of the fund's DNA. 
+> 
+> This allows your team to move from static spreadsheets to dynamic 'what-if' modeling in seconds. If a GP promises a 2.5x TVPI, we can model the exact deployment pacing required to hit it."
 
 ---
 
 ## 🖥️ Screen 2: Cash Flow Forecasting (Portfolio Growth)
-**Theme:** *Institutional Wealth Horizons*
+**Theme:** *Navigating Institutional Wealth Horizons*
 
-### 🛠️ Key Functionalities
-1.  **25-Year Long-Term Projection**:
-    - Extends far beyond standard 5-year views to capture the full compounding power of private equity.
-2.  **Monte Carlo Risk Profiles**:
-    - **Conservative, Moderate, Aggressive**: Three distinct paths modeled with varying mean returns and standard deviations.
+### 🛠️ Key Functionalities (The "How it Works")
+1.  **25-Year Strategic Wealth Engine**: 
+    *   Extends beyond the standard 5-year window to capture the full power of private market compounding and lifecycle rollover.
+2.  **Probabilistic Monte Carlo Paths**: 
+    *   Displays three distinct futures: **Conservative** (Lower volatility, lower return), **Moderate** (Base case), and **Aggressive** (Alpha-focused).
 3.  **The "Alpha" Deep-Dive (High-Contrast Modals)**:
-    - **Dynamic Asset Allocation**: Click the **Sparkles** icon.
-    - **Scenario Specificity**: Each outlook has unique weights. Conservative is heavy on Fixed Income; Aggressive is optimized with 15%+ in Private Equity.
-    - **High-Contrast Design**: Labels and headers are pure black for maximum readability during screen-sharing.
-4.  **Dynamic Likelihood Scores**:
-    - Surfaced % Likelihood metrics for each path to provide immediate risk context.
+    *   **Dynamic Asset Allocation**: Click the **Sparkles** icon to reveal the target composition.
+    *   **Strategic Weights**: Each profile has a unique target. The **Aggressive** profile is optimized with 15%+ in PE, while **Conservative** shifts to 50% Fixed Income.
+    *   **Institutional Totals**: Automated bottom-row totals ensure the terminal wealth value matches the asset allocation sum exactly.
+4.  **% Likelihood Attribution**: 
+    *   Instantly see the statistical confidence for each wealth tier, moving the conversation from 'hope' to 'probability.'
+5.  **Interactive Cash Flow Inputs**: 
+    *   Model annual contributions and withdrawals with inflation-linked increases to simulate a growing family office or institutional corpus.
 
 ### 🎭 Storytelling Script
-> "Now, we translate fund performance into total wealth. We’ve set the investment horizon to **25 years** because private markets are a marathon, not a sprint.
+> "Now, we translate fund behavior into total wealth. Because private markets are a marathon, we look out over a **25-year horizon**.
 > 
-> Here’s the **Wow Factor**: If I open the **Aggressive Outlook** details, you’ll see our target asset allocation has shifted. The system isn't just increasing the return rate; it's showing you the *portfolio composition* required to reach that $100M+ terminal value. It’s strategy, not just math."
+> Look at the **Aggressive Outlook**. You’ll see a significant wealth spike, but let’s look at *why*. By opening the **Model Assumptions**, we see the system has automatically rebalanced our target weights. To hit this $100M+ target, the model is shifting us to a 60% Equity and 15% Private Equity allocation. 
+> 
+> It’s not just showing you a higher return; it’s showing you the *asset mix* required to sustain it. This transforms the tool from a calculator into a strategic advisor."
 
 ---
 
 ## 🖥️ Screen 3: Scenario Simulation
-**Theme:** *Stress Testing Reality*
+**Theme:** *Stress Testing Reality & Resilience*
 
-### 🛠️ Key Functionalities
-1.  **Macro Scenario Selector**:
-    - **Recession, Rising Rates, Liquidity Crunch**: Instantly re-models the entire portfolio based on historical macro-shocks.
-2.  **Visual Cash Flow (Signage Convention)**:
-    - **Negative Contributions**: Capital calls are clearly shown below the zero-line.
-    - **Positive Withdrawals**: Distributions are shown above.
-3.  **Axis Integrity**:
-    - Optimized margins ensuring the 'Portfolio & Liquidity' labels are never cut off.
-4.  **Actionable Recommendations**:
-    - Context-aware insights that tell the client exactly what to do (e.g., "Upsize Credit Facility") when a liquidity gap is detected.
+### 🛠️ Key Functionalities (The "How it Works")
+1.  **One-Click Macro Shock Testing**: 
+    *   Instantly apply historical-grade shocks like **Recession**, **Stagflation**, or **Liquidity Crunch** to the entire portfolio.
+2.  **Financial Signage Convention Chart**: 
+    *   **Negative Bars**: Capital calls (outflows) are clearly shown below the zero-line.
+    *   **Positive Bars**: Distributions (inflows) are shown above.
+3.  **Dual-Axis Visualization**: 
+    *   Simultaneously tracks **Net Cash Flow** (bars) against **Portfolio NAV & Liquidity Balance** (lines), showing exactly when funding needs exceed available cash.
+4.  **AI-Driven Narrative Insights**: 
+    *   The system generates a specific "Story of the Scenario," highlighting short-term pain versus long-term recovery potential.
+5.  **Strategic Action Planner**: 
+    *   Context-aware recommendations (e.g., "Upsize Credit Facility," "Monitor Concentration") based on the severity of the liquidity gap.
+6.  **Cross-Scenario Comparison Table**: 
+    *   A high-contrast grid comparing Ending Value, IRR, and Peak Funding Needs across scenarios to identify the 'Best' and 'Worst' case outcomes.
 
 ### 🎭 Storytelling Script
-> "Finally, we ask: 'What if the world breaks?' Let's apply a **Recession** scenario. 
+> "Finally, we ask the toughest question: 'What if the world breaks?' Let's apply a **Liquidity Crunch**. 
 > 
-> Look at the **Visualization Chart**. Notice the bars below the line—our **Contributions** are accelerating as GPs call capital to save assets, while our **Withdrawals (the positive bars)** are drying up. 
+> Watch the **Visualization Chart**. In a crunch, our **Withdrawals (the positive bars)** effectively vanish as the exit market freezes. Meanwhile, our **Contributions (the negative bars)** accelerate as GPs call capital to shore up balance sheets. 
 > 
-> This isn't just a chart; it's your early warning system. It identifies the exact quarter you’ll hit a liquidity gap so you can act today."
+> Look at the **Peak Liquidity Pressure** metric. It has spiked to 'High.' The system is alerting us to a specific quarter where our funding gap becomes critical. This is your early warning system. It tells you today what you need to do to avoid a default in three years."
 
 ---
 
-## ✨ The "Wow" Factor Checklist for the Demo:
-- [ ] **Interactive Sliders**: Always move a slider in Assumptions Studio to show the J-Curve and Summary metrics update in real-time.
-- [ ] **The Modal Reveal**: Open a "Portfolio Growth" modal and point out the **Total Row** at the bottom—it proves the model's integrity.
-- [ ] **Scenario Switch**: Move from "Base Case" to "Liquidity Crunch" and wait 1 second for the charts to re-animate. The visual shift is powerful.
-- [ ] **Color Contrast**: Mention that the high-contrast black-on-white text in pop-ups was specifically chosen for executive-level clarity.
+## ✨ The "Wow" Factor Checklist for your Demo:
+- [ ] **Interactive Shift**: Move a slider in Assumptions Studio and wait for the client to notice the ITD IRR update in real-time.
+- [ ] **The "Alpha" Reveal**: Click the Sparkles icon on the Aggressive row in Portfolio Growth. Point out the high-contrast black-on-white text for "Executive Clarity."
+- [ ] **Scenario Switch**: Change from "Base Case" to "Recession" and point at the chart as the bars flip and the narrative text regenerates.
+- [ ] **Signage Point**: Explain why the contributions are negative—"It represents cash leaving your pocket, giving you a true heartbeat of your liquidity."
+- [ ] **25-Year Vision**: Mention that "standard tools stop at 5 or 10 years, but we model the full compounding lifecycle of your wealth."
