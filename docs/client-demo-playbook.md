@@ -21,6 +21,25 @@ This document is a professional, high-impact guide designed for an executive-lev
 5.  **Dynamic KPI Dashboard**: 
     *   9 real-time metrics (ITD IRR, Peak NAV, RVPI, etc.) that update 60 times per second as you move sliders, proving the real-time power of the engine.
 
+### 🔬 The Anatomy of J-Curve Controls (Technical Deep Dive)
+*When the client asks "What exactly does this dropdown change?", use these definitions:*
+
+1.  **Deployment Pacing**: Controls the velocity of capital calls.
+    *   *Front-loaded*: High initial funding needs. Typical of **Secondary** or **Buyout** funds putting cash to work immediately.
+    *   *Back-loaded*: Delayed deployment. Common in **Venture Capital** where capital is called as needed for follow-on rounds over several years.
+2.  **J-Curve Depth**: Models the magnitude of the initial negative returns (fees + markdowns).
+    *   *Shallow*: Typical for **Infrastructure** or **Private Credit** where early yields offset management fees.
+    *   *Deep*: Typical for **Early Stage Venture** or **Turnaround PE** where initial markdowns are significant before value creation kicks in.
+3.  **Time to Breakeven**: The precise year where cumulative net cash flow turns positive.
+    *   *Early (Yr 3-4)*: High-velocity strategies.
+    *   *Late (Yr 7+)*: Long-term build strategies where capital is locked in for growth.
+4.  **Distribution Start**: The inception point of the realization phase.
+    *   *Early*: Yield-focused or "quick flip" strategies.
+    *   *Late*: Strategies focused on a massive terminal exit (e.g., an IPO-heavy VC fund).
+5.  **Distribution Speed**: The slope of the exit curve.
+    *   *Fast*: Aggressive realization, high turnover of the portfolio.
+    *   *Slow*: Models challenging exit markets or "long-hold" strategies (e.g., Core Real Estate).
+
 ### 🎭 Storytelling Script
 > "Most tools treat private market returns as a flat line. In the **Assumptions Studio**, we treat them as a lifecycle. 
 > 
