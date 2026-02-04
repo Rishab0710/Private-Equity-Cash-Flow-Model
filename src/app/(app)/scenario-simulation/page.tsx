@@ -307,7 +307,13 @@ export function ScenarioComparisonDialog({ isOpen, onOpenChange }: { isOpen: boo
 
 export default function ScenarioSimulationPage() {
     const { scenario: selectedScenarioId, setScenario, portfolioData } = usePortfolioContext();
+    const [mounted, setMounted] = useState(false);
     const [isCompareOpen, setIsCompareOpen] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const s = scenarios[selectedScenarioId];
 
     const narrative = useMemo(() => ({
@@ -397,6 +403,8 @@ export default function ScenarioSimulationPage() {
             ]
         },
     }[selectedScenarioId]), [selectedScenarioId]);
+
+    if (!mounted || !portfolioData) return <Skeleton className="h-screen w-full" />;
 
     return (
         <div className="space-y-4">

@@ -34,13 +34,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [fundId, setFundId] = useState<string>('all');
   const [scenario, setScenario] = useState<Scenario>('base');
-  const [asOfDate, setAsOfDate] = useState<Date | undefined>(new Date());
+  const [asOfDate, setAsOfDate] = useState<Date | undefined>(undefined);
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [funds, setFunds] = useState<Fund[]>(staticFunds);
   const [capitalCallPacing, setCapitalCallPacing] = useState(100);
   const [distributionVelocity, setDistributionVelocity] = useState(100);
 
   const addFund = (newFund: Fund) => setFunds(prev => [...prev, newFund]);
+
+  useEffect(() => {
+    setAsOfDate(new Date());
+  }, []);
 
   useEffect(() => {
     if (asOfDate) {

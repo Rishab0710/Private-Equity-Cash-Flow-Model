@@ -116,12 +116,14 @@ const MetricRow = ({
     value, 
     likelihood,
     valueClassName,
+    showSpark = true,
     details
 }: { 
     label: string, 
     value: string | number, 
     likelihood?: string,
     valueClassName?: string,
+    showSpark?: boolean,
     details?: {
         title: string;
         rate: string;
@@ -137,8 +139,8 @@ const MetricRow = ({
             <p className="text-xs font-medium text-black uppercase tracking-tight">{label}</p>
             <p className={cn("text-xs font-bold text-right pr-4", valueClassName)}>{value}</p>
             {likelihood && <p className="text-xs text-black font-medium text-center">{likelihood}</p>}
-            <div className="flex justify-end">
-                {details && (
+            <div className="flex justify-end min-w-[20px]">
+                {(showSpark && details) && (
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-4 w-4 rounded-full bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-all duration-300">
@@ -275,6 +277,7 @@ function AddFundDialog({ onApply }: AddFundDialogProps) {
 
 export default function PortfolioGrowthPage() {
     const { fundId, setFundId } = usePortfolioContext();
+    const [mounted, setMounted] = useState(false);
     const [startingBalance, setStartingBalance] = useState(93391123);
     const [annualContribution, setAnnualContribution] = useState(0);
     const [annualWithdrawal, setAnnualWithdrawal] = useState(0);
@@ -284,6 +287,10 @@ export default function PortfolioGrowthPage() {
 
     const [chartData, setChartData] = useState<any[] | null>(null);
     const [potentialWealth, setPotentialWealth] = useState<any | null>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const portfolioMetrics = useMemo(() => {
         let weightedRate = 0;
@@ -307,11 +314,12 @@ export default function PortfolioGrowthPage() {
     }, [fundId]);
 
     useEffect(() => {
+        if (!mounted) return;
         const data = generateChartData({ startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, ...portfolioMetrics });
         setChartData(data);
         const last = data[data.length - 1];
         if (last) setPotentialWealth({ conservative: last.conservative * 1000000, moderate: last.moderate * 1000000, aggressive: last.aggressive * 1000000 });
-    }, [startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, portfolioMetrics]);
+    }, [mounted, startingBalance, annualContribution, annualWithdrawal, annualIncrease, investmentPeriod, portfolioMetrics]);
 
     const handleApplyNewFund = (data: any) => {
       setAnnualContribution(data.contribution);
@@ -320,7 +328,7 @@ export default function PortfolioGrowthPage() {
       setStartingBalance(10000000); // Default seed for new model fund
     };
 
-    if (!chartData || !potentialWealth) return <Skeleton className="h-screen w-full" />;
+    if (!mounted || !chartData || !potentialWealth) return <Skeleton className="h-screen w-full" />;
 
     const formatCurrency = (v: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(v);
     const getAllocationDetails = (current: number, p: Record<string, number>) => Object.entries(p).map(([k, pct]) => ({ label: k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()), percentage: `${pct}%`, value: formatCurrency(current * (pct / 100)) }));
@@ -346,9 +354,9 @@ export default function PortfolioGrowthPage() {
                     <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
                         <div className="py-2 px-3 bg-muted/30 font-bold text-[9px] text-highlight uppercase tracking-widest border-b">Portfolio Risk Profile</div>
                         <div className="py-1">
-                            <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} details={{ title: "Mean Rate of Return", rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`, stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`, allocation: getAllocationDetails(startingBalance, assetAllocation)}} />
-                            <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} details={{ title: "Standard Deviation (Risk)", rate: `${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`, stdev: `${portfolioMetrics.standardDeviation.toFixed(2)}%`, allocation: getAllocationDetails(startingBalance, assetAllocation)}} />
-                            <MetricRow label="Total Allocation" value={`${portfolioMetrics.totalWeight.toFixed(1)}%`} valueClassName={Math.abs(portfolioMetrics.totalWeight - 100) > 0.1 ? "text-red-500" : "text-green-600"} />
+                            <MetricRow label="Mean Rate of Return" value={`${portfolioMetrics.meanRateOfReturn.toFixed(2)}%`} showSpark={false} />
+                            <MetricRow label="Standard Deviation" value={`${portfolioMetrics.standardDeviation.toFixed(2)}%`} showSpark={false} />
+                            <MetricRow label="Total Allocation" value={`${portfolioMetrics.totalWeight.toFixed(1)}%`} valueClassName={Math.abs(portfolioMetrics.totalWeight - 100) > 0.1 ? "text-red-500" : "text-green-600"} showSpark={false} />
                         </div>
                     </div>
                     <div className="divide-y divide-border rounded-lg border border-black/10 overflow-hidden bg-white shadow-sm">
